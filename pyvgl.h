@@ -1,0 +1,13 @@
+#ifndef pyvgl_h_included_
+#define pyvgl_h_included_
+
+#include <pybind11/pybind11.h>
+
+namespace pyvxl {
+
+void wrap_vgl(pybind11::module &m);
+
+}
+
+
+#endif
