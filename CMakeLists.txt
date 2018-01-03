@@ -1,5 +1,5 @@
 include_directories(${PYTHON_INCLUDE_PATH})
-include_directories(${PYBIND11_INCLUDE_PATH})
+include_directories(${PYBIND11_INCLUDE_DIR})
 
 set(PYVXL_SOURCES
   pyvxl.cxx
@@ -10,12 +10,6 @@ set(PYVXL_SOURCES
   pyvgl_algo.h pyvgl_algo.cxx
   )
 
-# pybind11_add_module
-add_library(pyvxl SHARED ${PYVXL_SOURCES})
-target_link_libraries(pyvxl vgl vnl vpgl vil ${PYTHON_LIBRARIES})
-set_target_properties(pyvxl PROPERTIES OUTPUT_NAME vxl)
-set_target_properties(pyvxl PROPERTIES PREFIX "")
-set_target_properties(pyvxl PROPERTIES SUFFIX ".so")
-
+pybind11_add_module(pyvxl ${PYVXL_SOURCES})
 
 install(TARGETS pyvxl DESTINATION ${PYTHON_LIB_INSTALL_ROOT})
