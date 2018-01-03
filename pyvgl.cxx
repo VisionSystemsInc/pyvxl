@@ -71,7 +71,7 @@ template<class T>
 double vgl_get_z(T const& a) { return a.z(); }
 
 template <class T, class BUFF_T>
-void type_from_buffer_2d(py::array_t<BUFF_T> b)
+T type_from_buffer_2d(py::array_t<BUFF_T> b)
 {
   py::buffer_info info = b.request();
   if (info.format != py::format_descriptor<BUFF_T>::format()) {
@@ -94,7 +94,7 @@ void type_from_buffer_2d(py::array_t<BUFF_T> b)
 }
 
 template <class T, class BUFF_T>
-void type_from_buffer_3d(py::array_t<BUFF_T> b)
+T type_from_buffer_3d(py::array_t<BUFF_T> b)
 {
   py::buffer_info info = b.request();
   if (info.format != py::format_descriptor<BUFF_T>::format()) {
@@ -121,7 +121,7 @@ void wrap_vgl(py::module &m)
 {
   py::class_<vgl_point_2d<double> > (m, "vgl_point_2d")
     .def(py::init<double,double>())
-    .def(py::init(&type_from_buffer_2d<vgl_point_2d<double>, double>)
+    .def(py::init(&type_from_buffer_2d<vgl_point_2d<double>, double>))
     .def("__len__", two<vgl_point_2d<double> >)
     .def("__getitem__", vgl_getitem_2d<vgl_point_2d<double> >)
     .def_property_readonly("x", &vgl_get_x<vgl_point_2d<double> >)
@@ -130,7 +130,7 @@ void wrap_vgl(py::module &m)
 
   py::class_<vgl_vector_2d<double> > (m, "vgl_vector_2d")
     .def(py::init<double,double>())
-    .def(py::init(&type_from_buffer_2d<vgl_vector_2d<double>, double>)
+    .def(py::init(&type_from_buffer_2d<vgl_vector_2d<double>, double>))
     .def("__len__", two<vgl_vector_2d<double> >)
     .def("__getitem__",vgl_getitem_2d<vgl_vector_2d<double> >)
     .def_property_readonly("x", &vgl_vector_2d<double>::x)
@@ -141,7 +141,7 @@ void wrap_vgl(py::module &m)
 
   py::class_<vgl_point_3d<double> > (m, "vgl_point_3d")
     .def(py::init<double,double,double>())
-    .def(py::init(&type_from_buffer_3d<vgl_point_3d<double>, double>)
+    .def(py::init(&type_from_buffer_3d<vgl_point_3d<double>, double>))
     .def("__len__", three<vgl_point_3d<double> >)
     .def("__getitem__", vgl_getitem_3d<vgl_point_3d<double> >)
     .def_property_readonly("x", vgl_get_x<vgl_point_3d<double> >)
@@ -151,7 +151,7 @@ void wrap_vgl(py::module &m)
 
   py::class_<vgl_vector_3d<double> > (m, "vgl_vector_3d")
     .def(py::init<double,double,double>())
-    .def(py::init(&type_from_buffer_3d<vgl_vector_3d<double>, double>)
+    .def(py::init(&type_from_buffer_3d<vgl_vector_3d<double>, double>))
     .def("__len__", three<vgl_vector_3d<double> >)
     .def("__getitem__", vgl_getitem_3d<vgl_vector_3d<double> >)
     .def_property_readonly("x", &vgl_vector_3d<double>::x)
