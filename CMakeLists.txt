@@ -11,5 +11,6 @@ set(PYVXL_SOURCES
   )
 
 pybind11_add_module(pyvxl ${PYVXL_SOURCES})
+target_link_libraries(pyvxl PRIVATE vgl vnl vpgl vil)
 
 install(TARGETS pyvxl DESTINATION ${PYTHON_LIB_INSTALL_ROOT})
