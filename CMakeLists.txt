@@ -1,5 +1,6 @@
+project("pyvxl")
+
 include_directories(${PYTHON_INCLUDE_PATH})
-include_directories(${PYBIND11_INCLUDE_DIR})
 
 set(PYVXL_SOURCES
   pyvxl.cxx
@@ -13,4 +14,12 @@ set(PYVXL_SOURCES
 pybind11_add_module(vxl ${PYVXL_SOURCES})
 target_link_libraries(vxl PRIVATE vgl vnl vpgl vil)
 
-install(TARGETS vxl DESTINATION ${PYTHON_LIB_INSTALL_ROOT})
+execute_process(
+  COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
+    from distutils import sysconfig as sc
+    print(sc.get_python_lib(plat_specific=True))"
+  OUTPUT_VARIABLE PYTHON_SITE_DEFAULT
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(PYTHON_SITE ${PYTHON_SITE_DEFAULT})
+
+install(TARGETS vxl DESTINATION ${PYTHON_SITE})
