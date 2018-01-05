@@ -10,7 +10,7 @@ set(PYVXL_SOURCES
   pyvgl_algo.h pyvgl_algo.cxx
   )
 
-pybind11_add_module(pyvxl ${PYVXL_SOURCES})
-target_link_libraries(pyvxl PRIVATE vgl vnl vpgl vil)
+pybind11_add_module(vxl ${PYVXL_SOURCES})
+target_link_libraries(vxl PRIVATE vgl vnl vpgl vil)
 
-install(TARGETS pyvxl DESTINATION ${PYTHON_LIB_INSTALL_ROOT})
+install(TARGETS vxl DESTINATION ${PYTHON_LIB_INSTALL_ROOT})
