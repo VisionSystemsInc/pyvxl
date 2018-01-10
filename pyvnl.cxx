@@ -362,12 +362,12 @@ void wrap_vnl_quaternion(py::module &m, std::string const& class_name)
 
 void wrap_vnl(py::module &m)
 {
-  wrap_vnl_vector<double>(m, "vnl_vector");
-  wrap_vnl_matrix<double>(m, "vnl_matrix");
-  wrap_vnl_matrix_fixed<double,3,3>(m, "vnl_matrix_fixed_3x3");
-  wrap_vnl_matrix_fixed<double,3,4>(m, "vnl_matrix_fixed_3x4");
-  wrap_vnl_vector_fixed<double,3>(m, "vnl_vector_fixed_3");
-  wrap_vnl_vector_fixed<double,4>(m, "vnl_vector_fixed_4");
-  wrap_vnl_quaternion<double>(m, "vnl_quaternion");
+  wrap_vnl_vector<double>(m, "vector");
+  wrap_vnl_matrix<double>(m, "matrix");
+  wrap_vnl_matrix_fixed<double,3,3>(m, "matrix_fixed_3x3");
+  wrap_vnl_matrix_fixed<double,3,4>(m, "matrix_fixed_3x4");
+  wrap_vnl_vector_fixed<double,3>(m, "vector_fixed_3");
+  wrap_vnl_vector_fixed<double,4>(m, "vector_fixed_4");
+  wrap_vnl_quaternion<double>(m, "quaternion");
 }
 }

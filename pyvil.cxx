@@ -118,10 +118,10 @@ void vil_save_wrapper(vil_image_view<T> const& img, std::string const& filename)
 
 void wrap_vil(py::module &m)
 {
-  wrap_vil_image_view<unsigned char>(m, "vil_image_view_byte");
-  wrap_vil_image_view<float>(m, "vil_image_view_float");
+  wrap_vil_image_view<unsigned char>(m, "image_view_byte");
+  wrap_vil_image_view<float>(m, "image_view_float");
   // TODO: overload these so that they work on any pixel type
-  m.def("vil_load", &vil_load_wrapper<unsigned char>);
-  m.def("vil_save", &vil_save_wrapper<unsigned char>);
+  m.def("load", &vil_load_wrapper<unsigned char>);
+  m.def("save", &vil_save_wrapper<unsigned char>);
 }
 }

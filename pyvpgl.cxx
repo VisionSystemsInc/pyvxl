@@ -42,7 +42,7 @@ vgl_homg_point_2d<double> vpgl_project_homg_point(T const& cam, vgl_homg_point_3
 
 void wrap_vpgl(py::module &m)
 {
-  py::class_<vpgl_proj_camera<double> >(m, "vpgl_proj_camera")
+  py::class_<vpgl_proj_camera<double> >(m, "proj_camera")
     .def(py::init<vnl_matrix_fixed<double,3,4> >())
     .def("__str__", stream2str<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_homg_point<vpgl_proj_camera<double> >)
@@ -50,15 +50,15 @@ void wrap_vpgl(py::module &m)
     .def("project", vpgl_project_vector<vpgl_proj_camera<double> >)
     .def("get_matrix", &vpgl_proj_camera<double>::get_matrix, py::return_value_policy::copy);
 
-  py::class_<vpgl_affine_camera<double>, vpgl_proj_camera<double> >(m, "vpgl_affine_camera")
+  py::class_<vpgl_affine_camera<double>, vpgl_proj_camera<double> >(m, "affine_camera")
     .def(py::init<vnl_matrix_fixed<double,3,4> >())
     .def("__str__", stream2str<vpgl_proj_camera<double> >);
 
-  py::class_<vpgl_calibration_matrix<double> >(m, "vpgl_calibration_matrix")
+  py::class_<vpgl_calibration_matrix<double> >(m, "calibration_matrix")
     .def(py::init<vnl_matrix_fixed<double,3,3> >())
     .def(py::init<double, vgl_point_2d<double> >());
 
-  py::class_<vpgl_perspective_camera<double>, vpgl_proj_camera<double> >(m, "vpgl_perspective_camera")
+  py::class_<vpgl_perspective_camera<double>, vpgl_proj_camera<double> >(m, "perspective_camera")
     .def(py::init<vpgl_calibration_matrix<double>, vgl_rotation_3d<double>, vgl_vector_3d<double> >())
     .def("__str__", stream2str<vpgl_perspective_camera<double> >);
 }
