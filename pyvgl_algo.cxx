@@ -10,7 +10,7 @@
 
 namespace py = pybind11;
 
-namespace pyvxl {
+namespace pyvxl { namespace vgl { namespace algo {
 
 void wrap_vgl_algo(py::module &m)
 {
@@ -28,4 +28,4 @@ void wrap_vgl_algo(py::module &m)
     .def("translation", &vgl_compute_rigid_3d<double>::translation);
 
 }
-}
+}}}

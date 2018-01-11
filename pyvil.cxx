@@ -10,10 +10,10 @@
 
 namespace py = pybind11;
 
-namespace pyvxl {
+namespace pyvxl { namespace vil {
 
 template <class T>
-void image_from_buffer(vil_image_view<T> &img,  py::array_t<T> b)
+vil_image_view<T>* image_from_buffer(py::array_t<T> b)
 {
   py::buffer_info info = b.request();
   if (info.format != py::format_descriptor<T>::format()) {
@@ -31,8 +31,9 @@ void image_from_buffer(vil_image_view<T> &img,  py::array_t<T> b)
   if (info.ndim == 3) {
     num_planes = info.shape[2];
   }
+
   // in-place constructor
-  new (&img) vil_image_view<T>(num_cols, num_rows, num_planes);
+  vil_image_view<T> *img = new vil_image_view<T>(num_cols, num_rows, num_planes);
   size_t row_stride = info.strides[0]/sizeof(T);
   size_t col_stride = info.strides[1]/sizeof(T);
   size_t plane_stride = 0;
@@ -42,15 +43,17 @@ void image_from_buffer(vil_image_view<T> &img,  py::array_t<T> b)
   for (size_t r=0; r<num_rows; ++r) {
     for (size_t c=0; c<num_cols; ++c) {
       for (size_t p=0; p<num_planes; ++p) {
-        img(c,r,p) = *(static_cast<T*>(info.ptr) + r*row_stride + c*col_stride + p*plane_stride);
+        (*img)(c,r,p) = *(static_cast<T*>(info.ptr) + r*row_stride + c*col_stride + p*plane_stride);
       }
     }
   }
+
+  return img;
 }
 
 
 template<class T>
-T vil_image_getitem(vil_image_view<T> const& img, std::tuple<size_t, size_t, size_t> pos)
+T image_getitem(vil_image_view<T> const& img, std::tuple<size_t, size_t, size_t> pos)
 {
   // TODO: wrap around
   size_t img_y = std::get<0>(pos);
@@ -60,14 +63,14 @@ T vil_image_getitem(vil_image_view<T> const& img, std::tuple<size_t, size_t, siz
 }
 
 template<class T>
-long vil_image_len(vil_image_view<T> const& img)
+long image_len(vil_image_view<T> const& img)
 {
   return img.ni()*img.nj()*img.nplanes();
 }
 
 
 template<class T>
-std::tuple<size_t, size_t, size_t> vil_image_view_shape(vil_image_view<T> const& img)
+std::tuple<size_t, size_t, size_t> image_view_shape(vil_image_view<T> const& img)
 {
   return std::make_tuple(img.nj(), img.ni(), img.nplanes());
 }
@@ -94,12 +97,12 @@ void wrap_vil_image_view(py::module &m, std::string const& class_name)
 {
   py::class_<vil_image_view<T> > (m, class_name.c_str(), py::buffer_protocol())
     .def(py::init<>())
-    .def(py::init<int,int>())
-    .def(py::init<int,int,int>())
-    .def("__init__", image_from_buffer<T>)
-    .def("__len__", vil_image_len<T>)
-    .def("__getitem__", vil_image_getitem<T>)
-    .def_property_readonly("shape", &vil_image_view_shape<T>)
+    .def(py::init<unsigned int,unsigned int>())
+    .def(py::init<unsigned int,unsigned int,unsigned int>())
+    .def(py::init(&image_from_buffer<T>))
+    .def("__len__", image_len<T>)
+    .def("__getitem__", image_getitem<T>)
+    .def_property_readonly("shape", &image_view_shape<T>)
     .def_buffer(get_image_buffer<T>);
 }
 
@@ -123,5 +126,14 @@ void wrap_vil(py::module &m)
   // TODO: overload these so that they work on any pixel type
   m.def("load", &vil_load_wrapper<unsigned char>);
   m.def("save", &vil_save_wrapper<unsigned char>);
+  // Lambda version of the above, in case that helps with the todo
+  // m.def("load", [](std::string const& filename)
+  // {
+  //   return static_cast<vil_image_view<unsigned char>>(vil_load(filename.c_str()));
+  // });
+  // m.def("save", [](vil_image_view<unsigned char> img, std::string const& filename)
+  // {
+  //   return vil_save(img, filename.c_str());
+  // });
 }
-}
+}}

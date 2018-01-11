@@ -12,18 +12,12 @@
 
 namespace py = pybind11;
 
-namespace pyvxl {
+namespace pyvxl { namespace vgl {
 
 // Helper functions
-template<class T>
-long three(T const&) { return 3;}
 
 template<class T>
-long two(T const&) { return 2;}
-
-
-template<class T>
-double vgl_getitem_3d(T const& a, long i)
+double getitem_3d(T const& a, long i)
 {
   // wrap around
   if (i < 0) {
@@ -45,7 +39,7 @@ double vgl_getitem_3d(T const& a, long i)
 }
 
 template<class T>
-double vgl_getitem_2d(T const& a, long i)
+double getitem_2d(T const& a, long i)
 {
   // wrap around
   if (i < 0) {
@@ -62,13 +56,6 @@ double vgl_getitem_2d(T const& a, long i)
   }
   return 0; // to avoid compiler warning
 }
-
-template<class T>
-double vgl_get_x(T const& a) { return a.x(); }
-template<class T>
-double vgl_get_y(T const& a) { return a.y(); }
-template<class T>
-double vgl_get_z(T const& a) { return a.z(); }
 
 template <class T, class BUFF_T>
 T type_from_buffer_2d(py::array_t<BUFF_T> b)
@@ -123,16 +110,16 @@ void wrap_vgl(py::module &m)
     .def(py::init<double,double>())
     .def(py::init(&type_from_buffer_2d<vgl_point_2d<double>, double>))
     .def("__len__", [](vgl_point_2d<double>){return (size_t)2;})
-    .def("__getitem__", vgl_getitem_2d<vgl_point_2d<double> >)
-    .def_property_readonly("x", &vgl_get_x<vgl_point_2d<double> >)
-    .def_property_readonly("y", &vgl_get_y<vgl_point_2d<double> >)
+    .def("__getitem__", getitem_2d<vgl_point_2d<double> >)
+    .def_property_readonly("x", (double (vgl_point_2d<double>::*)() const) &vgl_point_2d<double>::x)
+    .def_property_readonly("y", (double (vgl_point_2d<double>::*)() const) &vgl_point_2d<double>::y)
     .def(py::self - py::self);
 
   py::class_<vgl_vector_2d<double> > (m, "vector_2d")
     .def(py::init<double,double>())
     .def(py::init(&type_from_buffer_2d<vgl_vector_2d<double>, double>))
     .def("__len__", [](vgl_vector_2d<double>){return (size_t)2;})
-    .def("__getitem__",vgl_getitem_2d<vgl_vector_2d<double> >)
+    .def("__getitem__",getitem_2d<vgl_vector_2d<double> >)
     .def_property_readonly("x", &vgl_vector_2d<double>::x)
     .def_property_readonly("y", &vgl_vector_2d<double>::y)
     .def("length", &vgl_vector_2d<double>::length)
@@ -143,17 +130,17 @@ void wrap_vgl(py::module &m)
     .def(py::init<double,double,double>())
     .def(py::init(&type_from_buffer_3d<vgl_point_3d<double>, double>))
     .def("__len__", [](vgl_point_3d<double>){return (size_t)3;})
-    .def("__getitem__", vgl_getitem_3d<vgl_point_3d<double> >)
-    .def_property_readonly("x", vgl_get_x<vgl_point_3d<double> >)
-    .def_property_readonly("y", vgl_get_y<vgl_point_3d<double> >)
-    .def_property_readonly("z", vgl_get_z<vgl_point_3d<double> >)
+    .def("__getitem__", getitem_3d<vgl_point_3d<double> >)
+    .def_property_readonly("x", (double (vgl_point_3d<double>::*)() const) &vgl_point_3d<double>::x)
+    .def_property_readonly("y", (double (vgl_point_3d<double>::*)() const) &vgl_point_3d<double>::y)
+    .def_property_readonly("z", (double (vgl_point_3d<double>::*)() const) &vgl_point_3d<double>::z)
     .def(py::self - py::self);
 
   py::class_<vgl_vector_3d<double> > (m, "vector_3d")
     .def(py::init<double,double,double>())
     .def(py::init(&type_from_buffer_3d<vgl_vector_3d<double>, double>))
     .def("__len__", [](vgl_vector_3d<double>){return (size_t)3;})
-    .def("__getitem__", vgl_getitem_3d<vgl_vector_3d<double> >)
+    .def("__getitem__", getitem_3d<vgl_vector_3d<double> >)
     .def_property_readonly("x", &vgl_vector_3d<double>::x)
     .def_property_readonly("y", &vgl_vector_3d<double>::y)
     .def_property_readonly("z", &vgl_vector_3d<double>::z)
@@ -169,4 +156,4 @@ void wrap_vgl(py::module &m)
     .def(py::self * py::self);
 
 }
-}
+}}
