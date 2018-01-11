@@ -15,7 +15,7 @@
 
 namespace py = pybind11;
 
-namespace pyvxl {
+namespace pyvxl { namespace vnl {
 // VNL HELPER FUNCTIONS
 
 template <class T>
@@ -136,7 +136,7 @@ std::tuple<int> vnl_quaternion_shape(vnl_quaternion<T> const& q)
 }
 
 template<class T, unsigned NR, unsigned NC>
-void matrix_fixed_from_buffer(vnl_matrix_fixed<T,NR,NC> &mat,  py::array_t<T> b)
+vnl_matrix_fixed<T,NR,NC>* matrix_fixed_from_buffer(py::array_t<T> b)
 {
   py::buffer_info info = b.request();
   if (info.format != py::format_descriptor<T>::format()) {
@@ -157,17 +157,20 @@ void matrix_fixed_from_buffer(vnl_matrix_fixed<T,NR,NC> &mat,  py::array_t<T> b)
     errstr << "Input must have " << NC << " cols.";
     throw std::runtime_error(errstr.str().c_str());
   }
+
+  vnl_matrix_fixed<T,NR,NC> *mat = new vnl_matrix_fixed<T,NR,NC>();
   int row_stride = info.strides[0]/sizeof(T);
   int col_stride = info.strides[1]/sizeof(T);
   for (size_t r=0; r<NR; ++r) {
     for (size_t c=0; c<NC; ++c) {
-      mat(r,c) = *(static_cast<T*>(info.ptr) + r*row_stride + c*col_stride);
+      (*mat)(r,c) = *(static_cast<T*>(info.ptr) + r*row_stride + c*col_stride);
     }
   }
+  return mat;
 }
 
 template<class T, unsigned N>
-void vector_fixed_from_buffer(vnl_vector_fixed<T,N> &vec,  py::array_t<T> b)
+vnl_vector_fixed<T,N>* vector_fixed_from_buffer(py::array_t<T> b)
 {
   py::buffer_info info = b.request();
   if (info.format != py::format_descriptor<T>::format()) {
@@ -182,23 +185,26 @@ void vector_fixed_from_buffer(vnl_vector_fixed<T,N> &vec,  py::array_t<T> b)
     errstr << "Input must have " << N << " elements.";
     throw std::runtime_error(errstr.str().c_str());
   }
+  vnl_vector_fixed<T,N> *vec = new vnl_vector_fixed<T,N>();
   size_t stride = info.strides[0]/sizeof(T);
   for (size_t n=0; n<N; ++n) {
-    vec(n) = *(static_cast<T*>(info.ptr) + n*stride);
+    (*vec)(n) = *(static_cast<T*>(info.ptr) + n*stride);
   }
+
+  return vec;
 }
 
 template<class T>
-void quaternion_from_buffer(vnl_quaternion<T> &q,  py::array_t<T> b)
+vnl_quaternion<T>* quaternion_from_buffer(py::array_t<T> b)
 {
-  vnl_vector_fixed<T,4> qvec;
-  vector_fixed_from_buffer(qvec,b);
-  // in-place constructor
-  new (&q) vnl_quaternion<T>(qvec);
+  vnl_vector_fixed<T,4> *qvec = vector_fixed_from_buffer<T,4>(b);
+  vnl_quaternion<T> *q = new vnl_quaternion<T>(*qvec);
+  delete qvec;
+  return q;
 }
 
 template <class T>
-void matrix_from_buffer(vnl_matrix<T> &mat,  py::array_t<T> b)
+vnl_matrix<T>* matrix_from_buffer(py::array_t<T> b)
 {
   py::buffer_info info = b.request();
   if (info.format != py::format_descriptor<T>::format()) {
@@ -209,20 +215,20 @@ void matrix_from_buffer(vnl_matrix<T> &mat,  py::array_t<T> b)
   }
   const size_t num_rows = info.shape[0];
   const size_t num_cols = info.shape[1];
-  // in-place constructor
-  new (&mat) vnl_matrix<T>(num_rows, num_cols);
-  mat.set_size(num_rows, num_cols);
+  vnl_matrix<T> *mat = new vnl_matrix<T>(num_rows, num_cols);
   int row_stride = info.strides[0]/sizeof(T);
   int col_stride = info.strides[1]/sizeof(T);
   for (size_t r=0; r<num_rows; ++r) {
     for (size_t c=0; c<num_cols; ++c) {
-      mat(r,c) = *(static_cast<T*>(info.ptr) + r*row_stride + c*col_stride);
+      (*mat)(r,c) = *(static_cast<T*>(info.ptr) + r*row_stride + c*col_stride);
     }
   }
+
+  return mat;
 }
 
 template <class T>
-void vector_from_buffer(vnl_vector<T> &vec,  py::array_t<T> b)
+vnl_vector<T>* vector_from_buffer(py::array_t<T> b)
 {
   py::buffer_info info = b.request();
   if (info.format != py::format_descriptor<T>::format()) {
@@ -233,11 +239,12 @@ void vector_from_buffer(vnl_vector<T> &vec,  py::array_t<T> b)
   }
   const size_t num_elements = info.shape[0];
   // in-place constructor
-  new (&vec) vnl_vector<T>(num_elements);
+  vnl_vector<T>* vec = new vnl_vector<T>(num_elements);
   int stride = info.strides[0]/sizeof(T);
   for (size_t n=0; n<num_elements; ++n) {
-    vec(n) = *(static_cast<T*>(info.ptr) + n*stride);
+    (*vec)(n) = *(static_cast<T*>(info.ptr) + n*stride);
   }
+  return vec;
 }
 
 template<class T>
@@ -280,8 +287,8 @@ template<class T>
 void wrap_vnl_matrix(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_matrix<T> >(m, class_name.c_str(), py::buffer_protocol())
-    .def(py::init<size_t,size_t>())
-    .def("__init__", matrix_from_buffer<T>)
+    .def(py::init<unsigned int,unsigned int>())
+    .def(py::init(&matrix_from_buffer<T>))
     .def("get", &vnl_matrix<T>::get)
     .def_property_readonly("shape", &vnl_matrix_shape<T>)
     .def("__str__", stream2str<vnl_matrix<T> >)
@@ -301,13 +308,13 @@ void wrap_vnl_vector(py::module &m, std::string const& class_name)
   py::class_<vnl_vector<T> >(m, class_name.c_str(), py::buffer_protocol())
     .def(py::init<size_t>())
     .def(py::init<size_t, T>())
-    .def("__init__", vector_from_buffer<T>)
+    .def(py::init(&vector_from_buffer<T>))
     .def("get", &vnl_vector<T>::get)
     .def("size", &vnl_vector<T>::size)
     .def("__len__", vnl_vector_len<T>)
     .def("__str__", stream2str<vnl_vector<T> >)
     .def("__getitem__", vnl_vector_getitem<T>)
-    .def(py::self + vnl_vector<T>())
+    .def(py::self + py::self)
     .def_buffer(get_vector_buffer<T>);
 
   py::implicitly_convertible<py::array_t<T>, vnl_vector<T> >();
@@ -317,14 +324,14 @@ template<class T, unsigned N>
 void wrap_vnl_vector_fixed(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_vector_fixed<T,N> >(m, class_name.c_str(), py::buffer_protocol())
-    .def("__init__", vector_fixed_from_buffer<T,N>)
+    .def(py::init(&vector_fixed_from_buffer<T,N>))
     .def("get", &vnl_vector_fixed<T,N>::get)
     .def_property_readonly("shape", &vnl_vector_fixed_shape<T,N>)
     .def("__str__", stream2str<vnl_vector_fixed<T,N> >)
     .def("__len__", vnl_vector_fixed_len<T,N>)
     .def("__getitem__", vnl_vector_fixed_getitem<T,N>)
     .def(py::self + vnl_vector<T>())
-    .def(py::self + vnl_vector_fixed<T,N>())
+    .def(py::self + py::self)
     .def_buffer(get_vector_fixed_buffer<T,N>);
 
   py::implicitly_convertible<py::array_t<T>, vnl_vector_fixed<T,N> >();
@@ -334,13 +341,13 @@ template<class T, unsigned NR, unsigned NC>
 void wrap_vnl_matrix_fixed(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_matrix_fixed<T,NR,NC> >(m, class_name.c_str(), py::buffer_protocol())
-    .def("__init__", matrix_fixed_from_buffer<T,NR,NC>)
+    .def(py::init(&matrix_fixed_from_buffer<T,NR,NC>))
     .def("get", &vnl_matrix_fixed<T,NR,NC>::get)
     .def_property_readonly("shape", &vnl_matrix_fixed_shape<T,NR,NC>)
     .def("__str__", stream2str<vnl_matrix_fixed<T,NR,NC> >)
     .def("__getitem__", vnl_matrix_fixed_getitem<T,NR,NC>)
     .def("__len__", vnl_matrix_fixed_len<T,NR,NC>)
-    .def(py::self + vnl_matrix_fixed<T,NR,NC>())
+    .def(py::self + py::self)
     .def(py::self * vnl_vector<T>())
     .def(py::self * vnl_vector_fixed<T,NC>())
     .def_buffer(get_matrix_fixed_buffer<T,NR,NC>);
@@ -352,22 +359,22 @@ template<class T>
 void wrap_vnl_quaternion(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_quaternion<T> >(m, class_name.c_str())
-    .def("__init__", quaternion_from_buffer<T>)
+    .def(py::init(&quaternion_from_buffer<T>))
     .def_property_readonly("shape", &vnl_quaternion_shape<T>)
     .def("__str__", stream2str<vnl_quaternion<T> >)
     .def("__getitem__", vnl_quaternion_getitem<T>)
-    .def("__len__", vnl_quaternion_len<T>);
+    .def("__len__", [](vnl_quaternion<T> const& q){return (size_t)4;});
 }
 
 
 void wrap_vnl(py::module &m)
 {
-  wrap_vnl_vector<double>(m, "vnl_vector");
-  wrap_vnl_matrix<double>(m, "vnl_matrix");
-  wrap_vnl_matrix_fixed<double,3,3>(m, "vnl_matrix_fixed_3x3");
-  wrap_vnl_matrix_fixed<double,3,4>(m, "vnl_matrix_fixed_3x4");
-  wrap_vnl_vector_fixed<double,3>(m, "vnl_vector_fixed_3");
-  wrap_vnl_vector_fixed<double,4>(m, "vnl_vector_fixed_4");
-  wrap_vnl_quaternion<double>(m, "vnl_quaternion");
+  wrap_vnl_vector<double>(m, "vector");
+  wrap_vnl_matrix<double>(m, "matrix");
+  wrap_vnl_matrix_fixed<double,3,3>(m, "matrix_fixed_3x3");
+  wrap_vnl_matrix_fixed<double,3,4>(m, "matrix_fixed_3x4");
+  wrap_vnl_vector_fixed<double,3>(m, "vector_fixed_3");
+  wrap_vnl_vector_fixed<double,4>(m, "vector_fixed_4");
+  wrap_vnl_quaternion<double>(m, "quaternion");
 }
-}
+}}

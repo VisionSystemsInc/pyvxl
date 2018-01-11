@@ -11,9 +11,17 @@ PYBIND11_MODULE(vxl, m)
 {
   m.doc() =  "Python bindings for the VXL computer vision libraries";
 
-  pyvxl::wrap_vnl(m);
-  pyvxl::wrap_vgl(m);
-  pyvxl::wrap_vpgl(m);
-  pyvxl::wrap_vil(m);
-  pyvxl::wrap_vgl_algo(m);
+  py::module mod = m.def_submodule("vnl");
+  pyvxl::vnl::wrap_vnl(mod);
+
+  mod = m.def_submodule("vgl");
+  pyvxl::vgl::wrap_vgl(mod);
+  mod = mod.def_submodule("algo");
+  pyvxl::vgl::algo::wrap_vgl_algo(mod);
+
+  mod = m.def_submodule("vpgl");
+  pyvxl::wrap_vpgl(mod);
+
+  mod = m.def_submodule("vil");
+  pyvxl::vil::wrap_vil(mod);
 }
