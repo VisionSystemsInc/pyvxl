@@ -80,7 +80,7 @@ class VglBase(object):
       u = self.cls(1.15, -17, 42.35)
     self.assertEqual(v, u)
 
-  @unittest.skipIf(np == None, "Numpy not found")
+  @unittest.skipUnless(np, "Numpy not found")
   def test_construct_numpy(self):
     if self.length == 2:
       v = self.cls(np.array([1.15, -17]))
