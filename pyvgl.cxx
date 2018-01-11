@@ -145,7 +145,7 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("y", &vgl_vector_3d<double>::y)
     .def_property_readonly("z", &vgl_vector_3d<double>::z)
     .def("length", &vgl_vector_3d<double>::length)
-    .def(py::self + vgl_vector_3d<double>())
+    .def(py::self + py::self)
     .def(py::self - py::self);
 
   py::class_ <vgl_rotation_3d<double> > (m, "rotation_3d")
