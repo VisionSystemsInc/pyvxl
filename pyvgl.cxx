@@ -6,6 +6,7 @@
 #include <vgl/algo/vgl_rotation_3d.h>
 #include <vgl/vgl_pointset_3d.h>
 #include <vgl/vgl_plane_3d.h>
+#include <vgl/vgl_cylinder.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -186,5 +187,12 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("d", &vgl_plane_3d<double>::d)
     .def("set", &vgl_plane_3d<double>::set);
 
+  py::class_<vgl_cylinder<double> > (m, "cylinder")
+    .def(py::init())
+    .def(py::init<vgl_point_3d<double>, double, double, vgl_vector_3d<double> >())
+    .def_property("center", &vgl_cylinder<double>::center, &vgl_cylinder<double>::set_center)
+    .def_property("radius", &vgl_cylinder<double>::radius, &vgl_cylinder<double>::set_radius)
+    .def_property("length", &vgl_cylinder<double>::length, &vgl_cylinder<double>::set_length)
+    .def_property("orientation", &vgl_cylinder<double>::orientation, &vgl_cylinder<double>::set_orientation);
 }
 }}
