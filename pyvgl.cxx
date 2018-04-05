@@ -5,6 +5,7 @@
 #include <vgl/vgl_point_3d.h>
 #include <vgl/algo/vgl_rotation_3d.h>
 #include <vgl/vgl_pointset_3d.h>
+#include <vgl/vgl_plane_3d.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -174,6 +175,16 @@ void wrap_vgl(py::module &m)
     .def("normals", &vgl_pointset_3d<double>::normals)
     .def("scalars", &vgl_pointset_3d<double>::scalars);
 
+  py::class_<vgl_plane_3d<double> > (m, "plane_3d")
+    .def(py::init())
+    .def(py::init<double, double, double, double>())
+    .def(py::init<vgl_vector_3d<double>, vgl_point_3d<double> >())
+    .def(py::init<vgl_point_3d<double>, vgl_point_3d<double>, vgl_point_3d<double> >())
+    .def_property_readonly("a", &vgl_plane_3d<double>::a)
+    .def_property_readonly("b", &vgl_plane_3d<double>::b)
+    .def_property_readonly("c", &vgl_plane_3d<double>::c)
+    .def_property_readonly("d", &vgl_plane_3d<double>::d)
+    .def("set", &vgl_plane_3d<double>::set);
 
 }
 }}
