@@ -4,6 +4,7 @@
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_point_3d.h>
 #include <vgl/algo/vgl_rotation_3d.h>
+#include <vgl/vgl_pointset_3d.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -154,6 +155,25 @@ void wrap_vgl(py::module &m)
     .def("as_matrix", &vgl_rotation_3d<double>::as_matrix)
     .def("as_quaternion", &vgl_rotation_3d<double>::as_quaternion)
     .def(py::self * py::self);
+
+  py::class_<vgl_pointset_3d<double> > (m, "pointset_3d")
+    .def(py::init())
+    .def(py::init<std::vector<vgl_point_3d<double> > >())
+    .def(py::init<std::vector<vgl_point_3d<double> >, std::vector<vgl_vector_3d<double> > >())
+    .def(py::init<std::vector<vgl_point_3d<double> >, std::vector<double> >())
+    .def(py::init<std::vector<vgl_point_3d<double> >, std::vector<vgl_vector_3d<double> >,
+        std::vector<double> >())
+    .def("__len__", &vgl_pointset_3d<double>::size)
+    .def_property_readonly("has_normals", &vgl_pointset_3d<double>::has_normals)
+    .def_property_readonly("has_scalars", &vgl_pointset_3d<double>::has_scalars)
+    .def("add_point", &vgl_pointset_3d<double>::add_point)
+    .def("add_point_with_normal", &vgl_pointset_3d<double>::add_point_with_normal)
+    .def("add_point_with_scalar", &vgl_pointset_3d<double>::add_point_with_scalar)
+    .def("add_point_with_normal_and_scalar", &vgl_pointset_3d<double>::add_point_with_normal_and_scalar)
+    .def("points", &vgl_pointset_3d<double>::points)
+    .def("normals", &vgl_pointset_3d<double>::normals)
+    .def("scalars", &vgl_pointset_3d<double>::scalars);
+
 
 }
 }}
