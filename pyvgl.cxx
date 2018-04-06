@@ -186,7 +186,8 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("b", &vgl_plane_3d<double>::b)
     .def_property_readonly("c", &vgl_plane_3d<double>::c)
     .def_property_readonly("d", &vgl_plane_3d<double>::d)
-    .def("set", &vgl_plane_3d<double>::set);
+    .def("set", &vgl_plane_3d<double>::set)
+    .def_property_readonly("normal", &vgl_plane_3d<double>::normal);
 
   py::class_<vgl_cylinder<double> > (m, "cylinder")
     .def(py::init())
