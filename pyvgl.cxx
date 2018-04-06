@@ -8,6 +8,7 @@
 #include <vgl/vgl_plane_3d.h>
 #include <vgl/vgl_cylinder.h>
 #include <vgl/vgl_sphere_3d.h>
+#include <vgl/vgl_polygon.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -108,6 +109,23 @@ T type_from_buffer_3d(py::array_t<BUFF_T> b)
   return T(x,y,z);
 }
 
+template<typename T>
+typename vgl_polygon<T>::sheet_t getitem_sheet(vgl_polygon<T> const& p, long i){
+
+  // wrap around
+  if(i < 0){
+    i += p.num_sheets();
+  }
+  
+  // out of range
+  if(i < 0 || i >= p.num_sheets()){
+    throw py::index_error("index out of range");
+  }
+
+  // extract sheet
+  return p[i];
+}
+
 void wrap_vgl(py::module &m)
 {
   py::class_<vgl_point_2d<double> > (m, "point_2d")
@@ -203,5 +221,13 @@ void wrap_vgl(py::module &m)
     .def_property("center", &vgl_sphere_3d<double>::centre, &vgl_sphere_3d<double>::set_centre)
     .def_property("centre", &vgl_sphere_3d<double>::centre, &vgl_sphere_3d<double>::set_centre)
     .def_property("radius", &vgl_sphere_3d<double>::radius, &vgl_sphere_3d<double>::set_radius);
+
+  py::class_<vgl_polygon<double> > (m, "polygon")
+    .def(py::init())
+    .def(py::init<typename vgl_polygon<double>::sheet_t>())
+    .def(py::init<std::vector<typename vgl_polygon<double>::sheet_t> >())
+    .def("__len__", &vgl_polygon<double>::num_sheets)
+    .def("__getitem__", getitem_sheet<double>)
+    ;
 }
 }}
