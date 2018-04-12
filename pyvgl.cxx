@@ -9,6 +9,8 @@
 #include <vgl/vgl_cylinder.h>
 #include <vgl/vgl_sphere_3d.h>
 #include <vgl/vgl_polygon.h>
+#include <vgl/vgl_line_segment_2d.h>
+#include <vgl/vgl_oriented_box_2d.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -265,5 +267,22 @@ void wrap_vgl(py::module &m)
         buffer << "<vgl_polygon num_sheets=" << p.num_sheets() << ">";
         return buffer.str();
     });
+
+  py::class_<vgl_line_segment_2d<double> >(m, "line_segment_2d")
+    .def(py::init())
+    .def(py::init<vgl_point_2d<double>, vgl_point_2d<double> >())
+    .def_property_readonly("point1", &vgl_line_segment_2d<double>::point1)
+    .def_property_readonly("point2", &vgl_line_segment_2d<double>::point2)
+    .def("set", &vgl_line_segment_2d<double>::set)
+    .def("__repr__", streamToString<vgl_line_segment_2d<double> >);
+
+  py::class_<vgl_oriented_box_2d<double> >(m, "oriented_box_2d")
+    .def(py::init())
+    .def(py::init<vgl_line_segment_2d<double>, double>())
+    .def_property_readonly("major_axis", &vgl_oriented_box_2d<double>::major_axis)
+    .def_proprety_readonly("width", &vgl_oriented_box_2d<double>::width)
+    .def_property_readonly("height", &vgl_oriented_box_2d<double>::height)
+    .def("set", &vgl_oriented_box_2d<double>::set)
+    .def("__repr__", streamToString<vgl_oriented_box_2d<double> >);
 }
 }}
