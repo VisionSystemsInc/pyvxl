@@ -280,7 +280,7 @@ void wrap_vgl(py::module &m)
     .def(py::init())
     .def(py::init<vgl_line_segment_2d<double>, double>())
     .def_property_readonly("major_axis", &vgl_oriented_box_2d<double>::major_axis)
-    .def_proprety_readonly("width", &vgl_oriented_box_2d<double>::width)
+    .def_property_readonly("width", &vgl_oriented_box_2d<double>::width)
     .def_property_readonly("height", &vgl_oriented_box_2d<double>::height)
     .def("set", &vgl_oriented_box_2d<double>::set)
     .def("__repr__", streamToString<vgl_oriented_box_2d<double> >);
