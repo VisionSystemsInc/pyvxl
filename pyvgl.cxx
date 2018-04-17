@@ -206,6 +206,7 @@ void wrap_vgl(py::module &m)
     .def(py::init<std::vector<vgl_point_3d<double> >, std::vector<vgl_vector_3d<double> >,
         std::vector<double> >())
     .def("__len__", &vgl_pointset_3d<double>::size)
+    .def("__eq__", &vgl_pointset_3d<double>::operator==)
     .def_property_readonly("has_normals", &vgl_pointset_3d<double>::has_normals)
     .def_property_readonly("has_scalars", &vgl_pointset_3d<double>::has_scalars)
     .def("add_point", &vgl_pointset_3d<double>::add_point)
