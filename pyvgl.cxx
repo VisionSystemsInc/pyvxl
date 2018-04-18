@@ -152,6 +152,7 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("x", (double (vgl_point_2d<double>::*)() const) &vgl_point_2d<double>::x)
     .def_property_readonly("y", (double (vgl_point_2d<double>::*)() const) &vgl_point_2d<double>::y)
     .def(py::self - py::self)
+    .def("__eq__", &vgl_point_2d<double>::operator==)
     .def("__repr__", streamToString<vgl_point_2d<double> >);
 
   py::class_<vgl_vector_2d<double> > (m, "vector_2d")
@@ -164,6 +165,7 @@ void wrap_vgl(py::module &m)
     .def("length", &vgl_vector_2d<double>::length)
     .def(py::self + py::self)
     .def(py::self - py::self)
+    .def("__eq__", &vgl_vector_2d<double>::operator==)
     .def("__repr__", streamToString<vgl_vector_2d<double> >);
 
   py::class_<vgl_point_3d<double> > (m, "point_3d")
@@ -175,6 +177,7 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("y", (double (vgl_point_3d<double>::*)() const) &vgl_point_3d<double>::y)
     .def_property_readonly("z", (double (vgl_point_3d<double>::*)() const) &vgl_point_3d<double>::z)
     .def(py::self - py::self)
+    .def("__eq__", &vgl_point_3d<double>::operator==)
     .def("__repr__", streamToString<vgl_point_3d<double> >);
 
   py::class_<vgl_vector_3d<double> > (m, "vector_3d")
@@ -188,6 +191,7 @@ void wrap_vgl(py::module &m)
     .def("length", &vgl_vector_3d<double>::length)
     .def(py::self + py::self)
     .def(py::self - py::self)
+    .def("__eq__", &vgl_vector_3d<double>::operator==)
     .def("__repr__", streamToString<vgl_vector_3d<double> >);
 
   py::class_ <vgl_rotation_3d<double> > (m, "rotation_3d")
@@ -238,6 +242,7 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("d", &vgl_plane_3d<double>::d)
     .def("set", &vgl_plane_3d<double>::set)
     .def_property_readonly("normal", &vgl_plane_3d<double>::normal)
+    .def("__eq__", &vgl_plane_3d<double>::operator==)
     .def("__repr__", streamToString<vgl_plane_3d<double> >);
 
   py::class_<vgl_cylinder<double> > (m, "cylinder")
@@ -277,6 +282,7 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("point1", &vgl_line_segment_2d<double>::point1)
     .def_property_readonly("point2", &vgl_line_segment_2d<double>::point2)
     .def("set", &vgl_line_segment_2d<double>::set)
+    .def("__eq__", &vgl_line_segment_2d<double>::operator==)
     .def("__repr__", streamToString<vgl_line_segment_2d<double> >);
 
   py::class_<vgl_oriented_box_2d<double> >(m, "oriented_box_2d")
@@ -286,6 +292,7 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("width", &vgl_oriented_box_2d<double>::width)
     .def_property_readonly("height", &vgl_oriented_box_2d<double>::height)
     .def("set", &vgl_oriented_box_2d<double>::set)
+    .def("__eq__", &vgl_oriented_box_2d<double>::operator==)
     .def("__repr__", streamToString<vgl_oriented_box_2d<double> >);
 }
 }}
