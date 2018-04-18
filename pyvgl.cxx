@@ -247,6 +247,7 @@ void wrap_vgl(py::module &m)
     .def_property("radius", &vgl_cylinder<double>::radius, &vgl_cylinder<double>::set_radius)
     .def_property("length", &vgl_cylinder<double>::length, &vgl_cylinder<double>::set_length)
     .def_property("orientation", &vgl_cylinder<double>::orientation, &vgl_cylinder<double>::set_orientation)
+    .def("__eq__", &vgl_cylinder<double>::operator==)
     .def("__repr__", streamToString<vgl_cylinder<double> >);
 
   py::class_<vgl_sphere_3d<double> > (m, "sphere_3d")
@@ -255,6 +256,7 @@ void wrap_vgl(py::module &m)
     .def_property("center", &vgl_sphere_3d<double>::centre, &vgl_sphere_3d<double>::set_centre)
     .def_property("centre", &vgl_sphere_3d<double>::centre, &vgl_sphere_3d<double>::set_centre)
     .def_property("radius", &vgl_sphere_3d<double>::radius, &vgl_sphere_3d<double>::set_radius)
+    .def("__eq__", &vgl_sphere_3d<double>::operator==)
     .def("__repr__", streamToString<vgl_sphere_3d<double> >);
 
   py::class_<vgl_polygon<double> > (m, "polygon")
