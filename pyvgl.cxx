@@ -10,6 +10,7 @@
 #include <vgl/vgl_sphere_3d.h>
 #include <vgl/vgl_polygon.h>
 #include <vgl/vgl_line_segment_2d.h>
+#include <vgl/vgl_line_segment_3d.h>
 #include <vgl/vgl_oriented_box_2d.h>
 
 #include <pybind11/pybind11.h>
@@ -285,6 +286,15 @@ void wrap_vgl(py::module &m)
     .def("set", &vgl_line_segment_2d<double>::set)
     .def("__eq__", &vgl_line_segment_2d<double>::operator==)
     .def("__repr__", streamToString<vgl_line_segment_2d<double> >);
+
+  py::class_<vgl_line_segment_3d<double> >(m, "line_segment_3d")
+    .def(py::init())
+    .def(py::init<vgl_point_3d<double>, vgl_point_3d<double> >())
+    .def_property_readonly("point1", &vgl_line_segment_3d<double>::point1)
+    .def_property_readonly("point2", &vgl_line_segment_3d<double>::point2)
+    .def("set", &vgl_line_segment_3d<double>::set)
+    .def("__eq__", &vgl_line_segment_3d<double>::operator==)
+    .def("__repr__", streamToString<vgl_line_segment_3d<double> >);
 
   py::class_<vgl_oriented_box_2d<double> >(m, "oriented_box_2d")
     .def(py::init())
