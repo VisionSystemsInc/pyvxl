@@ -20,6 +20,6 @@ execute_process(
     print(sc.get_python_lib(plat_specific=True))"
   OUTPUT_VARIABLE PYTHON_SITE_DEFAULT
   OUTPUT_STRIP_TRAILING_WHITESPACE)
-set(PYTHON_SITE ${PYTHON_SITE_DEFAULT})
+set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
 
 install(TARGETS vxl DESTINATION ${PYTHON_SITE})
