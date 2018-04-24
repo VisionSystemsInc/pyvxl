@@ -135,5 +135,21 @@ class Point_3d(VglBase, unittest.TestCase):
   def test_add(self):
     pass
 
+class Homogoneous_Point_2d():
+  def __init__(self, *args, **kwargs):
+    self.cls = vxl.vgl.homg_point_2d
+    self.length = 3
+    super().__init__(*args, **kwargs)
+
+  @unittest.skip("Not implemented")
+  def test_add(self):
+    pass
+
+class Homogoneous_Point_3d():
+  def __init__(self, *args, **kwargs):
+    self.cls = vxl.vgl.homg_point_3d
+    self.length = 4
+    super().__init__(*args, **kwargs)
+
 if __name__ == '__main__':
   unittest.main()
