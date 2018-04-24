@@ -4,8 +4,10 @@
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_point_3d.h>
 #include <vgl/algo/vgl_rotation_3d.h>
+
 #include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_homg_point_3d.h>
+#include <vgl/vgl_plane_3d.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -17,6 +19,31 @@ namespace py = pybind11;
 namespace pyvxl { namespace vgl {
 
 // Helper functions
+
+template<class T>
+double getitem_4d(T const& a, long i)
+{
+  // wrap around
+  if (i < 0) {
+    i += 3;
+  }
+  if (i==0) {
+    return a.a();
+  }
+  else if (i==1) {
+    return a.b();
+  }
+  else if (i==2) {
+    return a.c();
+  }
+  else if (i==3) {
+    return a.d();
+  }
+  else {
+    throw py::index_error("index out of range");
+  }
+  return 0; // to avoid compiler warning
+}
 
 template<class T>
 double getitem_3d(T const& a, long i)
@@ -154,6 +181,31 @@ T type_from_buffer_3d(py::array_t<BUFF_T> b)
 }
 
 template <class T, class BUFF_T>
+T type_from_buffer_4d(py::array_t<BUFF_T> buffer)
+{
+  py::buffer_info info = buffer.request();
+  if (info.format != py::format_descriptor<BUFF_T>::format()) {
+    throw std::runtime_error("Incompatible scalar type");
+  }
+  if (info.ndim != 1) {
+    throw std::runtime_error("Expecting a 1-dimensional vector");
+  }
+  const size_t num_elements = info.shape[0];
+  if (num_elements != 4) {
+    throw std::runtime_error("Expecting 4-d input vector");
+  }
+  // in-place constructor
+  const BUFF_T* data_ptr = static_cast<BUFF_T*>(info.ptr);
+  const size_t stride = info.strides[0] / sizeof(BUFF_T);
+  BUFF_T a = *data_ptr;
+  BUFF_T b = *(data_ptr + stride);
+  BUFF_T c = *(data_ptr + 2*stride);
+  BUFF_T d = *(data_ptr + 3*stride);
+
+  return T(a, b, c, d);
+}
+
+template <class T, class BUFF_T>
 T type_from_buffer_homg_2d(py::array_t<BUFF_T> b)
 {
   py::buffer_info info = b.request();
@@ -283,5 +335,16 @@ void wrap_vgl(py::module &m)
       .def_property_readonly("z", (double (vgl_homg_point_3d<double>::*)() const) &vgl_homg_point_3d<double>::z)
       .def_property_readonly("w", (double (vgl_homg_point_3d<double>::*)() const) &vgl_homg_point_3d<double>::w)
       .def(py::self - py::self);
+
+  py::class_<vgl_plane_3d<double> > (m, "plane_3d")
+      .def(py::init<double,double,double,double>())
+      .def(py::init(&type_from_buffer_4d<vgl_plane_3d<double>, double>))
+      .def(py::init<const vgl_vector_3d<double> &, const vgl_point_3d<double> &>())
+      .def("__len__", [](vgl_plane_3d<double>){return (size_t)4;})
+      .def("__getitem__", getitem_4d<vgl_plane_3d<double> >)
+      .def_property_readonly("a", (double (vgl_plane_3d<double>::*)() const) &vgl_plane_3d<double>::a)
+      .def_property_readonly("b", (double (vgl_plane_3d<double>::*)() const) &vgl_plane_3d<double>::b)
+      .def_property_readonly("c", (double (vgl_plane_3d<double>::*)() const) &vgl_plane_3d<double>::c)
+      .def_property_readonly("d", (double (vgl_plane_3d<double>::*)() const) &vgl_plane_3d<double>::c);
 }
 }}
