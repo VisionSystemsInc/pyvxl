@@ -4,6 +4,7 @@
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_point_3d.h>
 #include <vgl/algo/vgl_rotation_3d.h>
+#include <vgl/vgl_homg_point_2d.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -50,6 +51,28 @@ double getitem_2d(T const& a, long i)
   }
   else if (i==1) {
     return a.y();
+  }
+  else {
+    throw py::index_error("index out of range");
+  }
+  return 0; // to avoid compiler warning
+}
+
+template<class T>
+double getitem_homg_2d(T const& a, long i)
+{
+  // wrap around
+  if (i < 0) {
+    i += 2;
+  }
+  if (i==0) {
+    return a.x();
+  }
+  else if (i==1) {
+    return a.y();
+  }
+  else if (i==2) {
+    return a.w();
   }
   else {
     throw py::index_error("index out of range");
@@ -104,6 +127,34 @@ T type_from_buffer_3d(py::array_t<BUFF_T> b)
   return T(x,y,z);
 }
 
+template <class T, class BUFF_T>
+T type_from_buffer_homg_2d(py::array_t<BUFF_T> b)
+{
+  py::buffer_info info = b.request();
+  if (info.format != py::format_descriptor<BUFF_T>::format()) {
+    throw std::runtime_error("Incompatible scalar type");
+  }
+  if (info.ndim != 1) {
+    throw std::runtime_error("Expecting a 1-dimensional vector");
+  }
+  const size_t num_elements = info.shape[0];
+  if (num_elements > 3) {
+    throw std::runtime_error("Expecting 2-d or 3-d input vector");
+  }
+  // in-place constructor
+  const BUFF_T* data_ptr = static_cast<BUFF_T*>(info.ptr);
+  const size_t stride = info.strides[0] / sizeof(BUFF_T);
+  BUFF_T x = *data_ptr;
+  BUFF_T y = *(data_ptr + stride);
+
+  if (num_elements == 2)
+    return T(x,y);
+
+  BUFF_T w = *(data_ptr + 2*stride);
+
+  return T(x,y,w);
+}
+
 void wrap_vgl(py::module &m)
 {
   py::class_<vgl_point_2d<double> > (m, "point_2d")
@@ -155,5 +206,16 @@ void wrap_vgl(py::module &m)
     .def("as_quaternion", &vgl_rotation_3d<double>::as_quaternion)
     .def(py::self * py::self);
 
+
+  py::class_<vgl_homg_point_2d<double> > (m, "homg_point_2d")
+      .def(py::init<double,double>())
+      .def(py::init<double,double,double>())
+      .def(py::init(&type_from_buffer_homg_2d<vgl_homg_point_2d<double>, double>))
+      .def("__len__", [](vgl_homg_point_2d<double>){return (size_t)3;})
+      .def("__getitem__", getitem_homg_2d<vgl_homg_point_2d<double> >)
+      .def_property_readonly("x", (double (vgl_homg_point_2d<double>::*)() const) &vgl_homg_point_2d<double>::x)
+      .def_property_readonly("y", (double (vgl_homg_point_2d<double>::*)() const) &vgl_homg_point_2d<double>::y)
+      .def_property_readonly("w", (double (vgl_homg_point_2d<double>::*)() const) &vgl_homg_point_2d<double>::w)
+      .def(py::self - py::self);
 }
 }}
