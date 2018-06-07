@@ -2,6 +2,8 @@
 #include <vpgl/vpgl_proj_camera.h>
 #include <vpgl/vpgl_affine_camera.h>
 #include <vpgl/vpgl_perspective_camera.h>
+#include <vpgl/vpgl_rational_camera.h>
+#include <vpgl/vpgl_local_rational_camera.h>
 #include <vpgl/vpgl_lvcs.h>
 #include <vpgl/vpgl_utm.h>
 #include <vgl/vgl_point_3d.h>
@@ -15,6 +17,10 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+
+#include <memory>
+#include <sstream>
+#include <vector>
 
 namespace py = pybind11;
 
@@ -63,6 +69,52 @@ void wrap_vpgl(py::module &m)
   py::class_<vpgl_perspective_camera<double>, vpgl_proj_camera<double> >(m, "perspective_camera")
     .def(py::init<vpgl_calibration_matrix<double>, vgl_rotation_3d<double>, vgl_vector_3d<double> >())
     .def("__str__", stream2str<vpgl_perspective_camera<double> >);
+
+  py::class_<vpgl_scale_offset<double> >(m, "scale_offset")
+    .def(py::init<>())
+    .def(py::init<double, double>())
+    .def("set_scale", &vpgl_scale_offset<double>::set_scale)
+    .def("set_offset", &vpgl_scale_offset<double>::set_offset)
+    .def("scale", &vpgl_scale_offset<double>::scale)
+    .def("offset", &vpgl_scale_offset<double>::offset)
+    .def("normalize", &vpgl_scale_offset<double>::normalize)
+    .def("un_normalize", &vpgl_scale_offset<double>::un_normalize)
+    .def("__str__", [](const vpgl_scale_offset<double>& scale_offset){
+        std::ostringstream buffer;
+        buffer << "< scale_offset<double> scale = " << scale_offset.scale();
+        buffer << ", offset = " << scale_offset.offset() << " >";
+        return buffer.str();
+    });
+
+  py::class_<vpgl_rational_camera<double> >(m, "rational_camera")
+    .def(py::init<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<double>,
+                  double, double, double, double, double, double, double, double, double, double>())
+    .def(py::init<vnl_matrix_fixed<double,4,20>, std::vector<vpgl_scale_offset<double> > >())
+    .def(py::init([](const std::string& filename){
+        vpgl_rational_camera<double>* cameraPtr = read_rational_camera<double>(filename);
+        return std::unique_ptr<vpgl_rational_camera<double> >(cameraPtr);
+    }))
+    .def("coefficient_matrix", &vpgl_rational_camera<double>::coefficient_matrix)
+    .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
+    .def("__str__", [](const vpgl_rational_camera<double>& camera){
+        std::ostringstream buffer;
+        camera.print(buffer);
+        return buffer.str();
+    });
+
+  py::class_<vpgl_local_rational_camera<double>, vpgl_rational_camera<double> >(m, "local_rational_camera")
+    .def(py::init<vpgl_lvcs, vpgl_rational_camera<double>>())
+    .def(py::init<double, double, double, vpgl_rational_camera<double>>())
+    .def(py::init([](const std::string& filename){
+        vpgl_local_rational_camera<double>* cameraPtr = read_local_rational_camera<double>(filename);
+        return std::unique_ptr<vpgl_local_rational_camera<double> >(cameraPtr);
+    }))
+    .def("lvcs", &vpgl_local_rational_camera<double>::lvcs)
+    .def("__str__", [](const vpgl_local_rational_camera<double>& camera){
+        std::ostringstream buffer;
+        camera.print(buffer);
+        return buffer.str();
+    });
 
 
 
