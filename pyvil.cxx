@@ -95,7 +95,7 @@ py::buffer_info get_image_buffer(vil_image_view<T> &img)
 template<class T>
 void wrap_vil_image_view(py::module &m, std::string const& class_name)
 {
-  py::class_<vil_image_view<T> > (m, class_name.c_str(), py::buffer_protocol())
+  py::class_<vil_image_view<T>, vil_image_view_base > (m, class_name.c_str(), py::buffer_protocol())
     .def(py::init<>())
     .def(py::init<unsigned int,unsigned int>())
     .def(py::init<unsigned int,unsigned int,unsigned int>())
@@ -121,6 +121,10 @@ void vil_save_wrapper(vil_image_view<T> const& img, std::string const& filename)
 
 void wrap_vil(py::module &m)
 {
+  // Need to provide a python wrapping for the base class so that 
+  // the derived classes work correctly.  
+  py::class_<vil_image_view_base>(m, "image_view_base");
+
   wrap_vil_image_view<unsigned char>(m, "image_view_byte");
   wrap_vil_image_view<float>(m, "image_view_float");
   // TODO: overload these so that they work on any pixel type
