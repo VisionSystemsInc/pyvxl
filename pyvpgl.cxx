@@ -86,36 +86,37 @@ void wrap_vpgl(py::module &m)
         return buffer.str();
     });
 
-  py::class_<vpgl_rational_camera<double> >(m, "rational_camera")
-    .def(py::init<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<double>,
-                  double, double, double, double, double, double, double, double, double, double>())
-    .def(py::init<vnl_matrix_fixed<double,4,20>, std::vector<vpgl_scale_offset<double> > >())
-    .def(py::init([](const std::string& filename){
-        vpgl_rational_camera<double>* cameraPtr = read_rational_camera<double>(filename);
-        return std::unique_ptr<vpgl_rational_camera<double> >(cameraPtr);
-    }))
-    .def("coefficient_matrix", &vpgl_rational_camera<double>::coefficient_matrix)
-    .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
-    .def("__str__", [](const vpgl_rational_camera<double>& camera){
-        std::ostringstream buffer;
-        camera.print(buffer);
-        return buffer.str();
-    });
+  py::class_<vpgl_rational_camera<double> > rational_camera(m, "rational_camera");
+  py::enum_<vpgl_rational_camera<double>::coor_index>(rational_camera, "coor_index")
+    .value("X_INDX", vpgl_rational_camera<double>::X_INDX)
+    .value("Y_INDX", vpgl_rational_camera<double>::Y_INDX)
+    .value("Z_INDX", vpgl_rational_camera<double>::Z_INDX)
+    .value("U_INDX", vpgl_rational_camera<double>::U_INDX)
+    .value("V_INDX", vpgl_rational_camera<double>::V_INDX);
+
+   rational_camera
+     .def(py::init<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<double>,
+                   double, double, double, double, double, double, double, double, double, double>())
+     .def(py::init<vnl_matrix_fixed<double,4,20>, std::vector<vpgl_scale_offset<double> > >())
+     .def("__str__", stream2str<vpgl_rational_camera<double> >)
+     .def("coefficient_matrix", &vpgl_rational_camera<double>::coefficient_matrix)
+     .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
+     .def("project", vpgl_project_point<vpgl_rational_camera<double> >)
+     .def("offset", &vpgl_rational_camera<double>::offset);
+
+  m.def("read_rational_camera",
+        [](std::string const& fname){return read_rational_camera<double>(fname);},
+        py::return_value_policy::take_ownership);
 
   py::class_<vpgl_local_rational_camera<double>, vpgl_rational_camera<double> >(m, "local_rational_camera")
-    .def(py::init<vpgl_lvcs, vpgl_rational_camera<double>>())
-    .def(py::init<double, double, double, vpgl_rational_camera<double>>())
-    .def(py::init([](const std::string& filename){
-        vpgl_local_rational_camera<double>* cameraPtr = read_local_rational_camera<double>(filename);
-        return std::unique_ptr<vpgl_local_rational_camera<double> >(cameraPtr);
-    }))
-    .def("lvcs", &vpgl_local_rational_camera<double>::lvcs)
-    .def("__str__", [](const vpgl_local_rational_camera<double>& camera){
-        std::ostringstream buffer;
-        camera.print(buffer);
-        return buffer.str();
-    });
+    .def(py::init<vpgl_lvcs const&, vpgl_rational_camera<double> const&>())
+    .def(py::init<double, double, double, vpgl_rational_camera<double> const&>())
+    .def("set_lvcs", &vpgl_local_rational_camera<double>::set_lvcs)
+    .def("lvcs", &vpgl_local_rational_camera<double>::lvcs);
 
+  m.def("read_local_rational_camera",
+        [](std::string const& fname){return read_local_rational_camera<double>(fname);},
+        py::return_value_policy::take_ownership);
 
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
