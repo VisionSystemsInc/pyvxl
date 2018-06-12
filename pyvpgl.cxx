@@ -50,7 +50,10 @@ void wrap_vpgl(py::module &m)
     .def("project", vpgl_project_homg_point<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_point<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_vector<vpgl_proj_camera<double> >)
-    .def("get_matrix", &vpgl_proj_camera<double>::get_matrix, py::return_value_policy::copy);
+    .def("get_matrix", &vpgl_proj_camera<double>::get_matrix, py::return_value_policy::copy)
+    .def("backproject", (vgl_homg_line_3d_2_points<double> (vpgl_proj_camera<double>::*)(const vgl_homg_point_2d<double> &) const) &vpgl_proj_camera<double>::backproject)
+    .def("backproject_ray", (vgl_ray_3d<double> (vpgl_proj_camera<double>::*)(const vgl_homg_point_2d<double> &) const) &vpgl_proj_camera<double>::backproject_ray)
+    .def("camera_center", &vpgl_proj_camera<double>::camera_center);
 
   py::class_<vpgl_affine_camera<double>, vpgl_proj_camera<double> >(m, "affine_camera")
     .def(py::init<vnl_matrix_fixed<double,3,4> >())
@@ -63,8 +66,6 @@ void wrap_vpgl(py::module &m)
   py::class_<vpgl_perspective_camera<double>, vpgl_proj_camera<double> >(m, "perspective_camera")
     .def(py::init<vpgl_calibration_matrix<double>, vgl_rotation_3d<double>, vgl_vector_3d<double> >())
     .def("__str__", stream2str<vpgl_perspective_camera<double> >);
-
-
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
   py::class_<vpgl_lvcs> lvcs(m, "lvcs");
