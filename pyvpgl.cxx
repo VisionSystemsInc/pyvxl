@@ -13,6 +13,18 @@
 #include <vgl/vgl_vector_2d.h>
 #include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_homg_point_3d.h>
+
+#include <vpgl/file_formats/vpgl_geo_camera.h>
+#include <vil/vil_load.h>
+#include <vil/vil_image_resource.h>
+#include <vil/vil_image_resource_sptr.h>
+
+// For rational to affine //
+#include <vnl/vnl_random.h>
+#include <vpgl/vpgl_local_rational_camera.h>
+#include <vpgl/algo/vpgl_affine_rectification.h>
+// ====================== //
+
 #include "pyvxl_util.h"
 
 #include <pybind11/pybind11.h>
@@ -97,6 +109,15 @@ py::array vpgl_project_buffer(T const& cam, py::buffer b){
     return output;
 }
 
+template<class T>
+std::tuple<double,double> vpgl_project_xyz(T const& cam, double x, double y, double z)
+{
+  double u,v;
+  cam.project(x,y,z,u,v);
+  return std::make_tuple(u,v);
+}
+
+
 void wrap_vpgl(py::module &m)
 {
   py::class_<vpgl_proj_camera<double> >(m, "proj_camera")
@@ -154,6 +175,7 @@ void wrap_vpgl(py::module &m)
      .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
      .def("project", vpgl_project_point<vpgl_rational_camera<double> >)
      .def("project", vpgl_project_buffer<vpgl_rational_camera<double> >)
+     .def("project", vpgl_project_xyz<vpgl_rational_camera<double> >)
      .def("offset", &vpgl_rational_camera<double>::offset)
      .def_property("image_offset",
         [](vpgl_rational_camera<double>& self) {
@@ -186,7 +208,6 @@ void wrap_vpgl(py::module &m)
   m.def("read_local_rational_camera",
         [](std::string const& fname){return read_local_rational_camera<double>(fname);},
         py::return_value_policy::take_ownership);
-
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
   py::class_<vpgl_lvcs> lvcs(m, "lvcs");
@@ -331,6 +352,34 @@ void wrap_vpgl(py::module &m)
           { double lat,lon; U.transform(zone,x,y,lat,lon,is_south); return std::make_tuple(lon,lat); },
         py::arg("easting"),py::arg("northing"),py::arg("zone"),py::arg("is_south")=false)
     ;
+
+  // Geo- Camera definitions
+  py::class_<vpgl_geo_camera>(m, "geo_camera")
+    // Default methods
+    .def(py::init<>())
+    .def("__str__", stream2str<vpgl_geo_camera >)
+    // Convert pixel coords (u,v) to a lon/lat pair
+    .def("img_to_global",
+      [](vpgl_geo_camera &G, double const u, double const v)
+      {
+        double lon, lat;
+        G.img_to_global(u, v, lon, lat);
+        return std::make_tuple(lon, lat);
+      }
+    );
+
+  // Init from a Geotiff filename
+  m.def("read_geo_camera", 
+    [](std::string filename) 
+    { 
+      vpgl_geo_camera* cam = new vpgl_geo_camera;
+      vil_image_resource_sptr img = vil_load_image_resource(filename.c_str());
+      vpgl_geo_camera::init_geo_camera(img, cam);
+      return cam;
+    },
+    "A function to read a geo camera from a geotiff header."
+  );
+
 
 }
 }
