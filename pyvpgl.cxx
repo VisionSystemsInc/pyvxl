@@ -200,10 +200,14 @@ void wrap_vpgl(py::module &m)
   // =====LAT/LON to UTM CONVERTER=====
   py::class_<vpgl_utm>(m, "utm")
     .def(py::init<>())
-    .def("lonlat2utm", 
-        [] (vpgl_utm &U, double lon, double lat) 
-          { double x,y; int z; U.transform(lat,lon,x,y,z); return std::make_tuple(x,y,z); },
-        py::arg("latitude"),py::arg("longitude"))
+    .def("lonlat2utm",
+        [] (vpgl_utm &U, double lon, double lat)
+          { double x,y; int zone; U.transform(lat,lon,x,y,zone); return std::make_tuple(x,y,zone); },
+        py::arg("longitude"),py::arg("latitude"))
+    .def("utm2lonlat",
+        [] (vpgl_utm &U, double x, double y, int zone, bool is_south)
+          { double lat,lon; U.transform(zone,x,y,lat,lon,is_south); return std::make_tuple(lon,lat); },
+        py::arg("easting"),py::arg("northing"),py::arg("zone"),py::arg("is_south")=false)
     ;
 
 }
