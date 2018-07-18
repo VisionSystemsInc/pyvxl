@@ -8,7 +8,6 @@
 #include <vpgl/vpgl_utm.h>
 #include <vgl/vgl_point_3d.h>
 #include <vgl/vgl_point_2d.h>
-#include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_vector_2d.h>
 #include <vgl/vgl_homg_point_2d.h>
@@ -18,12 +17,6 @@
 #include <vil/vil_load.h>
 #include <vil/vil_image_resource.h>
 #include <vil/vil_image_resource_sptr.h>
-
-// For rational to affine //
-#include <vnl/vnl_random.h>
-#include <vpgl/vpgl_local_rational_camera.h>
-#include <vpgl/algo/vpgl_affine_rectification.h>
-// ====================== //
 
 #include "pyvxl_util.h"
 
@@ -126,11 +119,18 @@ void wrap_vpgl(py::module &m)
     .def("project", vpgl_project_homg_point<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_point<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_vector<vpgl_proj_camera<double> >)
+    .def("project", vpgl_project_xyz<vpgl_proj_camera<double> >)
     .def("get_matrix", &vpgl_proj_camera<double>::get_matrix, py::return_value_policy::copy);
 
   py::class_<vpgl_affine_camera<double>, vpgl_proj_camera<double> >(m, "affine_camera")
     .def(py::init<vnl_matrix_fixed<double,3,4> >())
-    .def("__str__", stream2str<vpgl_proj_camera<double> >);
+    .def("backproject_ray",
+      [](vpgl_affine_camera<double> &cam, double u, double v){
+        vgl_homg_point_2d<double> image_point(u, v);
+        vgl_ray_3d<double> ray = cam.backproject_ray(image_point);
+        return ray;
+      }
+    );
 
   py::class_<vpgl_calibration_matrix<double> >(m, "calibration_matrix")
     .def(py::init<vnl_matrix_fixed<double,3,3> >())
@@ -260,22 +260,22 @@ void wrap_vpgl(py::module &m)
     .def("get_ang_unit",   &vpgl_lvcs::geo_angle_unit)
 
     // read/write to string
-    .def("reads", 
-        [](vpgl_lvcs &L, std::string const &str) 
-        { 
-          std::istringstream iss(str.c_str()); 
+    .def("reads",
+        [](vpgl_lvcs &L, std::string const &str)
+        {
+          std::istringstream iss(str.c_str());
           if (iss) {
-            L.read(iss); 
+            L.read(iss);
             return true;
-          } else 
+          } else
             return false;
         }
       )
 
-    .def("writes", 
-        [](vpgl_lvcs &L) 
-        { 
-          std::ostringstream oss; 
+    .def("writes",
+        [](vpgl_lvcs &L)
+        {
+          std::ostringstream oss;
           L.write(oss);
           return oss.str();
         }
@@ -283,34 +283,34 @@ void wrap_vpgl(py::module &m)
 
 
     // read/write to file
-    .def("read", 
-        [](vpgl_lvcs &L, std::string const &filename) 
-        { 
-          std::ifstream ifs(filename.c_str()); 
+    .def("read",
+        [](vpgl_lvcs &L, std::string const &filename)
+        {
+          std::ifstream ifs(filename.c_str());
           if (ifs) {
-            L.read(ifs); 
+            L.read(ifs);
             ifs.close();
             return true;
-          } else 
+          } else
             return false;
         }
       )
 
-    .def("write", 
-        [](vpgl_lvcs &L, std::string const &filename) 
-        { 
-          std::ofstream ofs(filename.c_str()); 
+    .def("write",
+        [](vpgl_lvcs &L, std::string const &filename)
+        {
+          std::ofstream ofs(filename.c_str());
           if (ofs) {
             L.write(ofs); ofs.close();
             return true;
-          } else 
+          } else
             return false;
         }
       )
 
     // local->global coordinate transform
-    .def("local_to_global", 
-        [](vpgl_lvcs &L, double const lx, double const ly, double const lz, 
+    .def("local_to_global",
+        [](vpgl_lvcs &L, double const lx, double const ly, double const lz,
            vpgl_lvcs::cs_names const ocs, vpgl_lvcs::AngUnits const oau,
            vpgl_lvcs::LenUnits const olu)
           {
@@ -324,7 +324,7 @@ void wrap_vpgl(py::module &m)
      )
 
     // global->local coordinate transform
-    .def("global_to_local", 
+    .def("global_to_local",
         [](vpgl_lvcs &L, const double glon, const double glat, const double gz,
            vpgl_lvcs::cs_names const ics, vpgl_lvcs::AngUnits const iau,
            vpgl_lvcs::LenUnits const ilu)
@@ -369,9 +369,9 @@ void wrap_vpgl(py::module &m)
     );
 
   // Init from a Geotiff filename
-  m.def("read_geo_camera", 
-    [](std::string filename) 
-    { 
+  m.def("read_geo_camera",
+    [](std::string filename)
+    {
       vpgl_geo_camera* cam = new vpgl_geo_camera;
       vil_image_resource_sptr img = vil_load_image_resource(filename.c_str());
       vpgl_geo_camera::init_geo_camera(img, cam);
@@ -379,7 +379,6 @@ void wrap_vpgl(py::module &m)
     },
     "A function to read a geo camera from a geotiff header."
   );
-
 
 }
 }

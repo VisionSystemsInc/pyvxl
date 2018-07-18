@@ -3,6 +3,7 @@
 #include <vgl/vgl_point_2d.h>
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_point_3d.h>
+#include <vgl/vgl_ray_3d.h>
 #include <vgl/algo/vgl_rotation_3d.h>
 #include <vgl/vgl_pointset_3d.h>
 #include <vgl/vgl_plane_3d.h>
@@ -127,7 +128,7 @@ typename vgl_polygon<T>::sheet_t getitem_sheet(vgl_polygon<T> const& p, long i){
   if(i < 0){
     i += p.num_sheets();
   }
-  
+
   // out of range
   if(i < 0 || i >= p.num_sheets()){
     throw py::index_error("index out of range");
@@ -196,6 +197,11 @@ void wrap_vgl(py::module &m)
     .def(py::self + py::self)
     .def(py::self - py::self)
     .def(py::self == py::self);
+
+  py::class_<vgl_ray_3d<double> >(m, "ray_3d")
+    .def(py::init<vgl_point_3d<double>, vgl_vector_3d<double> >())
+    .def_property_readonly("origin", &vgl_ray_3d<double>::origin)
+    .def_property_readonly("direction", &vgl_ray_3d<double>::direction);
 
   py::class_ <vgl_rotation_3d<double> > (m, "rotation_3d")
     .def(py::init<vnl_vector_fixed<double,4> >())
@@ -403,7 +409,6 @@ void wrap_vgl(py::module &m)
     .def("scale_about_centroid", &vgl_box_3d<double>::scale_about_centroid)
     .def("scale_about_origin", &vgl_box_3d<double>::scale_about_origin)
     .def("empty", &vgl_box_3d<double>::empty);
-
 
 }
 }}
