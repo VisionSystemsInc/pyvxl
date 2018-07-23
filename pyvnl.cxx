@@ -296,6 +296,8 @@ void wrap_vnl_matrix(py::module &m, std::string const& class_name)
     .def("__len__", vnl_matrix_len<T>)
     .def(py::self + vnl_matrix<T>())
     .def(py::self * vnl_vector<T>())
+    .def(T() * py::self)
+    .def(py::self * T())
     .def_buffer(get_matrix_buffer<T>);
 
   py::implicitly_convertible<py::array_t<T>, vnl_matrix<T> >();
@@ -315,6 +317,8 @@ void wrap_vnl_vector(py::module &m, std::string const& class_name)
     .def("__str__", stream2str<vnl_vector<T> >)
     .def("__getitem__", vnl_vector_getitem<T>)
     .def(py::self + py::self)
+    .def(T() * py::self)
+    .def(py::self * T())
     .def_buffer(get_vector_buffer<T>);
 
   py::implicitly_convertible<py::array_t<T>, vnl_vector<T> >();
@@ -332,6 +336,8 @@ void wrap_vnl_vector_fixed(py::module &m, std::string const& class_name)
     .def("__getitem__", vnl_vector_fixed_getitem<T,N>)
     .def(py::self + vnl_vector<T>())
     .def(py::self + py::self)
+    .def(T() * py::self)
+    .def(py::self * T())
     .def_buffer(get_vector_fixed_buffer<T,N>);
 
   py::implicitly_convertible<py::array_t<T>, vnl_vector_fixed<T,N> >();
@@ -350,6 +356,8 @@ void wrap_vnl_matrix_fixed(py::module &m, std::string const& class_name)
     .def(py::self + py::self)
     .def(py::self * vnl_vector<T>())
     .def(py::self * vnl_vector_fixed<T,NC>())
+    .def(T() * py::self)
+    .def(py::self * T())
     .def_buffer(get_matrix_fixed_buffer<T,NR,NC>);
 
   py::implicitly_convertible<py::array_t<T>, vnl_matrix_fixed<T,NR,NC> >();
