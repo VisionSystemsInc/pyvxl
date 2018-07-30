@@ -173,10 +173,10 @@ void wrap_vpgl(py::module &m)
      .def("save", &vpgl_rational_camera<double>::save)
      .def("coefficient_matrix", &vpgl_rational_camera<double>::coefficient_matrix)
      .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
+     .def("offset", &vpgl_rational_camera<double>::offset)
      .def("project", vpgl_project_point<vpgl_rational_camera<double> >)
      .def("project", vpgl_project_buffer<vpgl_rational_camera<double> >)
      .def("project", vpgl_project_xyz<vpgl_rational_camera<double> >)
-     .def("offset", &vpgl_rational_camera<double>::offset)
      .def_property("image_offset",
         [](vpgl_rational_camera<double>& self) {
           double u,v; self.image_offset(u,v);
@@ -203,7 +203,7 @@ void wrap_vpgl(py::module &m)
     .def(py::init<vpgl_lvcs const&, vpgl_rational_camera<double> const&>())
     .def(py::init<double, double, double, vpgl_rational_camera<double> const&>())
     .def("set_lvcs", &vpgl_local_rational_camera<double>::set_lvcs)
-    .def("lvcs", &vpgl_local_rational_camera<double>::lvcs);
+    .def("lvcs", &vpgl_local_rational_camera<double>::lvcs)
 
   m.def("read_local_rational_camera",
         [](std::string const& fname){return read_local_rational_camera<double>(fname);},
