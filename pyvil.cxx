@@ -121,8 +121,8 @@ void vil_save_wrapper(vil_image_view<T> const& img, std::string const& filename)
 
 void wrap_vil(py::module &m)
 {
-  // Need to provide a python wrapping for the base class so that 
-  // the derived classes work correctly.  
+  // Need to provide a python wrapping for the base class so that
+  // the derived classes work correctly.
   py::class_<vil_image_view_base>(m, "image_view_base");
 
   wrap_vil_image_view<unsigned char>(m, "image_view_byte");

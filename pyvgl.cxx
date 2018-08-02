@@ -143,18 +143,26 @@ std::string streamToString(T const& t){
   return buffer.str();
 }
 
+template<class T>
+void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_point_2d<T>> (m, class_name.c_str())
+    .def(py::init<T,T>())
+    .def(py::init(&type_from_buffer_2d<vgl_point_2d<T>, T>))
+    .def("__len__", [](vgl_point_2d<T>){return (size_t)2;})
+    .def("__getitem__", getitem_2d<vgl_point_2d<T> >)
+    .def("__repr__", streamToString<vgl_point_2d<T> >)
+    .def_property_readonly("x", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::x)
+    .def_property_readonly("y", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::y)
+    .def(py::self - py::self)
+    .def(py::self == py::self)
+    ;
+}
+
 void wrap_vgl(py::module &m)
 {
-  py::class_<vgl_point_2d<double> > (m, "point_2d")
-    .def(py::init<double,double>())
-    .def(py::init(&type_from_buffer_2d<vgl_point_2d<double>, double>))
-    .def("__len__", [](vgl_point_2d<double>){return (size_t)2;})
-    .def("__getitem__", getitem_2d<vgl_point_2d<double> >)
-    .def("__repr__", streamToString<vgl_point_2d<double> >)
-    .def_property_readonly("x", (double (vgl_point_2d<double>::*)() const) &vgl_point_2d<double>::x)
-    .def_property_readonly("y", (double (vgl_point_2d<double>::*)() const) &vgl_point_2d<double>::y)
-    .def(py::self - py::self)
-    .def(py::self == py::self);
+  wrap_vgl_point_2d<double>(m, "point_2d");
+  wrap_vgl_point_2d<unsigned>(m, "point_2d_unsigned");
 
   py::class_<vgl_vector_2d<double> > (m, "vector_2d")
     .def(py::init<double,double>())

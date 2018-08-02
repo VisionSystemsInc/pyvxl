@@ -373,6 +373,7 @@ void wrap_vnl(py::module &m)
   wrap_vnl_matrix<double>(m, "matrix");
   wrap_vnl_matrix_fixed<double,3,3>(m, "matrix_fixed_3x3");
   wrap_vnl_matrix_fixed<double,3,4>(m, "matrix_fixed_3x4");
+  wrap_vnl_matrix_fixed<double,2,4>(m, "matrix_fixed_2x4");
   wrap_vnl_matrix_fixed<double,4,20>(m, "matrix_fixed_4x20");
   wrap_vnl_vector_fixed<double,3>(m, "vector_fixed_3");
   wrap_vnl_vector_fixed<double,4>(m, "vector_fixed_4");
