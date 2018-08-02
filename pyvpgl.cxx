@@ -193,7 +193,17 @@ void wrap_vpgl(py::module &m)
         [](vpgl_rational_camera<double>& self, const std::array<double,2>& uv) {
           self.set_image_scale(uv[0],uv[1]);
         })
-     ;
+    .def_property_readonly("has_ichipb", &vpgl_rational_camera<double>::has_ichipb)
+    .def("set_ichipb", &vpgl_rational_camera<double>::set_ichipb)
+    .def("ichipb_output_points", &vpgl_rational_camera<double>::ichipb_output_points)
+    .def("ichipb_full_points", &vpgl_rational_camera<double>::ichipb_full_points)
+    .def("ichipb_full_size", &vpgl_rational_camera<double>::ichipb_full_size)
+    .def("ichipb_scale_factor", &vpgl_rational_camera<double>::ichipb_scale_factor)
+    .def("ichipb_scan_block", &vpgl_rational_camera<double>::ichipb_scan_block)
+    .def("ichipb_xform", &vpgl_rational_camera<double>::ichipb_xform)
+    .def("ichipb_anamorphic", &vpgl_rational_camera<double>::ichipb_anamorphic)
+    .def("save", &vpgl_rational_camera<double>::save)
+    ;
 
   m.def("read_rational_camera",
         [](std::string const& fname){return read_rational_camera<double>(fname);},

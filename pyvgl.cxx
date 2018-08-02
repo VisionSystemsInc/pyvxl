@@ -256,6 +256,7 @@ void wrap_vgl(py::module &m)
 {
   wrap_vgl_point_2d<double>(m,"point_2d");
   wrap_vgl_point_2d<float>(m,"point_2d_float");
+  wrap_vgl_point_2d<unsigned>(m, "point_2d_unsigned");
 
   wrap_vgl_vector_2d<double>(m,"vector_2d");
   wrap_vgl_vector_2d<float>(m,"vector_2d_float");
