@@ -121,12 +121,14 @@ void vil_save_wrapper(vil_image_view<T> const& img, std::string const& filename)
 
 void wrap_vil(py::module &m)
 {
-  // Need to provide a python wrapping for the base class so that 
-  // the derived classes work correctly.  
+  // Need to provide a python wrapping for the base class so that
+  // the derived classes work correctly.
   py::class_<vil_image_view_base>(m, "image_view_base");
 
   wrap_vil_image_view<unsigned char>(m, "image_view_byte");
+  wrap_vil_image_view<unsigned short int>(m, "image_view_uint16");
   wrap_vil_image_view<float>(m, "image_view_float");
+
   // TODO: overload these so that they work on any pixel type
   m.def("load", &vil_load_wrapper<unsigned char>);
   m.def("save", &vil_save_wrapper<unsigned char>);
