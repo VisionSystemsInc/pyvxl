@@ -17,6 +17,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 #include <memory>
 #include <sstream>
@@ -46,6 +47,53 @@ template<class T>
 vgl_homg_point_2d<double> vpgl_project_homg_point(T const& cam, vgl_homg_point_3d<double> const& x)
 {
   return cam.project(x);
+}
+
+template<class T>
+py::array vpgl_project_buffer(T const& cam, py::buffer b){
+
+    py::buffer_info info = b.request();
+    if(info.format != py::format_descriptor<double>::value){
+        throw std::runtime_error("Incompatible scalar type");
+    }
+
+    if(info.ndim != 2){
+        throw std::runtime_error("Expecting a 2-dimensional array");
+    }
+
+    if(info.shape[1] != 3){
+        throw std::runtime_error("Expecting an Nx3 array");
+    }
+
+    double const* data = static_cast<double const*>(info.ptr);
+    const size_t nextRow = info.strides[0] / sizeof(double);
+    const size_t nextCol = info.strides[1] / sizeof(double);
+
+    py::array output = py::array(py::buffer_info(
+                (void*)nullptr, /* Numpy allocates */
+                sizeof(double), /* Size of one item */
+                py::format_descriptor<double>::value, /* Buffer format */
+                2, /* Number of dimensions */
+                std::vector<size_t>({info.shape[0], 2}), /* Number of elements in each dimension */
+                std::vector<size_t>({2*sizeof(double), sizeof(double)}) /* Strides for each dimension */
+            ));
+    py::buffer_info out_info = output.request();
+    double* out_data = static_cast<double*>(out_info.ptr);
+    const size_t output_nextRow = out_info.strides[0] / sizeof(double);
+    const size_t output_nextCol = out_info.strides[1] / sizeof(double);
+
+    for(size_t i = 0; i < info.shape[0]; ++i, data += nextRow, out_data += output_nextRow){
+        const double x = *data;
+        const double y = *(data + nextCol);
+        const double z = *(data + 2 * nextCol);
+        double u;
+        double v;
+        cam.project(x, y, z, u, v);
+        *out_data = u;
+        *(out_data + output_nextCol) = v;
+    }
+
+    return output;
 }
 
 void wrap_vpgl(py::module &m)
@@ -102,6 +150,7 @@ void wrap_vpgl(py::module &m)
      .def("coefficient_matrix", &vpgl_rational_camera<double>::coefficient_matrix)
      .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
      .def("project", vpgl_project_point<vpgl_rational_camera<double> >)
+     .def("project", vpgl_project_buffer<vpgl_rational_camera<double> >)
      .def("offset", &vpgl_rational_camera<double>::offset);
 
   m.def("read_rational_camera",
