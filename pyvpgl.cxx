@@ -22,6 +22,7 @@
 #include <memory>
 #include <sstream>
 #include <vector>
+#include <array>
 
 namespace py = pybind11;
 
@@ -146,12 +147,31 @@ void wrap_vpgl(py::module &m)
      .def(py::init<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<double>,
                    double, double, double, double, double, double, double, double, double, double>())
      .def(py::init<vnl_matrix_fixed<double,4,20>, std::vector<vpgl_scale_offset<double> > >())
+     .def("copy", &vpgl_rational_camera<double>::clone)
      .def("__str__", stream2str<vpgl_rational_camera<double> >)
+     .def("save", &vpgl_rational_camera<double>::save)
      .def("coefficient_matrix", &vpgl_rational_camera<double>::coefficient_matrix)
      .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
      .def("project", vpgl_project_point<vpgl_rational_camera<double> >)
      .def("project", vpgl_project_buffer<vpgl_rational_camera<double> >)
-     .def("offset", &vpgl_rational_camera<double>::offset);
+     .def("offset", &vpgl_rational_camera<double>::offset)
+     .def_property("image_offset",
+        [](vpgl_rational_camera<double>& self) {
+          double u,v; self.image_offset(u,v);
+          return py::make_tuple(u,v);
+        },
+        [](vpgl_rational_camera<double>& self, const std::array<double,2>& uv) {
+          self.set_image_offset(uv[0],uv[1]);
+        })
+     .def_property("image_scale",
+        [](vpgl_rational_camera<double>& self) {
+          double u,v; self.image_scale(u,v);
+          return py::make_tuple(u,v);
+        },
+        [](vpgl_rational_camera<double>& self, const std::array<double,2>& uv) {
+          self.set_image_scale(uv[0],uv[1]);
+        })
+     ;
 
   m.def("read_rational_camera",
         [](std::string const& fname){return read_rational_camera<double>(fname);},
