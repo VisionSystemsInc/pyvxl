@@ -78,14 +78,15 @@ std::tuple<size_t, size_t, size_t> image_view_shape(vil_image_view<T> const& img
 template<class T>
 py::buffer_info get_image_buffer(vil_image_view<T> &img)
 {
+  size_t nbytes = sizeof(T);
   int ndim = 2;
   std::vector<size_t> img_shape {img.nj(), img.ni()};
-  std::vector<size_t> img_stride {static_cast<size_t>(img.jstep()),
-                                  static_cast<size_t>(img.istep())};
+  std::vector<size_t> img_stride {static_cast<size_t>(img.jstep()) * nbytes,
+                                  static_cast<size_t>(img.istep()) * nbytes};
   if (img.nplanes() > 1) {
     ndim = 3;
     img_shape.push_back(img.nplanes());
-    img_stride.push_back(img.planestep());
+    img_stride.push_back(static_cast<size_t>(img.planestep()) * nbytes);
   }
   return py::buffer_info(img.top_left_ptr(), sizeof(T),
                          py::format_descriptor<T>::format(),
