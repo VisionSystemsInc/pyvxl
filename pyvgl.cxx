@@ -145,6 +145,40 @@ std::string streamToString(T const& t){
   return buffer.str();
 }
 
+template<typename T>
+void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
+{
+    py::class_<vgl_pointset_3d<T> > (m, class_name.c_str())
+    .def(py::init())
+    .def(py::init<std::vector<vgl_point_3d<T> > >())
+    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<vgl_vector_3d<T> > >())
+    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<T> >())
+    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<vgl_vector_3d<T> >,
+        std::vector<T> >())
+    .def("__len__", &vgl_pointset_3d<T>::size)
+    .def("__repr__", [](vgl_pointset_3d<T> const& ptset){
+        std::ostringstream buffer;
+        buffer << std::boolalpha;
+        buffer << "<vgl_pointset_3d";
+        buffer << " n=" << ptset.size();
+        buffer << " normals=" << ptset.has_normals();
+        buffer << " scalars=" << ptset.has_scalars();
+        buffer << ">";
+        return buffer.str();
+      })
+    .def_property_readonly("has_normals", &vgl_pointset_3d<T>::has_normals)
+    .def_property_readonly("has_scalars", &vgl_pointset_3d<T>::has_scalars)
+    .def("add_point", &vgl_pointset_3d<T>::add_point)
+    .def("add_point_with_normal", &vgl_pointset_3d<T>::add_point_with_normal)
+    .def("add_point_with_scalar", &vgl_pointset_3d<T>::add_point_with_scalar)
+    .def("add_point_with_normal_and_scalar", &vgl_pointset_3d<T>::add_point_with_normal_and_scalar)
+    .def("points", &vgl_pointset_3d<T>::points)
+    .def("normals", &vgl_pointset_3d<T>::normals)
+    .def("scalars", &vgl_pointset_3d<T>::scalars)
+    .def(py::self == py::self);
+
+}
+
 void wrap_vgl(py::module &m)
 {
   py::class_<vgl_point_2d<double> > (m, "point_2d")
@@ -205,34 +239,8 @@ void wrap_vgl(py::module &m)
     .def("__repr__", streamToString<vgl_rotation_3d<double> >)
     .def(py::self * py::self);
 
-  py::class_<vgl_pointset_3d<double> > (m, "pointset_3d")
-    .def(py::init())
-    .def(py::init<std::vector<vgl_point_3d<double> > >())
-    .def(py::init<std::vector<vgl_point_3d<double> >, std::vector<vgl_vector_3d<double> > >())
-    .def(py::init<std::vector<vgl_point_3d<double> >, std::vector<double> >())
-    .def(py::init<std::vector<vgl_point_3d<double> >, std::vector<vgl_vector_3d<double> >,
-        std::vector<double> >())
-    .def("__len__", &vgl_pointset_3d<double>::size)
-    .def("__repr__", [](vgl_pointset_3d<double> const& ptset){
-        std::ostringstream buffer;
-        buffer << std::boolalpha;
-        buffer << "<vgl_pointset_3d";
-        buffer << " n=" << ptset.size();
-        buffer << " normals=" << ptset.has_normals();
-        buffer << " scalars=" << ptset.has_scalars();
-        buffer << ">";
-        return buffer.str();
-      })
-    .def_property_readonly("has_normals", &vgl_pointset_3d<double>::has_normals)
-    .def_property_readonly("has_scalars", &vgl_pointset_3d<double>::has_scalars)
-    .def("add_point", &vgl_pointset_3d<double>::add_point)
-    .def("add_point_with_normal", &vgl_pointset_3d<double>::add_point_with_normal)
-    .def("add_point_with_scalar", &vgl_pointset_3d<double>::add_point_with_scalar)
-    .def("add_point_with_normal_and_scalar", &vgl_pointset_3d<double>::add_point_with_normal_and_scalar)
-    .def("points", &vgl_pointset_3d<double>::points)
-    .def("normals", &vgl_pointset_3d<double>::normals)
-    .def("scalars", &vgl_pointset_3d<double>::scalars)
-    .def(py::self == py::self);
+  wrap_vgl_pointset_3d<double>(m,"pointset_3d");
+  wrap_vgl_pointset_3d<float>(m,"pointset_3d_float");
 
   py::class_<vgl_plane_3d<double> > (m, "plane_3d")
     .def(py::init())
