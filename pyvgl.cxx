@@ -232,6 +232,7 @@ void wrap_vgl(py::module &m)
     .def("points", &vgl_pointset_3d<double>::points)
     .def("normals", &vgl_pointset_3d<double>::normals)
     .def("scalars", &vgl_pointset_3d<double>::scalars)
+    .def("append_pointset", &vgl_pointset_3d<double>::append_pointset)
     .def(py::self == py::self);
 
   py::class_<vgl_plane_3d<double> > (m, "plane_3d")
