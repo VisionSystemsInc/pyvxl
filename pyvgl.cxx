@@ -145,6 +145,75 @@ std::string streamToString(T const& t){
   return buffer.str();
 }
 
+
+template<typename T>
+void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_point_2d<T> > (m, class_name.c_str())
+    .def(py::init<T,T>())
+    .def(py::init(&type_from_buffer_2d<vgl_point_2d<T>, T>))
+    .def("__len__", [](vgl_point_2d<T>){return (size_t)2;})
+    .def("__getitem__", getitem_2d<vgl_point_2d<T> >)
+    .def("__repr__", streamToString<vgl_point_2d<T> >)
+    .def_property_readonly("x", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::x)
+    .def_property_readonly("y", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::y)
+    .def(py::self - py::self)
+    .def(py::self == py::self);
+}
+
+template<typename T>
+void wrap_vgl_vector_2d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_vector_2d<T> > (m, class_name.c_str())
+    .def(py::init<T,T>())
+    .def(py::init(&type_from_buffer_2d<vgl_vector_2d<T>, T>))
+    .def("__len__", [](vgl_vector_2d<T>){return (size_t)2;})
+    .def("__getitem__",getitem_2d<vgl_vector_2d<T> >)
+    .def("__repr__", streamToString<vgl_vector_2d<T> >)
+    .def_property_readonly("x", &vgl_vector_2d<T>::x)
+    .def_property_readonly("y", &vgl_vector_2d<T>::y)
+    .def("length", &vgl_vector_2d<T>::length)
+    .def(py::self + py::self)
+    .def(py::self - py::self)
+    .def(py::self == py::self);
+}
+
+template<typename T>
+void wrap_vgl_point_3d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_point_3d<T> > (m, class_name.c_str())
+    .def(py::init<T,T,T>())
+    .def(py::init(&type_from_buffer_3d<vgl_point_3d<T>, T>))
+    .def("__len__", [](vgl_point_3d<T>){return (size_t)3;})
+    .def("__getitem__", getitem_3d<vgl_point_3d<T> >)
+    .def("__repr__", streamToString<vgl_point_3d<T> >)
+    .def_property_readonly("x", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::x)
+    .def_property_readonly("y", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::y)
+    .def_property_readonly("z", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::z)
+    .def(py::self - py::self)
+    .def(py::self == py::self);
+}
+
+template<typename T>
+void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_vector_3d<T> > (m, class_name.c_str())
+    .def(py::init<T,T,T>())
+    .def(py::init(&type_from_buffer_3d<vgl_vector_3d<T>, T>))
+    .def("__len__", [](vgl_vector_3d<T>){return (size_t)3;})
+    .def("__getitem__", getitem_3d<vgl_vector_3d<T> >)
+    .def("__repr__", streamToString<vgl_vector_3d<T> >)
+    .def_property_readonly("x", &vgl_vector_3d<T>::x)
+    .def_property_readonly("y", &vgl_vector_3d<T>::y)
+    .def_property_readonly("z", &vgl_vector_3d<T>::z)
+    .def("length", &vgl_vector_3d<T>::length)
+    .def(py::self + py::self)
+    .def(py::self - py::self)
+    .def(py::self == py::self);
+
+}
+
+
 template<typename T>
 void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
 {
@@ -182,55 +251,17 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
 
 void wrap_vgl(py::module &m)
 {
-  py::class_<vgl_point_2d<double> > (m, "point_2d")
-    .def(py::init<double,double>())
-    .def(py::init(&type_from_buffer_2d<vgl_point_2d<double>, double>))
-    .def("__len__", [](vgl_point_2d<double>){return (size_t)2;})
-    .def("__getitem__", getitem_2d<vgl_point_2d<double> >)
-    .def("__repr__", streamToString<vgl_point_2d<double> >)
-    .def_property_readonly("x", (double (vgl_point_2d<double>::*)() const) &vgl_point_2d<double>::x)
-    .def_property_readonly("y", (double (vgl_point_2d<double>::*)() const) &vgl_point_2d<double>::y)
-    .def(py::self - py::self)
-    .def(py::self == py::self);
+  wrap_vgl_point_2d<double>(m,"point_2d");
+  wrap_vgl_point_2d<float>(m,"point_2d_float");
 
-  py::class_<vgl_vector_2d<double> > (m, "vector_2d")
-    .def(py::init<double,double>())
-    .def(py::init(&type_from_buffer_2d<vgl_vector_2d<double>, double>))
-    .def("__len__", [](vgl_vector_2d<double>){return (size_t)2;})
-    .def("__getitem__",getitem_2d<vgl_vector_2d<double> >)
-    .def("__repr__", streamToString<vgl_vector_2d<double> >)
-    .def_property_readonly("x", &vgl_vector_2d<double>::x)
-    .def_property_readonly("y", &vgl_vector_2d<double>::y)
-    .def("length", &vgl_vector_2d<double>::length)
-    .def(py::self + py::self)
-    .def(py::self - py::self)
-    .def(py::self == py::self);
+  wrap_vgl_vector_2d<double>(m,"vector_2d");
+  wrap_vgl_vector_2d<float>(m,"vector_2d_float");
 
-  py::class_<vgl_point_3d<double> > (m, "point_3d")
-    .def(py::init<double,double,double>())
-    .def(py::init(&type_from_buffer_3d<vgl_point_3d<double>, double>))
-    .def("__len__", [](vgl_point_3d<double>){return (size_t)3;})
-    .def("__getitem__", getitem_3d<vgl_point_3d<double> >)
-    .def("__repr__", streamToString<vgl_point_3d<double> >)
-    .def_property_readonly("x", (double (vgl_point_3d<double>::*)() const) &vgl_point_3d<double>::x)
-    .def_property_readonly("y", (double (vgl_point_3d<double>::*)() const) &vgl_point_3d<double>::y)
-    .def_property_readonly("z", (double (vgl_point_3d<double>::*)() const) &vgl_point_3d<double>::z)
-    .def(py::self - py::self)
-    .def(py::self == py::self);
+  wrap_vgl_point_3d<double>(m,"point_3d");
+  wrap_vgl_point_3d<float>(m,"point_3d_float");
 
-  py::class_<vgl_vector_3d<double> > (m, "vector_3d")
-    .def(py::init<double,double,double>())
-    .def(py::init(&type_from_buffer_3d<vgl_vector_3d<double>, double>))
-    .def("__len__", [](vgl_vector_3d<double>){return (size_t)3;})
-    .def("__getitem__", getitem_3d<vgl_vector_3d<double> >)
-    .def("__repr__", streamToString<vgl_vector_3d<double> >)
-    .def_property_readonly("x", &vgl_vector_3d<double>::x)
-    .def_property_readonly("y", &vgl_vector_3d<double>::y)
-    .def_property_readonly("z", &vgl_vector_3d<double>::z)
-    .def("length", &vgl_vector_3d<double>::length)
-    .def(py::self + py::self)
-    .def(py::self - py::self)
-    .def(py::self == py::self);
+  wrap_vgl_vector_3d<double>(m,"vector_3d");
+  wrap_vgl_vector_3d<float>(m,"vector_3d_float");
 
   py::class_ <vgl_rotation_3d<double> > (m, "rotation_3d")
     .def(py::init<vnl_vector_fixed<double,4> >())
@@ -242,7 +273,6 @@ void wrap_vgl(py::module &m)
 
   wrap_vgl_pointset_3d<double>(m,"pointset_3d");
   wrap_vgl_pointset_3d<float>(m,"pointset_3d_float");
-    
 
   py::class_<vgl_plane_3d<double> > (m, "plane_3d")
     .def(py::init())
