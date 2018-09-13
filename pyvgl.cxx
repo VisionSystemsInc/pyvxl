@@ -175,6 +175,7 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
     .def("points", &vgl_pointset_3d<T>::points)
     .def("normals", &vgl_pointset_3d<T>::normals)
     .def("scalars", &vgl_pointset_3d<T>::scalars)
+    .def("append_pointset", &vgl_pointset_3d<T>::append_pointset)
     .def(py::self == py::self);
 
 }
@@ -241,6 +242,7 @@ void wrap_vgl(py::module &m)
 
   wrap_vgl_pointset_3d<double>(m,"pointset_3d");
   wrap_vgl_pointset_3d<float>(m,"pointset_3d_float");
+    
 
   py::class_<vgl_plane_3d<double> > (m, "plane_3d")
     .def(py::init())
