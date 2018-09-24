@@ -41,13 +41,18 @@ void wrap_bsgm(py::module &m)
     .def(py::init<bsgm_disparity_estimator_params, int, int, int, int, int>(),
         py::arg("params"),py::arg("img_width"),py::arg("img_height"),
         py::arg("num_disparities"),py::arg("num_active_disparities"),py::arg("downscale_exponent"))
+  /** multiscale_mode:
+   * 0: constant min disparity for all pixels
+   * 1: fixed min disparity in large block regions
+   * 2: per-pixel min disparity based on coarse disparity
+   **/
     .def("compute", [](bsgm_multiscale_disparity_estimator &est,
                        const vil_image_view<vxl_byte>& img_target,
                        const vil_image_view<vxl_byte>& img_ref,
                        const vil_image_view<bool>& invalid_target,
                        int min_disparity,
                        float invalid_disparity,
-                       int const& multi_scale_mode)
+                       int multi_scale_mode=1)
          {
          vil_image_view<float> disp_target;
          bool status = est.compute(img_target, img_ref, invalid_target,
