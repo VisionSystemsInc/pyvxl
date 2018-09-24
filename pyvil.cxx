@@ -129,6 +129,7 @@ void wrap_vil(py::module &m)
   wrap_vil_image_view<unsigned char>(m, "image_view_byte");
   wrap_vil_image_view<unsigned short int>(m, "image_view_uint16");
   wrap_vil_image_view<float>(m, "image_view_float");
+  wrap_vil_image_view<bool>(m, "image_view_bool");
 
   // TODO: overload these so that they work on any pixel type
   m.def("load", &vil_load_wrapper<unsigned char>);
