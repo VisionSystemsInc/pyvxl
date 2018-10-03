@@ -75,7 +75,7 @@ py::array vpgl_project_buffer(T const& cam, py::buffer b){
                 sizeof(double), /* Size of one item */
                 py::format_descriptor<double>::value, /* Buffer format */
                 2, /* Number of dimensions */
-                std::vector<size_t>({info.shape[0], 2}), /* Number of elements in each dimension */
+                std::vector<size_t>({static_cast<size_t>(info.shape[0]), 2}), /* Number of elements in each dimension */
                 std::vector<size_t>({2*sizeof(double), sizeof(double)}) /* Strides for each dimension */
             ));
     py::buffer_info out_info = output.request();
