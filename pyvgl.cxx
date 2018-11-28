@@ -197,6 +197,7 @@ void wrap_vgl_point_3d(py::module &m, std::string const& class_name)
 template<typename T>
 void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
 {
+  vgl_vector_3d<T> (*vector_3d_cross_product)(const vgl_vector_3d<T>&, const vgl_vector_3d<T>&) = &cross_product;
   py::class_<vgl_vector_3d<T> > (m, class_name.c_str())
     .def(py::init<T,T,T>())
     .def(py::init(&type_from_buffer_3d<vgl_vector_3d<T>, T>))
@@ -207,6 +208,7 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     .def_property_readonly("y", &vgl_vector_3d<T>::y)
     .def_property_readonly("z", &vgl_vector_3d<T>::z)
     .def("length", &vgl_vector_3d<T>::length)
+    .def("cross_product", vector_3d_cross_product)
     .def(py::self + py::self)
     .def(py::self - py::self)
     .def(py::self == py::self);
