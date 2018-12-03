@@ -21,6 +21,8 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include_directories(${VXL_CORE_INCLUDE_DIR})
     include_directories(${VXL_VCL_INCLUDE_DIR})
 
+    include_directories(${VXL_DIR}/contrib/brl/bbas)
+
     set(PYBIND11_DIR "PYBIND11_NOTFOUND" CACHE PATH "Location of Pybind11 source directory")
     message(STATUS "PYBIND11_DIR = ${PYBIND11_DIR}")
     if (NOT IS_DIRECTORY ${PYBIND11_DIR})
@@ -39,10 +41,11 @@ set(PYVXL_SOURCES
   pyvil.h pyvil.cxx
   pyvgl_algo.h pyvgl_algo.cxx
   pyvpgl_algo.h pyvpgl_algo.cxx
+  pybpgl_algo.h pybpgl_algo.cxx
   )
 
 pybind11_add_module(vxl ${PYVXL_SOURCES})
-target_link_libraries(vxl PRIVATE vgl vnl vpgl vil vgl_algo vpgl_algo)
+target_link_libraries(vxl PRIVATE vgl vnl vpgl vil vgl_algo vpgl_algo bpgl bpgl_algo)
 
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
