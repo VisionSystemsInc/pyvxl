@@ -45,7 +45,7 @@ set(PYVXL_SOURCES
   )
 
 pybind11_add_module(vxl ${PYVXL_SOURCES})
-target_link_libraries(vxl PRIVATE vgl vnl vpgl vil vgl_algo vpgl_algo bpgl bpgl_algo)
+target_link_libraries(vxl PRIVATE vgl vnl vpgl vil vgl_algo vpgl_algo vpgl_file_formats bpgl bpgl_algo)
 
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
