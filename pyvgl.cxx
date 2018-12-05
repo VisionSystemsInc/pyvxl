@@ -12,6 +12,7 @@
 #include <vgl/vgl_line_segment_2d.h>
 #include <vgl/vgl_line_segment_3d.h>
 #include <vgl/vgl_oriented_box_2d.h>
+#include <vgl/vgl_fit_oriented_box_2d.h>
 #include <vgl/vgl_box_2d.h>
 #include <vgl/vgl_box_3d.h>
 
@@ -250,7 +251,7 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
     .def(py::self == py::self);
 
 }
-
+#include <iostream>
 void wrap_vgl(py::module &m)
 {
   wrap_vgl_point_2d<double>(m,"point_2d");
@@ -350,9 +351,12 @@ void wrap_vgl(py::module &m)
     .def("set", &vgl_oriented_box_2d<double>::set)
     .def(py::self == py::self);
 
+  vgl_oriented_box_2d<double> (vgl_fit_oriented_box_2d<double>::*oriented_fit_box)() = &vgl_fit_oriented_box_2d<double>::fitted_box;
+  py::class_<vgl_fit_oriented_box_2d<double> >(m, "fit_oriented_box_2d")
+    .def(py::init<vgl_polygon<double> >())
+    .def("fitted_box", oriented_fit_box);
 
-
-  py::class_<vgl_box_2d<double> >(m, "box_2d")
+     py::class_<vgl_box_2d<double> >(m, "box_2d")
 
     .def(py::init())
     // .def(py::init<double [], double []>())
