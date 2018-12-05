@@ -37,7 +37,7 @@ void wrap_vpgl_algo(py::module &m)
   py::module aff_conv_mod = m.def_submodule("affine_camera_convert");
   aff_conv_mod.def("convert", [](vpgl_local_rational_camera<double> const& rcam,
                         vgl_box_3d<double> const& roi,
-                        unsigned int num_points=10000)
+                        unsigned int num_points)
   {
     vpgl_affine_camera<double> cam_out;
     bool status = vpgl_affine_camera_convert::convert(rcam, roi, cam_out, num_points);
@@ -45,7 +45,9 @@ void wrap_vpgl_algo(py::module &m)
       throw std::runtime_error("vpgl_affine_camera_convert::convert() returned error");
     }
     return cam_out;
-  });
+  },
+  "convert vpgl_local_rational_camera to vpgl_affine_camera",
+  py::arg("rcam"), py::arg("roi"), py::arg("num_points")=10000);
 
 }
 }}}
