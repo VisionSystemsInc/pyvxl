@@ -361,7 +361,7 @@ void wrap_vgl(py::module &m)
     .def(py::init<vgl_polygon<double> >())
     .def("fitted_box", oriented_fit_box);
 
-     py::class_<vgl_box_2d<double> >(m, "box_2d")
+  py::class_<vgl_box_2d<double> >(m, "box_2d")
 
     .def(py::init())
     // .def(py::init<double [], double []>())
