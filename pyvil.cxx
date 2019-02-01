@@ -129,10 +129,12 @@ void wrap_vil(py::module &m)
   wrap_vil_image_view<unsigned char>(m, "image_view_byte");
   wrap_vil_image_view<unsigned short int>(m, "image_view_uint16");
   wrap_vil_image_view<float>(m, "image_view_float");
+  wrap_vil_image_view<int>(m, "image_view_int");
 
   // TODO: overload these so that they work on any pixel type
   m.def("load", &vil_load_wrapper<unsigned char>);
   m.def("save", &vil_save_wrapper<unsigned char>);
+  m.def("save", &vil_save_wrapper<float>);
   // Lambda version of the above, in case that helps with the todo
   // m.def("load", [](std::string const& filename)
   // {

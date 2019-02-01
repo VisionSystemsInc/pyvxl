@@ -3,6 +3,7 @@
 #include <vgl/vgl_point_2d.h>
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_point_3d.h>
+#include <vgl/vgl_ray_3d.h>
 #include <vgl/algo/vgl_rotation_3d.h>
 #include <vgl/vgl_pointset_3d.h>
 #include <vgl/vgl_plane_3d.h>
@@ -128,7 +129,7 @@ typename vgl_polygon<T>::sheet_t getitem_sheet(vgl_polygon<T> const& p, long i){
   if(i < 0){
     i += p.num_sheets();
   }
-  
+
   // out of range
   if(i < 0 || i >= p.num_sheets()){
     throw py::index_error("index out of range");
@@ -213,7 +214,6 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     .def(py::self + py::self)
     .def(py::self - py::self)
     .def(py::self == py::self);
-
 }
 
 
@@ -277,6 +277,19 @@ void wrap_vgl(py::module &m)
   wrap_vgl_pointset_3d<double>(m,"pointset_3d");
   wrap_vgl_pointset_3d<float>(m,"pointset_3d_float");
 
+  py::class_<vgl_ray_3d<double> >(m, "ray_3d")
+    .def(py::init<vgl_point_3d<double>, vgl_vector_3d<double> >())
+    .def_property_readonly("origin", &vgl_ray_3d<double>::origin)
+    .def_property_readonly("direction", &vgl_ray_3d<double>::direction);
+
+  py::class_ <vgl_rotation_3d<double> > (m, "rotation_3d")
+    .def(py::init<vnl_vector_fixed<double,4> >())
+    .def(py::init<vnl_matrix_fixed<double,3,3> >())
+    .def("as_matrix", &vgl_rotation_3d<double>::as_matrix)
+    .def("as_quaternion", &vgl_rotation_3d<double>::as_quaternion)
+    .def("__repr__", streamToString<vgl_rotation_3d<double> >)
+    .def(py::self * py::self);
+  
   py::class_<vgl_plane_3d<double> > (m, "plane_3d")
     .def(py::init())
     .def(py::init<double, double, double, double>())
@@ -448,7 +461,6 @@ void wrap_vgl(py::module &m)
     .def("scale_about_centroid", &vgl_box_3d<double>::scale_about_centroid)
     .def("scale_about_origin", &vgl_box_3d<double>::scale_about_origin)
     .def("empty", &vgl_box_3d<double>::empty);
-
 
 }
 }}
