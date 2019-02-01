@@ -33,5 +33,5 @@ include_directories(${VXL_VCL_INCLUDE_DIR})
 include_directories(${VXL_DIR}/contrib/brl/bbas)
 
 # add pybind11 & pyvxl
-add_subdirectory($[PYBIND11_SOURCE_DIR} ${PYBIND11_BINARY_DIR})
-add_subdirectory($[PYVXL_SOURCE_DIR} ${PYVXL_BINARY_DIR})
+add_subdirectory(${PYBIND11_SOURCE_DIR} ${PYBIND11_BINARY_DIR})
+add_subdirectory(${PYVXL_SOURCE_DIR} ${PYVXL_BINARY_DIR})

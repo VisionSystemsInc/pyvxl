@@ -10,10 +10,11 @@ jobs:
           name: Setup
           command: |
             set -e
-            mkdir -p /source /build /install
+            mkdir -p /build /install
             mkdir -p /source/vxl /source/pybind11 /source/pyvxl
             git clone https://github.com/vxl/vxl.git /source/vxl
             git clone https://github.com/pybind/pybind11.git /source/pybind11
+            apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-dev
 
       - checkout:
           path: /source/pyvxl
