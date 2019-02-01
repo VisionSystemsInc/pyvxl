@@ -1,0 +1,36 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: vsiri/vxl:latest
+    working_directory: /source
+    steps:
+
+      - run:
+          name: Setup
+          command: |
+            set -e
+            mkdir -p /source /build /install
+            mkdir -p /source/vxl /source/pybind11 /source/pyvxl
+            git clone https://github.com/vxl/vxl.git /source/vxl
+            git clone https://github.com/pybind/pybind11.git /source/pybind11
+
+      - checkout:
+          path: /source/pyvxl
+
+      - run:
+          name: cmake
+          working_directory: /build
+          command: |
+            mv /source/pyvxl/.circleci/config.cmake /source/CMakeLists.txt
+            cmake -G Ninja /source -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/install
+
+      - run:
+          name: compile
+          working_directory: /build
+          command: ninja
+
+      - run:
+          name: install
+          working_directory: /build
+          command: ninja install
