@@ -27,6 +27,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace py = pybind11;
 
@@ -216,7 +217,6 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     .def(py::self == py::self);
 }
 
-
 template<typename T>
 void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
 {
@@ -251,7 +251,7 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
     .def(py::self == py::self);
 
 }
-#include <iostream>
+
 void wrap_vgl(py::module &m)
 {
   wrap_vgl_point_2d<double>(m,"point_2d");
@@ -265,14 +265,6 @@ void wrap_vgl(py::module &m)
 
   wrap_vgl_vector_3d<double>(m,"vector_3d");
   wrap_vgl_vector_3d<float>(m,"vector_3d_float");
-
-  py::class_ <vgl_rotation_3d<double> > (m, "rotation_3d")
-    .def(py::init<vnl_vector_fixed<double,4> >())
-    .def(py::init<vnl_matrix_fixed<double,3,3> >())
-    .def("as_matrix", &vgl_rotation_3d<double>::as_matrix)
-    .def("as_quaternion", &vgl_rotation_3d<double>::as_quaternion)
-    .def("__repr__", streamToString<vgl_rotation_3d<double> >)
-    .def(py::self * py::self);
 
   wrap_vgl_pointset_3d<double>(m,"pointset_3d");
   wrap_vgl_pointset_3d<float>(m,"pointset_3d_float");
@@ -289,7 +281,7 @@ void wrap_vgl(py::module &m)
     .def("as_quaternion", &vgl_rotation_3d<double>::as_quaternion)
     .def("__repr__", streamToString<vgl_rotation_3d<double> >)
     .def(py::self * py::self);
-  
+
   py::class_<vgl_plane_3d<double> > (m, "plane_3d")
     .def(py::init())
     .def(py::init<double, double, double, double>())
