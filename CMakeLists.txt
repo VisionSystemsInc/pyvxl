@@ -44,8 +44,9 @@ set(PYVXL_SOURCES
   pybpgl_algo.h pybpgl_algo.cxx
   )
 
-pybind11_add_module(vxl ${PYVXL_SOURCES})
-target_link_libraries(vxl PRIVATE vgl vnl vpgl vil vgl_algo vpgl_algo vpgl_file_formats bpgl bpgl_algo)
+pybind11_add_module(pyvxl ${PYVXL_SOURCES})
+target_link_libraries(pyvxl PRIVATE vgl vnl vpgl vil vgl_algo vpgl_algo vpgl_file_formats bpgl bpgl_algo)
+set_target_properties(pyvxl PROPERTIES OUTPUT_NAME "vxl")
 
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
@@ -55,4 +56,4 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
 
-install(TARGETS vxl DESTINATION ${PYTHON_SITE})
+install(TARGETS pyvxl DESTINATION ${PYTHON_SITE})
