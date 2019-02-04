@@ -70,7 +70,6 @@ class VglBase(object):
       self.assertEqual(v.z, 42.35)
       self.assertEqual(u.z, -42.35)
 
-  @unittest.expectedFailure
   def test_equals(self):
     if self.length == 2:
       v = self.cls(1.15, -17)
