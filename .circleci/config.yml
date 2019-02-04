@@ -10,11 +10,13 @@ jobs:
           name: Setup
           command: |
             set -e
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-dev python3-pip
+            pip3 install numpy unittest2
             mkdir -p /build /install
             mkdir -p /source/vxl /source/pybind11 /source/pyvxl
             git clone https://github.com/vxl/vxl.git /source/vxl
             git clone https://github.com/pybind/pybind11.git /source/pybind11
-            apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-dev
 
       - checkout:
           path: /source/pyvxl
@@ -35,3 +37,8 @@ jobs:
           name: install
           working_directory: /build
           command: ninja install
+
+      - run:
+          name: test
+          working_directory: /source/pyvxl
+          command: unit2 discover -v
