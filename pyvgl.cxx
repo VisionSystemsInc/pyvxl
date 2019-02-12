@@ -3,6 +3,7 @@
 #include <vgl/vgl_point_2d.h>
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_point_3d.h>
+#include <vgl/vgl_ray_3d.h>
 #include <vgl/algo/vgl_rotation_3d.h>
 #include <vgl/vgl_pointset_3d.h>
 #include <vgl/vgl_plane_3d.h>
@@ -180,6 +181,11 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("z", (double (vgl_point_3d<double>::*)() const) &vgl_point_3d<double>::z)
     .def(py::self - py::self)
     .def(py::self == py::self);
+
+  py::class_<vgl_ray_3d<double> >(m, "ray_3d")
+    .def(py::init<vgl_point_3d<double>, vgl_vector_3d<double> >())
+    .def_property_readonly("origin", &vgl_ray_3d<double>::origin)
+    .def_property_readonly("direction", &vgl_ray_3d<double>::direction);
 
   py::class_<vgl_vector_3d<double> > (m, "vector_3d")
     .def(py::init<double,double,double>())
