@@ -13,6 +13,9 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
       message(FATAL_ERROR "Set VXL_DIR to the location of VXL source directory")
     endif()
     set(VXL_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/vxl_build)
+    set(VXL_BUILD_CONTRIB ON CACHE BOOL "build vxl contrib")
+    set(VXL_BUILD_BRL ON CACHE BOOL "build vxl contrib/brl")
+    set(VXL_BUILD_CORE_VIDEO ON CACHE BOOL "build vxl core/vidl")  # required for brl
     add_subdirectory(${VXL_DIR} ${VXL_BINARY_DIR} EXCLUDE_FROM_ALL)
 
     # include core vxl in include paths
