@@ -178,7 +178,11 @@ void wrap_vgl_vector_2d(py::module &m, std::string const& class_name)
     .def("length", &vgl_vector_2d<T>::length)
     .def(py::self + py::self)
     .def(py::self - py::self)
-    .def(py::self == py::self);
+    .def(py::self == py::self)
+    .def("__neg__", [](vgl_vector_2d<T> const &v){return -v;})
+    .def(py::self / T())
+    .def(py::self * T())
+    .def(T() * py::self);
 }
 
 template<typename T>
@@ -214,7 +218,11 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     .def("cross_product", vector_3d_cross_product)
     .def(py::self + py::self)
     .def(py::self - py::self)
-    .def(py::self == py::self);
+    .def(py::self == py::self)
+    .def("__neg__", [](vgl_vector_3d<T> const &v){return -v;})
+    .def(py::self / T())
+    .def(py::self * T())
+    .def(T() * py::self);
 }
 
 template<typename T>
