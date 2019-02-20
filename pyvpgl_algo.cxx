@@ -7,6 +7,7 @@
 
 #include <vpgl/algo/vpgl_backproject.h>
 #include <vpgl/algo/vpgl_camera_convert.h>
+#include <vpgl/algo/vpgl_camera_compute.h>
 #include <vpgl/vpgl_rational_camera.h>
 #include <vpgl/vpgl_affine_camera.h>
 #include <vgl/vgl_plane_3d.h>
@@ -48,6 +49,21 @@ void wrap_vpgl_algo(py::module &m)
   },
   "convert vpgl_local_rational_camera to vpgl_affine_camera",
   py::arg("rcam"), py::arg("roi"), py::arg("num_points")=10000);
+
+  py::module persp_compute_mod = m.def_submodule("perspective_camera_compute");
+  persp_compute_mod.def("compute_dlt", [](std::vector<vgl_point_2d<double> > const& image_pts,
+                                          std::vector<vgl_point_3d<double> > const& world_pts)
+  {
+    vpgl_perspective_camera<double> camera;
+    double err;
+    bool result = vpgl_perspective_camera_compute::compute_dlt(image_pts, world_pts, camera, err);
+    if(!result) {
+    throw std::runtime_error("error computing perspective camera");
+    }
+    return camera;
+  },
+  "compute vpgl_perspective_camera from 2D->3D correspondences",
+  py::arg("image points"), py::arg("world points"));
 
 }
 }}}
