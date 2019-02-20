@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5.1)
 project("pyvxl")
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    set(PYVXL_TOP_LEVEL TRUE)
     # pyvxl built as top-level project
 
     # find Python
@@ -13,9 +14,11 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
       message(FATAL_ERROR "Set VXL_DIR to the location of VXL source directory")
     endif()
     set(VXL_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/vxl_build)
-    set(VXL_BUILD_CONTRIB ON CACHE BOOL "build vxl contrib")
-    set(VXL_BUILD_BRL ON CACHE BOOL "build vxl contrib/brl")
-    set(VXL_BUILD_CORE_VIDEO ON CACHE BOOL "build vxl core/vidl")  # required for brl
+
+    # NOTE: If you want to wrap contrib/brl, you'll need to build it in vxl.
+    # This currently requires setting the following CMake options:
+    # VXL_BUILD_CORE_VIDEO=ON, VXL_BUILD_CONTRIB=ON, VXL_BUILD_BRL=ON
+
     add_subdirectory(${VXL_DIR} ${VXL_BINARY_DIR} EXCLUDE_FROM_ALL)
 
     # include core vxl in include paths
@@ -23,8 +26,6 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(VXL_VCL_INCLUDE_DIR ${VXL_BINARY_DIR}/vcl ${VXL_DIR}/vcl)
     include_directories(${VXL_CORE_INCLUDE_DIR})
     include_directories(${VXL_VCL_INCLUDE_DIR})
-
-    include_directories(${VXL_DIR}/contrib/brl/bbas)
 
     set(PYBIND11_DIR "PYBIND11_NOTFOUND" CACHE PATH "Location of Pybind11 source directory")
     message(STATUS "PYBIND11_DIR = ${PYBIND11_DIR}")
@@ -44,11 +45,24 @@ set(PYVXL_SOURCES
   pyvil.h pyvil.cxx
   pyvgl_algo.h pyvgl_algo.cxx
   pyvpgl_algo.h pyvpgl_algo.cxx
-  pybpgl_algo.h pybpgl_algo.cxx
   )
 
+set(PYVXL_LINK_LIBRARIES vgl vnl vpgl vil vgl_algo vpgl_algo vpgl_file_formats)
+
+# Don't assume contrib is being built by vxl
+if (TARGET bpgl)  # use existence of bpgl as indicator that contrib/brl is being built
+  message(STATUS "pyvxl: wrapping contrib/brl libraries")
+  add_definitions("-DPYVXL_WITH_CONTRIB_BRL")
+  set(PYVXL_SOURCES ${PYVXL_SOURCES} pybpgl_algo.h pybpgl_algo.cxx)
+  set(PYVXL_LINK_LIBRARIES ${PYVXL_LINK_LIBRARIES} bpgl_algo)
+  if (PYVXL_TOP_LEVEL)
+    include_directories(${VXL_DIR}/contrib/brl/bbas)
+  endif()
+endif()
+
 pybind11_add_module(pyvxl ${PYVXL_SOURCES})
-target_link_libraries(pyvxl PRIVATE vgl vnl vpgl vil vgl_algo vpgl_algo vpgl_file_formats bpgl bpgl_algo)
+
+target_link_libraries(pyvxl PRIVATE ${PYVXL_LINK_LIBRARIES})
 set_target_properties(pyvxl PROPERTIES OUTPUT_NAME "vxl")
 
 execute_process(

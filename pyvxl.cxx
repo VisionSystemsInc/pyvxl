@@ -5,7 +5,10 @@
 #include "pyvil.h"
 #include "pyvgl_algo.h"
 #include "pyvpgl_algo.h"
+
+#ifdef PYVXL_WITH_CONTRIB_BRL
 #include "pybpgl_algo.h"
+#endif
 
 namespace py = pybind11;
 
@@ -29,7 +32,9 @@ PYBIND11_MODULE(vxl, m)
   mod = m.def_submodule("vil");
   pyvxl::vil::wrap_vil(mod);
 
+#ifdef PYVXL_WITH_CONTRIB_BRL
   mod = m.def_submodule("bpgl");
   mod = mod.def_submodule("algo");
   pyvxl::bpgl::algo::wrap_bpgl_algo(mod);
+#endif
 }
