@@ -16,6 +16,7 @@
 #include <vgl/vgl_fit_oriented_box_2d.h>
 #include <vgl/vgl_box_2d.h>
 #include <vgl/vgl_box_3d.h>
+#include <vgl/vgl_intersection.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -147,7 +148,6 @@ std::string streamToString(T const& t){
   buffer << t;
   return buffer.str();
 }
-
 
 template<typename T>
 void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
@@ -462,5 +462,13 @@ void wrap_vgl(py::module &m)
     .def("scale_about_origin", &vgl_box_3d<double>::scale_about_origin)
     .def("empty", &vgl_box_3d<double>::empty);
 
+
+  m.def("intersection", [](vgl_ray_3d<double> const& r, vgl_plane_3d<double> const& p) {
+        vgl_point_3d<double> pt;
+        if(!vgl_intersection(r,p,pt)) {
+          throw std::runtime_error("ray does not intersect plane");
+        }
+        return pt;
+        });
 }
 }}
