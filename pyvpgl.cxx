@@ -202,8 +202,16 @@ void wrap_vpgl(py::module &m)
   py::class_<vpgl_local_rational_camera<double>, vpgl_rational_camera<double> >(m, "local_rational_camera")
     .def(py::init<vpgl_lvcs const&, vpgl_rational_camera<double> const&>())
     .def(py::init<double, double, double, vpgl_rational_camera<double> const&>())
-    .def("set_lvcs", &vpgl_local_rational_camera<double>::set_lvcs)
-    .def("lvcs", &vpgl_local_rational_camera<double>::lvcs);
+    .def("set_lvcs",
+         (void (vpgl_local_rational_camera<double>::*)(vpgl_lvcs const&))
+             &vpgl_local_rational_camera<double>::set_lvcs,
+         py::arg("lvcs"))
+    .def("set_lvcs",
+         (void (vpgl_local_rational_camera<double>::*)(double const&, double const&, double const&))
+             &vpgl_local_rational_camera<double>::set_lvcs,
+         py::arg("longitude"),py::arg("latitude"),py::arg("elevation"))
+    .def("lvcs", &vpgl_local_rational_camera<double>::lvcs)
+    ;
 
   m.def("read_local_rational_camera",
         [](std::string const& fname){return read_local_rational_camera<double>(fname);},
