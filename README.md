@@ -1,6 +1,8 @@
 # pyvxl
 Python wrapper for vxl using pybind11
 
+[![CircleCI](https://circleci.com/gh/VisionSystemsInc/pyvxl.svg?style=svg)](https://circleci.com/gh/VisionSystemsInc/pyvxl)
+
 # Requirements
 
 - pybind11 - You need to add the pybind11 repo as a submodule to your project (or install it into the OS)
