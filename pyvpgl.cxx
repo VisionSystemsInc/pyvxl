@@ -124,6 +124,10 @@ void wrap_vpgl(py::module &m)
 
   py::class_<vpgl_affine_camera<double>, vpgl_proj_camera<double> >(m, "affine_camera")
     .def(py::init<vnl_matrix_fixed<double,3,4> >())
+    .def(py::init<vgl_vector_3d<double>, vgl_vector_3d<double>, vgl_point_3d<double>,
+         double, double, double, double>(),
+         py::arg("ray"), py::arg("up"), py::arg("stare_pt"),
+         py::arg("u0"), py::arg("v0"), py::arg("su"), py::arg("sv"))
     .def("backproject_ray",
       [](vpgl_affine_camera<double> &cam, double u, double v){
         vgl_homg_point_2d<double> image_point(u, v);
