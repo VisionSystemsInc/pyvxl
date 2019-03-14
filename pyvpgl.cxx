@@ -130,7 +130,8 @@ void wrap_vpgl(py::module &m)
         vgl_ray_3d<double> ray = cam.backproject_ray(image_point);
         return ray;
       }
-    );
+      )
+      .def("set_viewing_distance", &vpgl_affine_camera<double>::set_viewing_distance);
 
   py::class_<vpgl_calibration_matrix<double> >(m, "calibration_matrix")
     .def(py::init<vnl_matrix_fixed<double,3,3> >())
