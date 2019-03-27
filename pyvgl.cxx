@@ -153,6 +153,7 @@ template<typename T>
 void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
 {
   py::class_<vgl_point_2d<T> > (m, class_name.c_str())
+    .def(py::init<>())
     .def(py::init<T,T>())
     .def(py::init(&type_from_buffer_2d<vgl_point_2d<T>, T>))
     .def("__len__", [](vgl_point_2d<T>){return (size_t)2;})
@@ -168,6 +169,7 @@ template<typename T>
 void wrap_vgl_vector_2d(py::module &m, std::string const& class_name)
 {
   py::class_<vgl_vector_2d<T> > (m, class_name.c_str())
+    .def(py::init<>())
     .def(py::init<T,T>())
     .def(py::init(&type_from_buffer_2d<vgl_vector_2d<T>, T>))
     .def("__len__", [](vgl_vector_2d<T>){return (size_t)2;})
@@ -189,6 +191,7 @@ template<typename T>
 void wrap_vgl_point_3d(py::module &m, std::string const& class_name)
 {
   py::class_<vgl_point_3d<T> > (m, class_name.c_str())
+    .def(py::init<>())
     .def(py::init<T,T,T>())
     .def(py::init(&type_from_buffer_3d<vgl_point_3d<T>, T>))
     .def("__len__", [](vgl_point_3d<T>){return (size_t)3;})
@@ -206,6 +209,7 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
 {
   vgl_vector_3d<T> (*vector_3d_cross_product)(const vgl_vector_3d<T>&, const vgl_vector_3d<T>&) = &cross_product;
   py::class_<vgl_vector_3d<T> > (m, class_name.c_str())
+    .def(py::init<>())
     .def(py::init<T,T,T>())
     .def(py::init(&type_from_buffer_3d<vgl_vector_3d<T>, T>))
     .def("__len__", [](vgl_vector_3d<T>){return (size_t)3;})
@@ -283,6 +287,7 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("direction", &vgl_ray_3d<double>::direction);
 
   py::class_ <vgl_rotation_3d<double> > (m, "rotation_3d")
+    .def(py::init<>())
     .def(py::init<vnl_vector_fixed<double,4> >())
     .def(py::init<vnl_matrix_fixed<double,3,3> >())
     .def("as_matrix", &vgl_rotation_3d<double>::as_matrix)
