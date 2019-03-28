@@ -49,16 +49,8 @@ set(PYVXL_SOURCES
 
 set(PYVXL_LINK_LIBRARIES vgl vnl vpgl vil vgl_algo vpgl_algo vpgl_file_formats)
 
-# Don't assume contrib is being built by vxl
-if (TARGET bpgl)  # use existence of bpgl as indicator that contrib/brl is being built
-  message(STATUS "pyvxl: wrapping contrib/brl libraries")
-  add_definitions("-DPYVXL_WITH_CONTRIB_BRL")
-  set(PYVXL_SOURCES ${PYVXL_SOURCES} pybpgl_algo.h pybpgl_algo.cxx)
-  set(PYVXL_LINK_LIBRARIES ${PYVXL_LINK_LIBRARIES} bpgl_algo)
-  if (PYVXL_TOP_LEVEL)
-    include_directories(${VXL_DIR}/contrib/brl/bbas)
-  endif()
-endif()
+# Optionally build contrib modules
+add_subdirectory("contrib" "pyvxl-contrib-build")
 
 pybind11_add_module(pyvxl ${PYVXL_SOURCES})
 
