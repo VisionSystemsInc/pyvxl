@@ -387,3 +387,10 @@ void wrap_vnl(py::module &m)
   wrap_vnl_quaternion<double>(m, "quaternion");
 }
 }}
+
+PYBIND11_MODULE(_vnl, m)
+{
+  m.doc() =  "Python bindings for the VNL computer vision libraries";
+
+  pyvxl::vnl::wrap_vnl(m);
+}

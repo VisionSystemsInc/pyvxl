@@ -67,3 +67,10 @@ void wrap_vpgl_algo(py::module &m)
 
 }
 }}}
+
+PYBIND11_MODULE(_vpgl_algo, m)
+{
+  m.doc() =  "Python bindings for the VPGL Algo computer vision libraries";
+
+  pyvxl::vpgl::algo::wrap_vpgl_algo(m);
+}

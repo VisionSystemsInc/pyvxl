@@ -481,3 +481,16 @@ void wrap_vgl(py::module &m)
         });
 }
 }}
+
+PYBIND11_MODULE(_vgl, m)
+{
+  m.doc() =  "Python bindings for the VGL computer vision libraries";
+
+  pyvxl::vgl::wrap_vgl(m);
+
+
+  /* py::module mod = m.def_submodule("vgl"); */
+  /* pyvxl::vgl::wrap_vgl(mod); */
+  /* mod = mod.def_submodule("algo"); */
+  /* pyvxl::vgl::algo::wrap_vgl_algo(mod); */
+}

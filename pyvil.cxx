@@ -146,3 +146,12 @@ void wrap_vil(py::module &m)
   // });
 }
 }}
+
+
+PYBIND11_MODULE(_vil, m)
+{
+  m.doc() =  "Python bindings for the VIL computer vision libraries";
+
+  pyvxl::vil::wrap_vil(m);
+}
+

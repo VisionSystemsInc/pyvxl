@@ -396,3 +396,10 @@ void wrap_vpgl(py::module &m)
 
 }
 }
+
+PYBIND11_MODULE(_vpgl, m)
+{
+  m.doc() =  "Python bindings for the VIL computer vision libraries";
+
+  pyvxl::wrap_vpgl(m);
+}

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.5.1)
 project("pyvxl")
+
+# If building PyVXL directly, build VXL
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(PYVXL_TOP_LEVEL TRUE)
     # pyvxl built as top-level project
@@ -37,26 +39,36 @@ endif()
 
 include_directories(${PYTHON_INCLUDE_PATH})
 
-set(PYVXL_SOURCES
-  pyvxl.cxx
-  pyvnl.h pyvnl.cxx
-  pyvgl.h pyvgl.cxx
-  pyvpgl.h pyvpgl.cxx
-  pyvil.h pyvil.cxx
-  pyvgl_algo.h pyvgl_algo.cxx
-  pyvpgl_algo.h pyvpgl_algo.cxx
-  )
-
-set(PYVXL_LINK_LIBRARIES vgl vnl vpgl vil vgl_algo vpgl_algo vpgl_file_formats)
+# set(PYVXL_LINK_LIBRARIES vgl vnl vpgl vil vgl_algo vpgl_algo vpgl_file_formats)
 
 # Optionally build contrib modules
 add_subdirectory("contrib" "pyvxl-contrib-build")
 
-pybind11_add_module(pyvxl ${PYVXL_SOURCES})
+# Add pybind11 modules
+pybind11_add_module(pyvnl pyvnl.h pyvnl.cxx)
+pybind11_add_module(pyvgl pyvgl.h pyvgl.cxx)
+pybind11_add_module(pyvpgl pyvpgl.h pyvpgl.cxx)
+pybind11_add_module(pyvil pyvil.h pyvil.cxx)
+pybind11_add_module(pyvgl_algo pyvgl_algo.h pyvgl_algo.cxx)
+pybind11_add_module(pyvpgl_algo pyvpgl_algo.h pyvpgl_algo.cxx)
 
-target_link_libraries(pyvxl PRIVATE ${PYVXL_LINK_LIBRARIES})
-set_target_properties(pyvxl PROPERTIES OUTPUT_NAME "vxl")
+# Link
+target_link_libraries(pyvnl PRIVATE vnl)
+target_link_libraries(pyvgl PRIVATE vgl)
+target_link_libraries(pyvpgl PRIVATE vpgl)
+target_link_libraries(pyvil PRIVATE vil)
+target_link_libraries(pyvgl_algo PRIVATE vgl_algo)
+target_link_libraries(pyvpgl_algo PRIVATE vpgl_algo)
 
+# Set names
+set_target_properties(pyvnl PROPERTIES OUTPUT_NAME "_vnl")
+set_target_properties(pyvgl PROPERTIES OUTPUT_NAME "_vgl")
+set_target_properties(pyvpgl PROPERTIES OUTPUT_NAME "_vpgl")
+set_target_properties(pyvil PROPERTIES OUTPUT_NAME "_vil")
+set_target_properties(pyvgl_algo PROPERTIES OUTPUT_NAME "_vgl_algo")
+set_target_properties(pyvpgl_algo PROPERTIES OUTPUT_NAME "_vpgl_algo")
+
+# Find the python install directory
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
     from distutils import sysconfig as sc
@@ -65,4 +77,20 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
 
-install(TARGETS pyvxl DESTINATION ${PYTHON_SITE})
+# install the pybind11 extensions
+install(TARGETS pyvnl DESTINATION ${PYTHON_SITE}/vxl/vnl)
+install(TARGETS pyvgl DESTINATION ${PYTHON_SITE}/vxl/vgl)
+install(TARGETS pyvpgl DESTINATION ${PYTHON_SITE}/vxl/vpgl)
+install(TARGETS pyvil DESTINATION ${PYTHON_SITE}/vxl/vil)
+install(TARGETS pyvgl_algo DESTINATION ${PYTHON_SITE}/vxl/vgl/algo)
+install(TARGETS pyvpgl_algo DESTINATION ${PYTHON_SITE}/vxl/vpgl/algo)
+
+# auto generate __init__ files
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vnl/__init__.py \"from ._vnl import *\")")
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vgl/__init__.py \"from ._vgl import *\")")
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vpgl/__init__.py \"from ._vpgl import *\")")
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vil/__init__.py \"from ._vil import *\")")
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vgl/algo/__init__.py \"from ._vgl_algo import *\")")
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vpgl/algo/__init__.py \"from ._vpgl_algo import *\")")
+
+# install(TARGETS pyvxl DESTINATION ${PYTHON_SITE})
