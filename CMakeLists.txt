@@ -54,8 +54,8 @@ pybind11_add_module(pyvpgl_algo pyvpgl_algo.h pyvpgl_algo.cxx)
 
 # Link
 target_link_libraries(pyvnl PRIVATE vnl)
-target_link_libraries(pyvgl PRIVATE vgl)
-target_link_libraries(pyvpgl PRIVATE vpgl)
+target_link_libraries(pyvgl PRIVATE vgl vnl)
+target_link_libraries(pyvpgl PRIVATE vpgl vpgl_file_formats)
 target_link_libraries(pyvil PRIVATE vil)
 target_link_libraries(pyvgl_algo PRIVATE vgl_algo)
 target_link_libraries(pyvpgl_algo PRIVATE vpgl_algo)
