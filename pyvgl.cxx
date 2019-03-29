@@ -4,7 +4,6 @@
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_point_3d.h>
 #include <vgl/vgl_ray_3d.h>
-#include <vgl/algo/vgl_rotation_3d.h>
 #include <vgl/vgl_pointset_3d.h>
 #include <vgl/vgl_plane_3d.h>
 #include <vgl/vgl_cylinder.h>
@@ -22,6 +21,8 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+
+#include "pyvxl_util.h"
 
 #include <ios>
 #include <sstream>
@@ -139,14 +140,6 @@ typename vgl_polygon<T>::sheet_t getitem_sheet(vgl_polygon<T> const& p, long i){
 
   // extract sheet
   return p[i];
-}
-
-template<typename T>
-std::string streamToString(T const& t){
-
-  std::ostringstream buffer;
-  buffer << t;
-  return buffer.str();
 }
 
 template<typename T>
@@ -286,18 +279,6 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("origin", &vgl_ray_3d<double>::origin)
     .def_property_readonly("direction", &vgl_ray_3d<double>::direction);
 
-  py::class_ <vgl_rotation_3d<double> > (m, "rotation_3d")
-    .def(py::init<>())
-    .def(py::init<vnl_vector_fixed<double,4> >())
-    .def(py::init<vnl_matrix_fixed<double,3,3> >())
-    .def("as_matrix", &vgl_rotation_3d<double>::as_matrix)
-    .def("as_quaternion", &vgl_rotation_3d<double>::as_quaternion)
-    .def("inverse", &vgl_rotation_3d<double>::inverse)
-    .def("transpose", &vgl_rotation_3d<double>::transpose)
-    .def("__repr__", streamToString<vgl_rotation_3d<double> >)
-    .def(py::self * vgl_vector_3d<double>())
-    .def(py::self * vgl_point_3d<double>())
-    .def(py::self * py::self);
 
   py::class_<vgl_plane_3d<double> > (m, "plane_3d")
     .def(py::init())
