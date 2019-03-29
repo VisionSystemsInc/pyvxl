@@ -86,9 +86,16 @@ install(TARGETS pyvgl_algo DESTINATION ${PYTHON_SITE}/vxl/vgl/algo)
 install(TARGETS pyvpgl_algo DESTINATION ${PYTHON_SITE}/vxl/vpgl/algo)
 
 # auto generate __init__ files
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/__init__.py \"\
+from . import vnl\n\
+from . import vgl\n\
+from . import vpgl\n\
+from . import vil\n\
+from . import contrib\
+\")")
 install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vnl/__init__.py \"from ._vnl import *\")")
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vgl/__init__.py \"from ._vgl import *\nfrom .algo._vgl_algo import *\")")
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vpgl/__init__.py \"from ._vpgl import *\nfrom .algo._vpgl_algo import *\")")
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vgl/__init__.py \"from ._vgl import *\nfrom . import algo\")")
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vpgl/__init__.py \"from ._vpgl import *\nfrom . import algo\")")
 install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vil/__init__.py \"from ._vil import *\")")
 install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vgl/algo/__init__.py \"from ._vgl_algo import *\")")
 install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vpgl/algo/__init__.py \"from ._vpgl_algo import *\")")

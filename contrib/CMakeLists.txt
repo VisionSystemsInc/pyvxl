@@ -20,6 +20,9 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
 
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib)
+# auto generate __init__ file
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/contrib/__init__.py \"\")")
 
 if (PYVXL_CONTRIB_MAKE_BPGL)
   message(STATUS "pyvxl contrib: wrapping contrib/bpgl libraries")
@@ -38,7 +41,11 @@ if (PYVXL_CONTRIB_MAKE_BPGL)
   # install the pybind11 extension
   install(TARGETS pybpgl_algo DESTINATION ${PYTHON_SITE}/vxl/contrib/bpgl/algo)
 
+  # append to base __init__
+  install(CODE "file(APPEND ${PYTHON_SITE}/vxl/contrib/__init__.py \"\nfrom . import bpgl\")")
+
   # auto generate __init__ file
+  install(CODE "file(WRITE ${PYTHON_SITE}/vxl/contrib/bpgl/__init__.py \"from . import algo\")")
   install(CODE "file(WRITE ${PYTHON_SITE}/vxl/contrib/bpgl/algo/__init__.py \"from ._bpgl_algo import *\")")
 
   if (PYVXL_TOP_LEVEL)
