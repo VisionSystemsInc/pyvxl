@@ -21,7 +21,6 @@ execute_process(
 set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
 
 
-# message(STATUS "in contrib cmakelist!")
 if (PYVXL_CONTRIB_MAKE_BPGL)
   message(STATUS "pyvxl contrib: wrapping contrib/bpgl libraries")
   add_definitions("-DPYVXL_WITH_CONTRIB_BPGL")
