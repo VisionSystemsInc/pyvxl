@@ -16,7 +16,6 @@ class TestAutoLoad(unittest.TestCase):
     vxl.vnl
     vxl.vpgl
     vxl.vpgl.algo
-    vxl.vpgl.file_formats
     vxl.contrib
 
 
