@@ -5,7 +5,8 @@
 #include <vnl/vnl_vector_fixed.h>
 #include <vnl/vnl_quaternion.h>
 #include <tuple>
-#include "pyvxl_util.h"
+
+#include "../pyvxl_util.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>

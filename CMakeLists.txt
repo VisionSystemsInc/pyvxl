@@ -39,35 +39,6 @@ endif()
 
 include_directories(${PYTHON_INCLUDE_PATH})
 
-# set(PYVXL_LINK_LIBRARIES vgl vnl vpgl vil vgl_algo vpgl_algo vpgl_file_formats)
-
-# Optionally build contrib modules
-add_subdirectory("contrib" "pyvxl-contrib-build")
-
-# Add pybind11 modules
-pybind11_add_module(pyvnl pyvnl.h pyvnl.cxx)
-pybind11_add_module(pyvgl pyvgl.h pyvgl.cxx)
-pybind11_add_module(pyvpgl pyvpgl.h pyvpgl.cxx)
-pybind11_add_module(pyvil pyvil.h pyvil.cxx)
-pybind11_add_module(pyvgl_algo pyvgl_algo.h pyvgl_algo.cxx)
-pybind11_add_module(pyvpgl_algo pyvpgl_algo.h pyvpgl_algo.cxx)
-
-# Link
-target_link_libraries(pyvnl PRIVATE vnl)
-target_link_libraries(pyvgl PRIVATE vgl)
-target_link_libraries(pyvpgl PRIVATE vpgl vpgl_file_formats)
-target_link_libraries(pyvil PRIVATE vil)
-target_link_libraries(pyvgl_algo PRIVATE vgl_algo)
-target_link_libraries(pyvpgl_algo PRIVATE vpgl_algo)
-
-# Set names
-set_target_properties(pyvnl PROPERTIES OUTPUT_NAME "_vnl")
-set_target_properties(pyvgl PROPERTIES OUTPUT_NAME "_vgl")
-set_target_properties(pyvpgl PROPERTIES OUTPUT_NAME "_vpgl")
-set_target_properties(pyvil PROPERTIES OUTPUT_NAME "_vil")
-set_target_properties(pyvgl_algo PROPERTIES OUTPUT_NAME "_vgl_algo")
-set_target_properties(pyvpgl_algo PROPERTIES OUTPUT_NAME "_vpgl_algo")
-
 # Find the python install directory
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
@@ -77,27 +48,26 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
 
-# install the pybind11 extensions
-install(TARGETS pyvnl DESTINATION ${PYTHON_SITE}/vxl/vnl)
-install(TARGETS pyvgl DESTINATION ${PYTHON_SITE}/vxl/vgl)
-install(TARGETS pyvpgl DESTINATION ${PYTHON_SITE}/vxl/vpgl)
-install(TARGETS pyvil DESTINATION ${PYTHON_SITE}/vxl/vil)
-install(TARGETS pyvgl_algo DESTINATION ${PYTHON_SITE}/vxl/vgl/algo)
-install(TARGETS pyvpgl_algo DESTINATION ${PYTHON_SITE}/vxl/vpgl/algo)
+# Create the install directories in case they aren't installed to, so auto-loading doesn't break
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vgl)
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vil)
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vnl)
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vpgl)
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib)
 
-# auto generate __init__ files
+# generate __init__ file to auto-load modules by default
 install(CODE "file(WRITE ${PYTHON_SITE}/vxl/__init__.py \"\
-from . import vnl\n\
 from . import vgl\n\
-from . import vpgl\n\
 from . import vil\n\
-from . import contrib\
+from . import vnl\n\
+from . import vpgl\n\
+from . import contrib\n\
 \")")
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vnl/__init__.py \"from ._vnl import *\")")
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vgl/__init__.py \"from ._vgl import *\nfrom . import algo\")")
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vpgl/__init__.py \"from ._vpgl import *\nfrom . import algo\")")
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vil/__init__.py \"from ._vil import *\")")
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vgl/algo/__init__.py \"from ._vgl_algo import *\")")
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vpgl/algo/__init__.py \"from ._vpgl_algo import *\")")
 
-# install(TARGETS pyvxl DESTINATION ${PYTHON_SITE})
+# Recurse
+add_subdirectory("vgl" "vgl-build")
+add_subdirectory("vil" "vil-build")
+add_subdirectory("vnl" "vnl-build")
+add_subdirectory("vpgl" "vpgl-build")
+add_subdirectory("contrib" "contrib-build")
+

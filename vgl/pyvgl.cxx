@@ -22,7 +22,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
-#include "pyvxl_util.h"
+#include "../pyvxl_util.h"
 
 #include <ios>
 #include <sstream>

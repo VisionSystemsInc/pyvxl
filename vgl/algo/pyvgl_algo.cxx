@@ -9,7 +9,7 @@
 #include <vgl/algo/vgl_compute_similarity_3d.h>
 #include <vgl/algo/vgl_rotation_3d.h>
 
-#include "pyvxl_util.h"
+#include "../../pyvxl_util.h"
 
 namespace py = pybind11;
 

@@ -13,12 +13,11 @@
 #include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_homg_point_3d.h>
 
-#include <vpgl/file_formats/vpgl_geo_camera.h>
 #include <vil/vil_load.h>
 #include <vil/vil_image_resource.h>
 #include <vil/vil_image_resource_sptr.h>
 
-#include "pyvxl_util.h"
+#include "../pyvxl_util.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -366,33 +365,6 @@ void wrap_vpgl(py::module &m)
           { double lat,lon; U.transform(zone,x,y,lat,lon,is_south); return std::make_tuple(lon,lat); },
         py::arg("easting"),py::arg("northing"),py::arg("zone"),py::arg("is_south")=false)
     ;
-
-  // Geo- Camera definitions
-  py::class_<vpgl_geo_camera>(m, "geo_camera")
-    // Default methods
-    .def(py::init<>())
-    .def("__str__", streamToString<vpgl_geo_camera >)
-    // Convert pixel coords (u,v) to a lon/lat pair
-    .def("img_to_global",
-      [](vpgl_geo_camera &G, double const u, double const v)
-      {
-        double lon, lat;
-        G.img_to_global(u, v, lon, lat);
-        return std::make_tuple(lon, lat);
-      }
-    );
-
-  // Init from a Geotiff filename
-  m.def("read_geo_camera",
-    [](std::string filename)
-    {
-      vpgl_geo_camera* cam = new vpgl_geo_camera;
-      vil_image_resource_sptr img = vil_load_image_resource(filename.c_str());
-      vpgl_geo_camera::init_geo_camera(img, cam);
-      return cam;
-    },
-    "A function to read a geo camera from a geotiff header."
-  );
 
 }
 }
