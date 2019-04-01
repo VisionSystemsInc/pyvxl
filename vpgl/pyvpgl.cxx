@@ -161,6 +161,11 @@ void wrap_vpgl(py::module &m)
         return buffer.str();
     });
 
+  py::enum_<vpgl_rational_order>(m, "rational_order")
+    .value("VXL", vpgl_rational_order::VXL)
+    .value("RPC00B", vpgl_rational_order::RPC00B)
+    ;
+
   py::class_<vpgl_rational_camera<double> > rational_camera(m, "rational_camera");
   py::enum_<vpgl_rational_camera<double>::coor_index>(rational_camera, "coor_index")
     .value("X_INDX", vpgl_rational_camera<double>::X_INDX)
