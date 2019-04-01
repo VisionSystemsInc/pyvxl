@@ -10,15 +10,6 @@ target_link_libraries(pybpgl_algo PRIVATE bpgl_algo)
 # Set names
 set_target_properties(pybpgl_algo PROPERTIES OUTPUT_NAME "_bpgl_algo")
 
-# Find the python install directory
-execute_process(
-  COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
-    from distutils import sysconfig as sc
-    print(sc.get_python_lib(plat_specific=True))"
-  OUTPUT_VARIABLE PYTHON_SITE_DEFAULT
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
-
 # install the .so file to the python install dir
 install(TARGETS pybpgl_algo DESTINATION ${PYTHON_SITE}/vxl/contrib/bpgl/algo)
 
