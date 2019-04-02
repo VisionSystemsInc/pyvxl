@@ -5,7 +5,8 @@ try:
 except:
   np = None
 
-import vxl
+from vxl import vgl
+
 
 class VglBase(object):
 
@@ -102,21 +103,24 @@ class VglBase(object):
     if self.length == 3:
       self.assertAlmostEqual(u.z, 42)
 
+
 class Vector_2d(VglBase, unittest.TestCase):
   def __init__(self, *args, **kwargs):
-    self.cls = vxl.vgl.vector_2d
+    self.cls = vgl.vector_2d
     self.length = 2
     super().__init__(*args, **kwargs)
+
 
 class Vector_3d(VglBase, unittest.TestCase):
   def __init__(self, *args, **kwargs):
-    self.cls = vxl.vgl.vector_3d
+    self.cls = vgl.vector_3d
     self.length = 3
     super().__init__(*args, **kwargs)
 
+
 class Point_2d(VglBase, unittest.TestCase):
   def __init__(self, *args, **kwargs):
-    self.cls = vxl.vgl.point_2d
+    self.cls = vgl.point_2d
     self.length = 2
     super().__init__(*args, **kwargs)
 
@@ -124,15 +128,17 @@ class Point_2d(VglBase, unittest.TestCase):
   def test_add(self):
     pass
 
+
 class Point_3d(VglBase, unittest.TestCase):
   def __init__(self, *args, **kwargs):
-    self.cls = vxl.vgl.point_3d
+    self.cls = vgl.point_3d
     self.length = 3
     super().__init__(*args, **kwargs)
 
   @unittest.skip("Not implemented")
   def test_add(self):
     pass
+
 
 if __name__ == '__main__':
   unittest.main()

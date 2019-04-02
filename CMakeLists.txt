@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.5.1)
 project("pyvxl")
+
+# If building PyVXL directly, build VXL
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(PYVXL_TOP_LEVEL TRUE)
     # pyvxl built as top-level project
@@ -37,34 +39,7 @@ endif()
 
 include_directories(${PYTHON_INCLUDE_PATH})
 
-set(PYVXL_SOURCES
-  pyvxl.cxx
-  pyvnl.h pyvnl.cxx
-  pyvgl.h pyvgl.cxx
-  pyvpgl.h pyvpgl.cxx
-  pyvil.h pyvil.cxx
-  pyvgl_algo.h pyvgl_algo.cxx
-  pyvpgl_algo.h pyvpgl_algo.cxx
-  )
-
-set(PYVXL_LINK_LIBRARIES vgl vnl vpgl vil vgl_algo vpgl_algo vpgl_file_formats)
-
-# Don't assume contrib is being built by vxl
-if (TARGET bpgl)  # use existence of bpgl as indicator that contrib/brl is being built
-  message(STATUS "pyvxl: wrapping contrib/brl libraries")
-  add_definitions("-DPYVXL_WITH_CONTRIB_BRL")
-  set(PYVXL_SOURCES ${PYVXL_SOURCES} pybpgl_algo.h pybpgl_algo.cxx)
-  set(PYVXL_LINK_LIBRARIES ${PYVXL_LINK_LIBRARIES} bpgl_algo)
-  if (PYVXL_TOP_LEVEL)
-    include_directories(${VXL_DIR}/contrib/brl/bbas)
-  endif()
-endif()
-
-pybind11_add_module(pyvxl ${PYVXL_SOURCES})
-
-target_link_libraries(pyvxl PRIVATE ${PYVXL_LINK_LIBRARIES})
-set_target_properties(pyvxl PROPERTIES OUTPUT_NAME "vxl")
-
+# Find the python install directory
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
     from distutils import sysconfig as sc
@@ -73,4 +48,26 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
 
-install(TARGETS pyvxl DESTINATION ${PYTHON_SITE})
+# Create the install directories in case they aren't installed to, so auto-loading doesn't break
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vgl)
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vil)
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vnl)
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vpgl)
+install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib)
+
+# generate __init__ file to auto-load modules by default
+install(CODE "file(WRITE ${PYTHON_SITE}/vxl/__init__.py \"\
+from . import vgl\n\
+from . import vil\n\
+from . import vnl\n\
+from . import vpgl\n\
+from . import contrib\n\
+\")")
+
+# Recurse
+add_subdirectory("vgl" "vgl-build")
+add_subdirectory("vil" "vil-build")
+add_subdirectory("vnl" "vnl-build")
+add_subdirectory("vpgl" "vpgl-build")
+add_subdirectory("contrib" "contrib-build")
+

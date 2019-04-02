@@ -5,7 +5,8 @@
 #include <vnl/vnl_vector_fixed.h>
 #include <vnl/vnl_quaternion.h>
 #include <tuple>
-#include "pyvxl_util.h"
+
+#include "../pyvxl_util.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -291,7 +292,7 @@ void wrap_vnl_matrix(py::module &m, std::string const& class_name)
     .def(py::init(&matrix_from_buffer<T>))
     .def("get", &vnl_matrix<T>::get)
     .def_property_readonly("shape", &vnl_matrix_shape<T>)
-    .def("__str__", stream2str<vnl_matrix<T> >)
+    .def("__str__", streamToString<vnl_matrix<T> >)
     .def("__getitem__", vnl_matrix_getitem<T>)
     .def("__len__", vnl_matrix_len<T>)
     .def(py::self + vnl_matrix<T>())
@@ -314,7 +315,7 @@ void wrap_vnl_vector(py::module &m, std::string const& class_name)
     .def("get", &vnl_vector<T>::get)
     .def("size", &vnl_vector<T>::size)
     .def("__len__", vnl_vector_len<T>)
-    .def("__str__", stream2str<vnl_vector<T> >)
+    .def("__str__", streamToString<vnl_vector<T> >)
     .def("__getitem__", vnl_vector_getitem<T>)
     .def(py::self + py::self)
     .def(T() * py::self)
@@ -331,7 +332,7 @@ void wrap_vnl_vector_fixed(py::module &m, std::string const& class_name)
     .def(py::init(&vector_fixed_from_buffer<T,N>))
     .def("get", &vnl_vector_fixed<T,N>::get)
     .def_property_readonly("shape", &vnl_vector_fixed_shape<T,N>)
-    .def("__str__", stream2str<vnl_vector_fixed<T,N> >)
+    .def("__str__", streamToString<vnl_vector_fixed<T,N> >)
     .def("__len__", vnl_vector_fixed_len<T,N>)
     .def("__getitem__", vnl_vector_fixed_getitem<T,N>)
     .def(py::self + vnl_vector<T>())
@@ -350,7 +351,7 @@ void wrap_vnl_matrix_fixed(py::module &m, std::string const& class_name)
     .def(py::init(&matrix_fixed_from_buffer<T,NR,NC>))
     .def("get", &vnl_matrix_fixed<T,NR,NC>::get)
     .def_property_readonly("shape", &vnl_matrix_fixed_shape<T,NR,NC>)
-    .def("__str__", stream2str<vnl_matrix_fixed<T,NR,NC> >)
+    .def("__str__", streamToString<vnl_matrix_fixed<T,NR,NC> >)
     .def("__getitem__", vnl_matrix_fixed_getitem<T,NR,NC>)
     .def("__len__", vnl_matrix_fixed_len<T,NR,NC>)
     .def(py::self + py::self)
@@ -369,7 +370,7 @@ void wrap_vnl_quaternion(py::module &m, std::string const& class_name)
   py::class_<vnl_quaternion<T> >(m, class_name.c_str())
     .def(py::init(&quaternion_from_buffer<T>))
     .def_property_readonly("shape", &vnl_quaternion_shape<T>)
-    .def("__str__", stream2str<vnl_quaternion<T> >)
+    .def("__str__", streamToString<vnl_quaternion<T> >)
     .def("__getitem__", vnl_quaternion_getitem<T>)
     .def("__len__", [](vnl_quaternion<T> const& q){return (size_t)4;});
 }
@@ -387,3 +388,10 @@ void wrap_vnl(py::module &m)
   wrap_vnl_quaternion<double>(m, "quaternion");
 }
 }}
+
+PYBIND11_MODULE(_vnl, m)
+{
+  m.doc() =  "Python bindings for the VNL computer vision libraries";
+
+  pyvxl::vnl::wrap_vnl(m);
+}

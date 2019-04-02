@@ -5,7 +5,8 @@ try:
 except:
   np = None
 
-import vxl
+from vxl import vnl
+
 
 class VnlVectorBase(object):
   @unittest.skipUnless(np, "Numpy not found")
@@ -35,7 +36,7 @@ class VnlVectorBase(object):
     self.assertEqual(y.size(), 5)
 
   def test_construct_len_value(self):
-    z = self.cls(6,1.23)
+    z = self.cls(6, 1.23)
 
     self.assertEqual(len(z), 6)
     self.assertEqual(z.size(), 6)
@@ -43,10 +44,12 @@ class VnlVectorBase(object):
       self.assertEqual(z[x], 1.23)
       self.assertEqual(z.get(x), 1.23)
 
+
 class VnlVector(VnlVectorBase, unittest.TestCase):
   def __init__(self, *args, **kwargs):
-    self.cls = vxl.vnl.vector
+    self.cls = vnl.vector
     super().__init__(*args, **kwargs)
+
 
 if __name__ == '__main__':
   unittest.main()

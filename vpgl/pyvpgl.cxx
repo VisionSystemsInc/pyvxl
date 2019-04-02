@@ -14,11 +14,12 @@
 #include <vgl/vgl_homg_point_3d.h>
 
 #include <vpgl/file_formats/vpgl_geo_camera.h>
+
 #include <vil/vil_load.h>
 #include <vil/vil_image_resource.h>
 #include <vil/vil_image_resource_sptr.h>
 
-#include "pyvxl_util.h"
+#include "../pyvxl_util.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -115,7 +116,7 @@ void wrap_vpgl(py::module &m)
 {
   py::class_<vpgl_proj_camera<double> >(m, "proj_camera")
     .def(py::init<vnl_matrix_fixed<double,3,4> >())
-    .def("__str__", stream2str<vpgl_proj_camera<double> >)
+    .def("__str__", streamToString<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_homg_point<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_point<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_vector<vpgl_proj_camera<double> >)
@@ -144,7 +145,7 @@ void wrap_vpgl(py::module &m)
 
   py::class_<vpgl_perspective_camera<double>, vpgl_proj_camera<double> >(m, "perspective_camera")
     .def(py::init<vpgl_calibration_matrix<double>, vgl_rotation_3d<double>, vgl_vector_3d<double> >())
-    .def("__str__", stream2str<vpgl_perspective_camera<double> >);
+    .def("__str__", streamToString<vpgl_perspective_camera<double> >);
 
   py::class_<vpgl_scale_offset<double> >(m, "scale_offset")
     .def(py::init<>())
@@ -180,7 +181,7 @@ void wrap_vpgl(py::module &m)
                    double, double, double, double, double, double, double, double, double, double>())
      .def(py::init<vnl_matrix_fixed<double,4,20>, std::vector<vpgl_scale_offset<double> > >())
      .def("copy", &vpgl_rational_camera<double>::clone)
-     .def("__str__", stream2str<vpgl_rational_camera<double> >)
+     .def("__str__", streamToString<vpgl_rational_camera<double> >)
      .def("save", &vpgl_rational_camera<double>::save)
      .def("coefficient_matrix", &vpgl_rational_camera<double>::coefficient_matrix)
      .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
@@ -267,7 +268,7 @@ void wrap_vpgl(py::module &m)
         py::arg("cs_name")=vpgl_lvcs::wgs84,py::arg("ang_unit")=vpgl_lvcs::DEG,py::arg("elev_unit")=vpgl_lvcs::METERS)
 
     // python print
-    .def("__str__", stream2str<vpgl_lvcs>)
+    .def("__str__", streamToString<vpgl_lvcs>)
 
     // getters
     .def("get_origin",     [](vpgl_lvcs &L) {double lon,lat,e; L.get_origin(lat,lon,e); return std::make_tuple(lon,lat,e); })
@@ -376,7 +377,7 @@ void wrap_vpgl(py::module &m)
   py::class_<vpgl_geo_camera>(m, "geo_camera")
     // Default methods
     .def(py::init<>())
-    .def("__str__", stream2str<vpgl_geo_camera >)
+    .def("__str__", streamToString<vpgl_geo_camera >)
     // Convert pixel coords (u,v) to a lon/lat pair
     .def("img_to_global",
       [](vpgl_geo_camera &G, double const u, double const v)
@@ -398,6 +399,12 @@ void wrap_vpgl(py::module &m)
     },
     "A function to read a geo camera from a geotiff header."
   );
-
 }
+}
+
+PYBIND11_MODULE(_vpgl, m)
+{
+  m.doc() =  "Python bindings for the VIL computer vision libraries";
+
+  pyvxl::wrap_vpgl(m);
 }

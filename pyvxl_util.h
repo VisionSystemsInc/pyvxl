@@ -5,14 +5,12 @@
 #include <sstream>
 
 // Return a string based on output of the object's stream operator
-template <class T>
-std::string stream2str(T const& obj)
-{
-  std::stringstream ss;
-  ss << obj;
-  return ss.str();
+template<typename T>
+std::string streamToString(T const& t){
+
+  std::ostringstream buffer;
+  buffer << t;
+  return buffer.str();
 }
-
-
 
 #endif
