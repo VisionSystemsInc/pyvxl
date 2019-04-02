@@ -8,5 +8,5 @@ install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib/bpgl/algo)
 install(CODE "file(WRITE ${PYTHON_SITE}/vxl/contrib/bpgl/__init__.py \"from . import algo\")")
 
 # Recurse
-add_subdirectory("algo" "pyvxl-contrib-bpgl-algo-build")
+add_subdirectory("algo" "algo-build")
 
