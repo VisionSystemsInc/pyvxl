@@ -65,6 +65,21 @@ void wrap_vpgl_algo(py::module &m)
   "compute vpgl_perspective_camera from 2D->3D correspondences",
   py::arg("image points"), py::arg("world points"));
 
+
+  py::module affine_compute_mod = m.def_submodule("affine_camera_compute");
+  affine_compute_mod.def("compute", [](std::vector<vgl_point_2d<double> > const& image_pts,
+                                       std::vector<vgl_point_3d<double> > const& world_pts)
+  {
+    vpgl_affine_camera<double> camera;
+    bool result = vpgl_affine_camera_compute::compute(image_pts, world_pts, camera);
+    if(!result) {
+    throw std::runtime_error("error computing affine camera");
+    }
+    return camera;
+  },
+  "compute vpgl_affine_camera from 2D->3D correspondences",
+  py::arg("image points"), py::arg("world points"));
+
 }
 }}}
 
