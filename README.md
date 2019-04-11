@@ -14,31 +14,39 @@ pyvxl can be build standalone or as a module of an existing project.
 
 ## Standalone
 
-Whatever environment (your host or a docker container) you build pyvxl in will require these dependencies:
+Whatever environment (your host or a docker container) you build pyvxl in will require these dependencies
 - g++
 - Python 3 development libraries (e.g. `python3-devel`)
 - GeoTIFF development libraries (e.g. `libgeotiff-devel`)
+- CMake
+- Ninja (optional)
 
-If you're on your host, it's recommended you do this in a virtualenv so you don't mess with your
+If you're not using ninja, replace "ninja" in the commands below with "make".
 
-```bash
-mkdir build && cd build
-cmake -DVXL_DIR=$VXL_SRC_DIR -DPYBIND11_DIR=$PYBIND11_SRC_DIR -G Ninja $PYVXL_SRC_DIR
--DCMAKE_CXX_FLAGS="-fdiagnostics-color=always" -DCMAKE_C_FLAGS="-fdiagnostics-color=always"
-ninja
-ninja install
-```
+### Using a virtualenv (recommended)
 
-### Using a virtualenv
-To avoid messing with your host machine, you can build pyvxl standalone in a virtualenv
+To avoid messing with your host machine, you can build pyvxl in a virtualenv
 
 ```
 virtualenv -p python3 env
 source env/bin/activate
+mkdir build && cd build
 cmake -DVXL_DIR=${VXL_DIR} -DPYBIND11_DIR=${PYBIND11_DIR} -G Ninja -DCMAKE_CXX_FLAGS="-fdiagnostics-color=always" -DCMAKE_C_FLAGS="-fdiagnostics-color=always" -DPYTHON_SITE=${YOUR_VIRTUALENV_SITE-PACKAGES} ..
 ninja
 ninja install
 ```
+
+### Not using virtualenv
+
+If you're not going to use a virtualenv because you're in a docker, or your host machine (not recommended), then you can drop the PYTHON_SITE variable
+
+```bash
+mkdir build && cd build
+cmake -DVXL_DIR=${VXL_DIR} -DPYBIND11_DIR=${PYBIND11_DIR} -G Ninja -DCMAKE_CXX_FLAGS="-fdiagnostics-color=always" -DCMAKE_C_FLAGS="-fdiagnostics-color=always" ..
+ninja
+ninja install
+```
+
 
 ### Test your build
 
@@ -47,7 +55,7 @@ python3 -c "import vxl"
 ```
 
 ## As part of your project
-In your cmake file, just add
+In your CMake file, just add
 
 ```
 find_package(PythonLibs 3 REQUIRED)
