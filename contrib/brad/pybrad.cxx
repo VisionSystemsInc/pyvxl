@@ -9,9 +9,13 @@
 #include <vector>
 #include <array>
 
+
+#include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
+#include <vnl/vnl_math.h>
 #include <brad/brad_image_atmospherics_est.h>
 #include <brad/brad_image_metadata.h>
+#include <brad/brad_nitf_abs_radiometric_calibration.h>
 
 namespace py = pybind11;
 
@@ -19,7 +23,13 @@ namespace pyvxl { namespace brad {
 
 void wrap_brad(py::module &m)
 {
-  m.def("estimate_reflectance", &brad_estimate_reflectance_image);
+  m.def("estimate_reflectance", &brad_estimate_reflectance_image,
+        py::arg("radiance"), py::arg("mdata"),
+        py::arg("mean_reflectance"), py::arg("reflectance"),
+        py::arg("average_airlight"), py::arg("is_normalize"));
+
+  m.def("radiometrically_calibrate", &brad_nitf_abs_radiometric_calibrate,
+        py::arg("image"), py::arg("meta"));
 
   py::class_<image_time>(m, "image_time")
     .def_readwrite("year", &image_time::year)
