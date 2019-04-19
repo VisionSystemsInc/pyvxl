@@ -47,12 +47,10 @@ ninja install
 
 If you want to use any contrib module X, then add PYVXL_CONTRIB_MAKE_X=ON as a CMake option. To build all the contrib packages, use PYVXL_CONTRIB_MAKE_ALL=ON.
 
-Also, uncomment these lines from the main CMakeLists.txt:
+Also, these VXL build options should be set:
 
 ```
-set(VXL_BUILD_CONTRIB "TRUE" CACHE BOOL "BUILD CONTRIB")
-set(VXL_BUILD_CORE_VIDEO "TRUE" CACHE BOOL "BUILD CORE VIDEO")
-set(VXL_BUILD_BRL "TRUE" CACHE BOOL "BUILD BRL")
+-DVXL_BUILD_CONTRIB="TRUE" -DVXL_BUILD_CORE_VIDEO="TRUE" -DVXL_BUILD_BRL="TRUE" 
 ```
 
 ### Test your build
