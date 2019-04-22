@@ -23,11 +23,15 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 
     add_subdirectory(${VXL_DIR} ${VXL_BINARY_DIR} EXCLUDE_FROM_ALL)
 
-    # include core vxl in include paths
-    set(VXL_CORE_INCLUDE_DIR ${VXL_BINARY_DIR}/core ${VXL_DIR}/core)
-    set(VXL_VCL_INCLUDE_DIR ${VXL_BINARY_DIR}/vcl ${VXL_DIR}/vcl)
-    include_directories(${VXL_CORE_INCLUDE_DIR})
-    include_directories(${VXL_VCL_INCLUDE_DIR})
+    # include vxl headers
+    include_directories(${VXL_DIR})
+    include_directories(${VXL_DIR}/core ${VXL_BINARY_DIR}/core)
+    include_directories(${VXL_DIR}/vcl ${VXL_BINARY_DIR}/vcl)
+    include_directories(${VXL_BINARY_DIR}/contrib)
+    include_directories(${VXL_DIR}/contrib/brl)
+    include_directories(${VXL_DIR}/contrib/brl/bseg)
+    include_directories(${VXL_DIR}/contrib/brl/bbas)
+    include_directories(${VXL_DIR}/contrib/gel)
 
     set(PYBIND11_DIR "PYBIND11_NOTFOUND" CACHE PATH "Location of Pybind11 source directory")
     message(STATUS "PYBIND11_DIR = ${PYBIND11_DIR}")
