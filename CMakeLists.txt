@@ -8,6 +8,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 
     # find Python
     find_package(PythonLibs 3 REQUIRED)
+    find_package(PythonInterp 3 REQUIRED)
 
     # find and include VXL
     set(VXL_DIR "VXL_NOTFOUND" CACHE PATH "Location of VXL source directory")
