@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5.1)
 project("pyvxl")
 
-# If building PyVXL directly, build VXL
+# If building PyVXL directly, build VXL and pybind11
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(PYVXL_TOP_LEVEL TRUE)
     # pyvxl built as top-level project
@@ -19,8 +19,11 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 
     # NOTE: If you want to wrap contrib/brl, you'll need to build it in vxl.
     # This currently requires setting the following CMake options:
-    # VXL_BUILD_CORE_VIDEO=ON, VXL_BUILD_CONTRIB=ON, VXL_BUILD_BRL=ON
+    # set(VXL_BUILD_CONTRIB "TRUE" CACHE BOOL "BUILD CONTRIB")
+    # set(VXL_BUILD_CORE_VIDEO "TRUE" CACHE BOOL "BUILD CORE VIDEO")
+    # set(VXL_BUILD_BRL "TRUE" CACHE BOOL "BUILD BRL")
 
+    # Build VXL
     add_subdirectory(${VXL_DIR} ${VXL_BINARY_DIR} EXCLUDE_FROM_ALL)
 
     # include vxl headers
@@ -33,6 +36,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include_directories(${VXL_DIR}/contrib/brl/bbas)
     include_directories(${VXL_DIR}/contrib/gel)
 
+    # Build Pybind11
     set(PYBIND11_DIR "PYBIND11_NOTFOUND" CACHE PATH "Location of Pybind11 source directory")
     message(STATUS "PYBIND11_DIR = ${PYBIND11_DIR}")
     if (NOT IS_DIRECTORY ${PYBIND11_DIR})

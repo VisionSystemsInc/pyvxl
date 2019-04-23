@@ -9,17 +9,95 @@
 #include <vector>
 #include <array>
 
+
+#include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
+#include <vnl/vnl_math.h>
 #include <brad/brad_image_atmospherics_est.h>
 #include <brad/brad_image_metadata.h>
+#include <brad/brad_calibration.h>
 
 namespace py = pybind11;
 
 namespace pyvxl { namespace brad {
 
+vil_image_view_base_sptr estimate_reflectance_with_smart_pointers(vil_image_view_base_sptr radiance_img_base,
+                                                                  brad_image_metadata_sptr mdata,
+                                                                  float mean_reflectance,
+                                                                  bool average_airlight,
+                                                                  bool is_normalize)
+{
+  // input validation  TODO: Throw errors or return null pointers?
+  if (!radiance_img_base) {
+    throw std::invalid_argument("vxl.contrib.brad.estimate_reflectance:--  image  is null!\n");
+    /* std::cout << "vxl.contrib.brad.estimate_reflectance" <<" :--  image  is null!\n"; */
+    /* return nullptr; */
+  }
+
+  if (radiance_img_base->pixel_format() != VIL_PIXEL_FORMAT_FLOAT) {
+    throw std::invalid_argument("ERROR: vxl.contrib.brad.estimate_reflectance: expecting floating point image\n");
+    /* std::cerr << "ERROR: vxl.contrib.brad.estimate_reflectance: expecting floating point image\n"; */
+    /* return nullptr; */
+  }
+  auto* radiance_img = dynamic_cast<vil_image_view<float>*>(radiance_img_base.ptr());
+  if (!radiance_img) {
+    throw std::invalid_argument("ERROR: vxl.contrib.brad.estimate_reflectance: error casting to float image\n");
+    /* std::cerr << "ERROR: vxl.contrib.brad.estimate_reflectance: error casting to float image\n"; */
+    /* return nullptr; */
+  }
+
+  unsigned int ni = radiance_img->ni();
+  unsigned int nj = radiance_img->nj();
+  unsigned int np = radiance_img->nplanes();
+  if (mean_reflectance <= 0.0)
+    is_normalize = false;
+
+  auto *reflectance_img = new vil_image_view<float>(ni, nj, np);
+  bool success = brad_estimate_reflectance_image(*radiance_img, *mdata, mean_reflectance, *reflectance_img, average_airlight, is_normalize);
+
+  if (!success)
+    return nullptr;
+
+  vil_image_view_base_sptr output(reflectance_img);
+  return output;
+}
+
+vil_image_view_base_sptr estimate_reflectance_with_references(vil_image_view<float> const& radiance_img,
+                                                          brad_image_metadata const& mdata,
+                                                          float mean_reflectance,
+                                                          bool average_airlight,
+                                                          bool is_normalize)
+{
+  // input validation
+  if (radiance_img.pixel_format() != VIL_PIXEL_FORMAT_FLOAT) {
+    throw std::invalid_argument("ERROR: vxl.contrib.brad.estimate_reflectance: expecting floating point image\n");
+  }
+
+  unsigned int ni = radiance_img.ni();
+  unsigned int nj = radiance_img.nj();
+  unsigned int np = radiance_img.nplanes();
+  if (mean_reflectance <= 0.0)
+    is_normalize = false;
+
+  auto *reflectance_img = new vil_image_view<float>(ni, nj, np);
+  bool success = brad_estimate_reflectance_image(radiance_img, mdata, mean_reflectance, *reflectance_img, average_airlight, is_normalize);
+
+  if (!success)
+    return nullptr;
+
+  vil_image_view_base_sptr output(reflectance_img);
+  return output;
+}
+
+
 void wrap_brad(py::module &m)
 {
-  m.def("estimate_reflectance", &brad_estimate_reflectance_image);
+  m.def("estimate_reflectance", &estimate_reflectance_with_smart_pointers,
+        py::arg("radiance"), py::arg("mdata"), py::arg("mean_reflectance"),
+        py::arg("average_airlight"), py::arg("is_normalize"));
+
+  m.def("radiometrically_calibrate", &brad_nitf_abs_radiometric_calibrate,
+        py::arg("image"), py::arg("meta"));
 
   py::class_<image_time>(m, "image_time")
     .def_readwrite("year", &image_time::year)
