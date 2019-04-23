@@ -385,8 +385,18 @@ void wrap_vpgl(py::module &m)
         double lon, lat;
         G.img_to_global(u, v, lon, lat);
         return std::make_tuple(lon, lat);
-      }
-    );
+      },
+      py::arg("u"), py::arg("v")
+    )
+    .def("global_to_img",
+         [](vpgl_geo_camera &G, double const lon, double const lat, const double elev)
+         {
+           double u,v;
+           G.global_to_img(lon, lat, elev, u, v);
+           return std::make_tuple(u,v);
+         },
+         py::arg("longitude"), py::arg("latitude"), py::arg("elevation")
+        );
 
   // Init from a Geotiff filename
   m.def("read_geo_camera",
