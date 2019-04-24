@@ -127,23 +127,18 @@ void wrap_vil(py::module &m)
   py::class_<vil_image_view_base>(m, "image_view_base");
 
   wrap_vil_image_view<unsigned char>(m, "image_view_byte");
-  wrap_vil_image_view<unsigned short int>(m, "image_view_uint16");
+  wrap_vil_image_view<vxl_uint_16>(m, "image_view_uint16");
   wrap_vil_image_view<float>(m, "image_view_float");
   wrap_vil_image_view<int>(m, "image_view_int");
 
-  // TODO: overload these so that they work on any pixel type
-  m.def("load", &vil_load_wrapper<unsigned char>);
+  m.def("load_byte", &vil_load_wrapper<unsigned char>);
+  m.def("load_float", &vil_load_wrapper<float>);
+  m.def("load_uint16", &vil_load_wrapper<vxl_uint_16>);
+  m.def("load_int", &vil_load_wrapper<int>);
   m.def("save", &vil_save_wrapper<unsigned char>);
   m.def("save", &vil_save_wrapper<float>);
-  // Lambda version of the above, in case that helps with the todo
-  // m.def("load", [](std::string const& filename)
-  // {
-  //   return static_cast<vil_image_view<unsigned char>>(vil_load(filename.c_str()));
-  // });
-  // m.def("save", [](vil_image_view<unsigned char> img, std::string const& filename)
-  // {
-  //   return vil_save(img, filename.c_str());
-  // });
+  m.def("save", &vil_save_wrapper<vxl_uint_16>);
+  m.def("save", &vil_save_wrapper<int>);
 }
 }}
 
