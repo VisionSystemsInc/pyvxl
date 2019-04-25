@@ -73,9 +73,9 @@ from . import contrib\n\
 \")")
 
 # Recurse
-add_subdirectory("vgl" "vgl-build")
-add_subdirectory("vil" "vil-build")
-add_subdirectory("vnl" "vnl-build")
-add_subdirectory("vpgl" "vpgl-build")
-add_subdirectory("contrib" "contrib-build")
+add_subdirectory("vgl" "pyvxl_build/vgl-build")
+add_subdirectory("vil" "pyvxl_build/vil-build")
+add_subdirectory("vnl" "pyvxl_build/vnl-build")
+add_subdirectory("vpgl" "pyvxl_build/vpgl-build")
+add_subdirectory("contrib" "pyvxl_build/contrib-build")
 

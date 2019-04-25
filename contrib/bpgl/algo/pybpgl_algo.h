@@ -9,4 +9,4 @@ void wrap_bpgl_algo(pybind11::module &m);
 
 }}}
 
-#endif
+#endif  // pybpgl_algo_h_included_
