@@ -16,6 +16,7 @@ namespace pyvxl { namespace brip {
 
 vil_image_view<vxl_byte> truncate_nitf_image_to_byte(vil_image_view<vxl_uint_16> input_img, bool is_scale)
 {
+  // truncate the input 16 bits image to a byte image by ignoring the most significant 5 bits and less significant 3 bits
   std::cout << "vxl.contrib.brip.truncate_nitf_image truncating to byte image" << std::endl;
 
   unsigned ni = input_img.ni();
@@ -23,7 +24,6 @@ vil_image_view<vxl_byte> truncate_nitf_image_to_byte(vil_image_view<vxl_uint_16>
   unsigned np = input_img.nplanes();
   vil_image_view<vxl_byte> out_img(ni, nj, np);
 
-  // truncate the input 16 bits image to a byte image by ignoring the most significant 5 bits and less significant 3 bits
   if (is_scale) {
     if (!brip_vil_nitf_ops::scale_nitf_bits(input_img, out_img)) {
       std::ostringstream buffer;
