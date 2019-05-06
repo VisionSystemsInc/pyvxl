@@ -142,6 +142,43 @@ typename vgl_polygon<T>::sheet_t getitem_sheet(vgl_polygon<T> const& p, long i){
   return p[i];
 }
 
+// Convert polygon to a list of sheets, where each sheet is a list of points, and each
+// point is a list of T elements, instead of a vgl_point_2d vxl object -- this will
+// auto-convert to python lists on the python side
+template <typename T>
+std::vector<std::vector<std::vector<T>>> vgl_polygon_as_array(vgl_polygon<T> const& p)
+{
+  // return an array of lists of [x,y] points
+  std::vector<std::vector<std::vector<T>>> array_of_sheets;
+
+  for (int i=0; i < p.num_sheets(); ++i) {
+
+    // the vxl source sheet
+    typename vgl_polygon<T>::sheet_t sheet = p[i];
+
+    // create our target sheet
+    std::vector<std::vector<T>> sheet_array;
+
+    for (vgl_point_2d<T> p : sheet) {
+
+      // create our target point
+      std::vector<T> point_array;
+
+      // Get the x and y values from the vgl_point_2d object
+      point_array.push_back(p.x());
+      point_array.push_back(p.y());
+
+      // Add target point to target sheet
+      sheet_array.push_back(point_array);
+    }
+
+    // Add target sheet to target return array
+    array_of_sheets.push_back(sheet_array);
+  }
+
+  return array_of_sheets;
+}
+
 template<typename T>
 void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
 {
@@ -318,6 +355,7 @@ void wrap_vgl(py::module &m)
     .def(py::init<typename vgl_polygon<double>::sheet_t>())
     .def(py::init<std::vector<typename vgl_polygon<double>::sheet_t> >())
     .def("contains", (bool (vgl_polygon<double>::*)(vgl_point_2d<double> const&) const) &vgl_polygon<double>::contains)
+    .def("as_array", &vgl_polygon_as_array<double>)
     .def("__len__", &vgl_polygon<double>::num_sheets)
     .def("__getitem__", getitem_sheet<double>)
     .def("__repr__", [](vgl_polygon<double> const& p){
