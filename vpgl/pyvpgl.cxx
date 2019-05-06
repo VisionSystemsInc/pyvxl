@@ -268,6 +268,21 @@ bool project_box(const vpgl_rational_camera<double>& rat_cam, vpgl_lvcs &lvcs,
   return true;
 }
 
+std::tuple<vpgl_rational_camera<double>, unsigned, unsigned, unsigned, unsigned>
+crop_image_using_3d_box(unsigned img_res_ni, unsigned img_res_nj, vpgl_rational_camera<double> const& cam,
+                        double lower_left_lon, double lower_left_lat, double lower_left_elev,
+                        double upper_right_lon, double upper_right_lat, double upper_right_elev,
+                        double uncertainty)
+{
+  // Default constructed lvcs
+  vpgl_lvcs lvcs;
+
+  return crop_image_using_3d_box(img_res_ni, img_res_nj, cam,
+                                 lower_left_lon, lower_left_lat, lower_left_elev,
+                                 upper_right_lon, upper_right_lat, upper_right_elev,
+                                 uncertainty, lvcs);
+}
+
 
 std::tuple<vpgl_rational_camera<double>, unsigned, unsigned, unsigned, unsigned>
 crop_image_using_3d_box(unsigned img_res_ni, unsigned img_res_nj, vpgl_rational_camera<double> const& cam,
@@ -354,7 +369,17 @@ void wrap_vpgl(py::module &m)
     .def("project", &vpgl_camera<double>::project);
 
   m.def("correct_rational_camera", &correct_rational_camera, py::return_value_policy::take_ownership);
-  m.def("crop_image_using_3d_box", &crop_image_using_3d_box, py::return_value_policy::take_ownership);
+  m.def("crop_image_using_3d_box", (std::tuple<vpgl_rational_camera<double>, unsigned, unsigned, unsigned, unsigned> (*)
+                                    (unsigned img_res_ni, unsigned img_res_nj, vpgl_rational_camera<double> const& cam,
+                                     double lower_left_lon, double lower_left_lat, double lower_left_elev,
+                                     double upper_right_lon, double upper_right_lat, double upper_right_elev,
+                                     double uncertainty)) &crop_image_using_3d_box, "Crop image passing in box upper right and lower left corners");
+  m.def("crop_image_using_3d_box", (std::tuple<vpgl_rational_camera<double>, unsigned, unsigned, unsigned, unsigned> (*)
+                                    (unsigned img_res_ni, unsigned img_res_nj, vpgl_rational_camera<double> const& cam,
+                                     double lower_left_lon, double lower_left_lat, double lower_left_elev,
+                                     double upper_right_lon, double upper_right_lat, double upper_right_elev,
+                                     double uncertainty, vpgl_lvcs lvcs)) &crop_image_using_3d_box, "Crop image passing in vpgl_lvcs");
+
   /* m.def("save_rational_camera", &save_rational_camera); */
 
   py::class_<vpgl_proj_camera<double>, vpgl_camera<double> /* <- Parent */> (m, "proj_camera")
