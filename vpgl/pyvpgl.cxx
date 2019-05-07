@@ -111,6 +111,32 @@ std::tuple<double,double> vpgl_project_xyz(T const& cam, double x, double y, dou
   return std::make_tuple(u,v);
 }
 
+std::unique_ptr<vpgl_geo_camera> create_geocam(vnl_matrix<double> const& trans_matrix)
+{
+  if ((trans_matrix.rows() != 4) || (trans_matrix.cols() != 4)) {
+    throw::std::runtime_error("trans_matrix should be of shape 4x4");
+  }
+  vpgl_lvcs_sptr lvcs(nullptr);  // no lvcs
+  std::unique_ptr<vpgl_geo_camera> geocam(new vpgl_geo_camera(trans_matrix, lvcs));
+  if ((trans_matrix(0,0) != 1.0) || (trans_matrix(1,1) != 1.0)) {
+    geocam->set_scale_format(true);
+  }
+  return geocam;
+}
+
+std::unique_ptr<vpgl_geo_camera> create_geocam_with_lvcs(vnl_matrix<double> const& trans_matrix,
+                                                         vpgl_lvcs const& lvcs)
+{
+  if ((trans_matrix.rows() != 4) || (trans_matrix.cols() != 4)) {
+    throw::std::runtime_error("trans_matrix should be of shape 4x4");
+  }
+  vpgl_lvcs_sptr lvcs_copy(new vpgl_lvcs(lvcs));
+  std::unique_ptr<vpgl_geo_camera> geocam(new vpgl_geo_camera(trans_matrix, lvcs_copy));
+  if ((trans_matrix(0,0) != 1.0) || (trans_matrix(1,1) != 1.0)) {
+    geocam->set_scale_format(true);
+  }
+  return geocam;
+}
 
 void wrap_vpgl(py::module &m)
 {
@@ -377,6 +403,8 @@ void wrap_vpgl(py::module &m)
   py::class_<vpgl_geo_camera>(m, "geo_camera")
     // Default methods
     .def(py::init<>())
+    .def(py::init(&create_geocam))
+    .def(py::init(&create_geocam_with_lvcs))
     .def("__str__", streamToString<vpgl_geo_camera >)
     // Convert pixel coords (u,v) to a lon/lat pair
     .def("img_to_global",
