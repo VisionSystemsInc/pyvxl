@@ -601,7 +601,8 @@ void wrap_vil(py::module &m)
   wrap_vil_image_view<int>(m, "image_view_int");
 
 
-  m.def("crop_image_resource", (vil_image_resource_sptr (*)(const vil_image_resource_sptr&, unsigned, unsigned, unsigned, unsigned)) &vil_crop);
+  m.def("crop_image_resource", (vil_image_resource_sptr (*)(const vil_image_resource_sptr&, unsigned, unsigned, unsigned, unsigned)) &vil_crop,
+        py::arg("image_view"), py::arg("i0"), py::arg("ni"), py::arg("j0"), py::arg("nj"));
 
   m.def("img_sum", &vil_image_sum_wrapper<unsigned char>, "", py::arg("image"), py::arg("p") = 0);
   m.def("img_sum", &vil_image_sum_wrapper<unsigned short int>, "", py::arg("image"), py::arg("p") = 0);
