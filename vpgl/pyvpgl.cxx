@@ -70,6 +70,65 @@ public:
   }
 };
 
+/* /1* This is a "trampoline" helper class for the virtual methods in */
+/*  * vpgl_rational_camera<double>, which redirects virtual calls back to Python *1/ */
+/* class PyRationalCameraDouble : public vpgl_rational_camera<double> { */
+/* public: */
+/*   using vpgl_rational_camera<double>::vpgl_rational_camera; /1* Inherit constructors *1/ */
+
+/*   std::string type_name() const override { */
+/*     /1* Generate wrapping code that enables native function overloading *1/ */
+/*     PYBIND11_OVERLOAD( */
+/*       std::string,                   /1* Return type *1/ */
+/*       vpgl_rational_camera<double>,  /1* Parent class *1/ */
+/*       type_name,                     /1* Name of function *1/ */
+/*                                      /1* No arguments, the trailing comma */
+/*                                       * is needed for some compilers *1/ */
+/*     ); */
+/*   } */
+
+/*   void project(const double x, const double y, const double z, double& u, double& v) const override { */
+/*     /1* Generate wrapping code that enables native function overloading *1/ */
+/*     PYBIND11_OVERLOAD_PURE( */
+/*       void,                          /1* Return type *1/ */
+/*       vpgl_rational_camera<double>,  /1* Parent class *1/ */
+/*       project,                       /1* Name of function *1/ */
+/*       x, y, z, u, v                  /1* Arguments *1/ */
+/*     ); */
+/*   } */
+
+/*   void print(std::ostream& s=std::cout, vpgl_rational_order output_order=vpgl_rational_order::VXL) const override { */
+/*     /1* Generate wrapping code that enables native function overloading *1/ */
+/*     PYBIND11_OVERLOAD_PURE( */
+/*       void,                          /1* Return type *1/ */
+/*       vpgl_rational_camera<double>,  /1* Parent class *1/ */
+/*       print,                         /1* Name of function *1/ */
+/*       s, output_order                /1* Arguments *1/ */
+/*     ); */
+/*   } */
+
+/*   bool save(std::string cam_path, vpgl_rational_order output_order=vpgl_rational_order::RPC00B) const override { */
+/*     /1* Generate wrapping code that enables native function overloading *1/ */
+/*     PYBIND11_OVERLOAD_PURE( */
+/*       bool,                          /1* Return type *1/ */
+/*       vpgl_rational_camera<double>,  /1* Parent class *1/ */
+/*       save,                          /1* Name of function *1/ */
+/*       cam_path, output_order         /1* Arguments *1/ */
+/*     ); */
+/*   } */
+
+/*   void write_pvl(std::ostream& s, vpgl_rational_order output_order) const override { */
+/*     /1* Generate wrapping code that enables native function overloading *1/ */
+/*     PYBIND11_OVERLOAD_PURE( */
+/*       void,                          /1* Return type *1/ */
+/*       vpgl_rational_camera<double>,  /1* Parent class *1/ */
+/*       write_pvl,                     /1* Name of function *1/ */
+/*       s, output_order                /1* Arguments *1/ */
+/*     ); */
+/*   } */
+
+/* }; */
+
 
 
 template<class T>
@@ -149,65 +208,58 @@ std::tuple<double,double> vpgl_project_xyz(T const& cam, double x, double y, dou
   return std::make_tuple(u,v);
 }
 
-
-vpgl_rational_camera<double> load_rational_camera(std::string const& camera_filename)
-{
-
-  vpgl_local_rational_camera<double> local_rat_cam;
-
-  if (local_rat_cam.read_pvl(camera_filename)) {
-    return local_rat_cam;
-  }
-  else {
-    vpgl_rational_camera<double> rat_cam;
-
-    if (rat_cam.read_pvl(camera_filename)) {
-      return rat_cam;
-    }
-    else {
-      std::ostringstream buffer;
-      buffer << "Failed to load rational camera from file " << camera_filename << std::endl;
-      throw std::runtime_error(buffer.str());
-    }
-  }
-}
-
-vpgl_rational_camera<double> correct_rational_camera(vpgl_rational_camera<double> & cam_rational,
+vpgl_local_rational_camera<double> correct_local_rational_camera(vpgl_local_rational_camera<double> const& cam,
                                                      double gt_offset_u, double gt_offset_v, bool verbose)
 {
-
-  auto* cam_local_rat = dynamic_cast<vpgl_local_rational_camera<double>*>(&cam_rational);
-  if (cam_local_rat) {
-    if (verbose) {
-      std::cout << "vxl.vpgl.correct_rational_camera, LOCAL rational camera, (off_u, off_v) = ("
-                << gt_offset_u << ", " << gt_offset_v << ")" << std::endl;
-    }
-
-    vpgl_local_rational_camera<double> cam_out_local_rational(*cam_local_rat);
-    double offset_u, offset_v;
-    cam_out_local_rational.image_offset(offset_u,offset_v);
-    offset_u += gt_offset_u;
-    offset_v += gt_offset_v;
-    cam_out_local_rational.set_image_offset(offset_u,offset_v);
-    return cam_out_local_rational;
+  if (verbose) {
+    std::cout << "vxl.vpgl.correct_rational_camera, LOCAL rational camera, (off_u, off_v) = ("
+              << gt_offset_u << ", " << gt_offset_v << ")" << std::endl;
   }
-  else {
-    if (verbose) {
-      std::cout << "vxl.vpgl.correct_rational_camera, rational camera, (off_u, off_v) = ("
-                << gt_offset_u << ", " << gt_offset_v << ")" << std::endl;
-    }
-    vpgl_rational_camera<double> cam_out_rational(cam_rational);
-    double offset_u, offset_v;
-    cam_out_rational.image_offset(offset_u, offset_v);
-    offset_u += gt_offset_u;
-    offset_v += gt_offset_v;
-    cam_out_rational.set_image_offset(offset_u, offset_v);
-    return cam_out_rational;
+
+  // create copy
+  vpgl_local_rational_camera<double> cam_out_local_rational(cam);
+
+  // get u-v offset
+  double offset_u, offset_v;
+  cam_out_local_rational.image_offset(offset_u,offset_v);
+
+  // add correction to offset
+  offset_u += gt_offset_u;
+  offset_v += gt_offset_v;
+
+  // set new u-v offset
+  cam_out_local_rational.set_image_offset(offset_u,offset_v);
+
+  return cam_out_local_rational;
+}
+
+vpgl_rational_camera<double> correct_rational_camera(vpgl_rational_camera<double> const& cam_rational,
+                                                     double gt_offset_u, double gt_offset_v, bool verbose)
+{
+  if (verbose) {
+    std::cout << "vxl.vpgl.correct_rational_camera, rational camera, (off_u, off_v) = ("
+              << gt_offset_u << ", " << gt_offset_v << ")" << std::endl;
   }
+
+  // create copy
+  vpgl_rational_camera<double> cam_out_rational(cam_rational);
+
+  // get u-v offset
+  double offset_u, offset_v;
+  cam_out_rational.image_offset(offset_u, offset_v);
+
+  // add correction to offset
+  offset_u += gt_offset_u;
+  offset_v += gt_offset_v;
+
+  // set new u-v offset
+  cam_out_rational.set_image_offset(offset_u, offset_v);
+
+  return cam_out_rational;
 }
 
 vpgl_local_rational_camera<double>
-create_local_rational_camera(const vpgl_rational_camera<double>& rat_cam,
+__create_local_rational_camera(const vpgl_rational_camera<double>& rat_cam,
                              const vpgl_lvcs& lvcs,
                              unsigned min_x, unsigned min_y)
 {
@@ -223,7 +275,7 @@ create_local_rational_camera(const vpgl_rational_camera<double>& rat_cam,
   return local_camera;
 }
 
-bool project_box(const vpgl_rational_camera<double>& rat_cam, vpgl_lvcs &lvcs,
+bool __project_box(const vpgl_rational_camera<double>& rat_cam, vpgl_lvcs &lvcs,
     const vgl_box_3d<double> &scene_bbox, double uncertainty,
     vgl_box_2d<double> &roi_box_2d)
 {
@@ -268,8 +320,8 @@ bool project_box(const vpgl_rational_camera<double>& rat_cam, vpgl_lvcs &lvcs,
   return true;
 }
 
-std::tuple<vpgl_rational_camera<double>, unsigned, unsigned, unsigned, unsigned>
-crop_image_using_3d_box(unsigned img_res_ni, unsigned img_res_nj, vpgl_rational_camera<double> const& cam,
+std::tuple<vpgl_local_rational_camera<double>, unsigned, unsigned, unsigned, unsigned>
+crop_image_using_3d_box(unsigned img_ni, unsigned img_nj, vpgl_rational_camera<double> const& cam,
                         double lower_left_lon, double lower_left_lat, double lower_left_elev,
                         double upper_right_lon, double upper_right_lat, double upper_right_elev,
                         double uncertainty, vpgl_lvcs lvcs)
@@ -286,15 +338,14 @@ crop_image_using_3d_box(unsigned img_res_ni, unsigned img_res_nj, vpgl_rational_
                         upper_right_lon, upper_right_lat, upper_right_elev);
 
   vgl_box_2d<double> roi_box_2d;
-  bool good = project_box(cam, lvcs, scene_bbox, uncertainty, roi_box_2d);
+  bool good = __project_box(cam, lvcs, scene_bbox, uncertainty, roi_box_2d);
   if(!good) {
     throw std::runtime_error("vxl.vpgl.crop_image_using_3d_box: failed to project 2d roi box");
   }
   std::cout << "vxl.vpgl.crop_image_using_3d_box: projected 2d roi box: " << roi_box_2d << " given uncertainty " << uncertainty << " meters." << std::endl;
 
   // crop the image
-  //brip_roi broi(img_res_sptr->ni(), img_res_sptr->nj());
-  brip_roi broi(img_res_ni, img_res_nj);
+  brip_roi broi(img_ni, img_nj);
   vsol_box_2d_sptr bb = new vsol_box_2d();
   bb->add_point(roi_box_2d.min_x(), roi_box_2d.min_y());
   bb->add_point(roi_box_2d.max_x(), roi_box_2d.max_y());
@@ -312,51 +363,53 @@ crop_image_using_3d_box(unsigned img_res_ni, unsigned img_res_nj, vpgl_rational_
   }
 
   // create the local camera
-  vpgl_local_rational_camera<double> local_camera = create_local_rational_camera(cam, lvcs, i0, j0);
+  vpgl_local_rational_camera<double> local_camera = __create_local_rational_camera(cam, lvcs, i0, j0);
 
   return std::make_tuple(local_camera, i0, j0, ni, nj);
 }
 
-std::tuple<vpgl_rational_camera<double>, unsigned, unsigned, unsigned, unsigned>
-crop_image_using_3d_box(unsigned img_res_ni, unsigned img_res_nj, vpgl_rational_camera<double> const& cam,
+
+std::tuple<vpgl_local_rational_camera<double>, unsigned, unsigned, unsigned, unsigned>
+crop_image_using_3d_box(unsigned img_ni, unsigned img_nj, vpgl_rational_camera<double> const& cam,
                         double lower_left_lon, double lower_left_lat, double lower_left_elev,
                         double upper_right_lon, double upper_right_lat, double upper_right_elev,
                         double uncertainty)
 {
-  // Default constructed lvcs
-  vpgl_lvcs lvcs;
+  // Default lvcs at origin
+  vpgl_lvcs default_lvcs(0, 0, 0);
 
-  return crop_image_using_3d_box(img_res_ni, img_res_nj, cam,
+  return crop_image_using_3d_box(img_ni, img_nj, cam,
                                  lower_left_lon, lower_left_lat, lower_left_elev,
                                  upper_right_lon, upper_right_lat, upper_right_elev,
-                                 uncertainty, lvcs);
+                                 uncertainty, default_lvcs);
 }
 
+void save_rational_camera(vpgl_camera<double> & cam, std::string camera_filename)
+{
+  auto *local_cam = dynamic_cast<vpgl_local_rational_camera<double>*>(&cam);
 
-/* void save_rational_camera(vpgl_camera<double> & camera, std::string camera_filename) */
-/* { */
-/*   auto *cam = dynamic_cast<vpgl_local_rational_camera<double>*>(camera.as_pointer()); */
+  if (local_cam) {
+    if (!local_cam->save(camera_filename)) {
+      std::ostringstream buffer;
+      buffer << "Failed to save local rational camera " << camera_filename << std::endl;
+      throw std::runtime_error(buffer.str());
+    }
+  }
+  else {
 
-/*   if (!cam) { */
-/*    auto *cam2 = dynamic_cast<vpgl_rational_camera<double>*>(camera.as_pointer()); */
+    auto *rat_cam = dynamic_cast<vpgl_rational_camera<double>*>(&cam);
 
-/*     if (!cam2) { */
-/*       throw std::runtime_error("error: could not convert camera input to a vpgl_rational_camera or local rational camera"); */
-/*     } */
+    if (!rat_cam) {
+      throw std::runtime_error("error: could not convert camera input to a vpgl_rational_camera or local rational camera");
+    }
 
-/*     if (!cam2->save(camera_filename)) { */
-/*       std::ostringstream buffer; */
-/*       buffer << "Failed to save rational camera " << camera_filename << std::endl; */
-/*       throw std::runtime_error(buffer.str()); */
-/*     } */
-/*   } else { */
-/*     if (!cam->save(camera_filename)) { */
-/*       std::ostringstream buffer; */
-/*       buffer << "Failed to save rational camera " << camera_filename << std::endl; */
-/*       throw std::runtime_error(buffer.str()); */
-/*     } */
-/*   } */
-/* } */
+    if (!rat_cam->save(camera_filename)) {
+      std::ostringstream buffer;
+      buffer << "Failed to save rational camera " << camera_filename << std::endl;
+      throw std::runtime_error(buffer.str());
+    }
+  }
+}
 
 
 void wrap_vpgl(py::module &m)
@@ -366,21 +419,9 @@ void wrap_vpgl(py::module &m)
   py::class_<vpgl_camera<double>, PyCameraDouble /* <- trampoline */> (m, "camera")
     .def(py::init<>())
     .def("type_name", &vpgl_camera<double>::type_name)
-    .def("project", &vpgl_camera<double>::project);
-
-  m.def("correct_rational_camera", &correct_rational_camera, py::return_value_policy::take_ownership);
-  m.def("crop_image_using_3d_box", (std::tuple<vpgl_rational_camera<double>, unsigned, unsigned, unsigned, unsigned> (*)
-                                    (unsigned img_res_ni, unsigned img_res_nj, vpgl_rational_camera<double> const& cam,
-                                     double lower_left_lon, double lower_left_lat, double lower_left_elev,
-                                     double upper_right_lon, double upper_right_lat, double upper_right_elev,
-                                     double uncertainty)) &crop_image_using_3d_box, "Crop image passing in box upper right and lower left corners");
-  m.def("crop_image_using_3d_box", (std::tuple<vpgl_rational_camera<double>, unsigned, unsigned, unsigned, unsigned> (*)
-                                    (unsigned img_res_ni, unsigned img_res_nj, vpgl_rational_camera<double> const& cam,
-                                     double lower_left_lon, double lower_left_lat, double lower_left_elev,
-                                     double upper_right_lon, double upper_right_lat, double upper_right_elev,
-                                     double uncertainty, vpgl_lvcs lvcs)) &crop_image_using_3d_box, "Crop image passing in vpgl_lvcs");
-
-  /* m.def("save_rational_camera", &save_rational_camera); */
+    .def("project", &vpgl_camera<double>::project)
+    .def("is_a", &vpgl_camera<double>::is_a)
+    .def("is_class", &vpgl_camera<double>::is_class);
 
   py::class_<vpgl_proj_camera<double>, vpgl_camera<double> /* <- Parent */> (m, "proj_camera")
     .def(py::init<vnl_matrix_fixed<double,3,4> >())
@@ -436,6 +477,7 @@ void wrap_vpgl(py::module &m)
     .value("RPC00B", vpgl_rational_order::RPC00B)
     ;
 
+  /* py::class_<vpgl_rational_camera<double>, vpgl_camera<double> /1* <- Parent *1/, PyRationalCameraDouble /1* <- trampoline *1/ > rational_camera(m, "rational_camera"); */
   py::class_<vpgl_rational_camera<double>, vpgl_camera<double> /* <- Parent */ > rational_camera(m, "rational_camera");
   py::enum_<vpgl_rational_camera<double>::coor_index>(rational_camera, "coor_index")
     .value("X_INDX", vpgl_rational_camera<double>::X_INDX)
@@ -444,42 +486,66 @@ void wrap_vpgl(py::module &m)
     .value("U_INDX", vpgl_rational_camera<double>::U_INDX)
     .value("V_INDX", vpgl_rational_camera<double>::V_INDX);
 
-   rational_camera
-     .def(py::init<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<double>,
-                   double, double, double, double, double, double, double, double, double, double>())
-     .def(py::init<vnl_matrix_fixed<double,4,20>, std::vector<vpgl_scale_offset<double> > >())
-     .def("copy", &vpgl_rational_camera<double>::clone)
-     .def("__str__", streamToString<vpgl_rational_camera<double> >)
-     .def("save", &vpgl_rational_camera<double>::save,
-          py::arg("cam_path"), py::arg("output_order") = vpgl_rational_order::RPC00B)
-     .def("coefficient_matrix", &vpgl_rational_camera<double>::coefficient_matrix)
-     .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
-     .def("offset", &vpgl_rational_camera<double>::offset)
-     .def("project", vpgl_project_point<vpgl_rational_camera<double> >)
-     .def("project", vpgl_project_buffer<vpgl_rational_camera<double> >)
-     .def("project", vpgl_project_xyz<vpgl_rational_camera<double> >)
-     .def_property("image_offset",
-        [](vpgl_rational_camera<double>& self) {
-          double u,v; self.image_offset(u,v);
-          return py::make_tuple(u,v);
-        },
-        [](vpgl_rational_camera<double>& self, const std::array<double,2>& uv) {
-          self.set_image_offset(uv[0],uv[1]);
-        })
-     .def_property("image_scale",
-        [](vpgl_rational_camera<double>& self) {
-          double u,v; self.image_scale(u,v);
-          return py::make_tuple(u,v);
-        },
-        [](vpgl_rational_camera<double>& self, const std::array<double,2>& uv) {
-          self.set_image_scale(uv[0],uv[1]);
-        })
+  rational_camera
+    .def(py::init<std::vector<double>, std::vector<double>, std::vector<double>, std::vector<double>,
+                  double, double, double, double, double, double, double, double, double, double>())
+    .def(py::init<vnl_matrix_fixed<double,4,20>, std::vector<vpgl_scale_offset<double> > >())
+    .def("copy", &vpgl_rational_camera<double>::clone)
+    .def("__str__", streamToString<vpgl_rational_camera<double> >)
+    .def("save", &vpgl_rational_camera<double>::save,
+         py::arg("cam_path"), py::arg("output_order") = vpgl_rational_order::RPC00B)
+    .def("coefficient_matrix", &vpgl_rational_camera<double>::coefficient_matrix,
+         py::arg("output_order") = vpgl_rational_order::VXL)
+    .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
+    .def("offset", &vpgl_rational_camera<double>::offset)
+    .def("project", vpgl_project_point<vpgl_rational_camera<double> >)
+    .def("project", vpgl_project_buffer<vpgl_rational_camera<double> >)
+    .def("project", vpgl_project_xyz<vpgl_rational_camera<double> >)
+    .def_property("image_offset",
+       [](vpgl_rational_camera<double>& self) {
+         double u,v; self.image_offset(u,v);
+         return py::make_tuple(u,v);
+       },
+       [](vpgl_rational_camera<double>& self, const std::array<double,2>& uv) {
+         self.set_image_offset(uv[0],uv[1]);
+       })
+    .def_property("image_scale",
+       [](vpgl_rational_camera<double>& self) {
+         double u,v; self.image_scale(u,v);
+         return py::make_tuple(u,v);
+       },
+       [](vpgl_rational_camera<double>& self, const std::array<double,2>& uv) {
+         self.set_image_scale(uv[0],uv[1]);
+       })
      ;
 
-  m.def("load_rational_camera", &load_rational_camera);
-  m.def("read_rational_camera",
+  m.def("_read_rational_camera",
         [](std::string const& fname){return read_rational_camera<double>(fname);},
         py::return_value_policy::take_ownership);
+  m.def("_correct_rational_camera", &correct_rational_camera);
+
+  m.def("crop_image_using_3d_box", (std::tuple<vpgl_local_rational_camera<double>, unsigned, unsigned, unsigned, unsigned> (*)
+                                    (unsigned img_ni, unsigned img_nj, vpgl_rational_camera<double> const& cam,
+                                     double lower_left_lon, double lower_left_lat, double lower_left_elev,
+                                     double upper_right_lon, double upper_right_lat, double upper_right_elev,
+                                     double uncertainty)) &crop_image_using_3d_box, "Crop image passing in box upper right and lower left corners",
+        py::arg("img_ni"), py::arg("img_nj"), py::arg("cam"),
+        py::arg("lower_left_lon"), py::arg("lower_left_lat"), py::arg("lower_left_elev"),
+        py::arg("upper_right_lon"), py::arg("upper_right_lat"), py::arg("upper_right_elev"),
+        py::arg("uncertainty"));
+  m.def("crop_image_using_3d_box", (std::tuple<vpgl_local_rational_camera<double>, unsigned, unsigned, unsigned, unsigned> (*)
+                                    (unsigned img_ni, unsigned img_nj, vpgl_rational_camera<double> const& cam,
+                                     double lower_left_lon, double lower_left_lat, double lower_left_elev,
+                                     double upper_right_lon, double upper_right_lat, double upper_right_elev,
+                                     double uncertainty, vpgl_lvcs lvcs)) &crop_image_using_3d_box, "Crop image passing in vpgl_lvcs",
+        py::arg("img_ni"), py::arg("img_nj"), py::arg("cam"),
+        py::arg("lower_left_lon"), py::arg("lower_left_lat"), py::arg("lower_left_elev"),
+        py::arg("upper_right_lon"), py::arg("upper_right_lat"), py::arg("upper_right_elev"),
+        py::arg("uncertainty"), py::arg("lvcs"));
+
+  m.def("save_rational_camera", &save_rational_camera,
+        py::arg("cam"), py::arg("camera_filename"));
+
 
   py::class_<vpgl_local_rational_camera<double>, vpgl_rational_camera<double> /* <- Parent */ > (m, "local_rational_camera")
     .def(py::init<vpgl_lvcs const&, vpgl_rational_camera<double> const&>())
@@ -495,9 +561,10 @@ void wrap_vpgl(py::module &m)
     .def("lvcs", &vpgl_local_rational_camera<double>::lvcs)
     ;
 
-  m.def("read_local_rational_camera",
+  m.def("_read_local_rational_camera",
         [](std::string const& fname){return read_local_rational_camera<double>(fname);},
         py::return_value_policy::take_ownership);
+  m.def("_correct_local_rational_camera", &correct_local_rational_camera);
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
   py::class_<vpgl_lvcs> lvcs(m, "lvcs");
