@@ -47,6 +47,8 @@ endif()
 
 include_directories(${PYTHON_INCLUDE_PATH})
 
+include_directories(${PROJECT_SOURCE_DIR})
+
 # Find the python install directory
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:

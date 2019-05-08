@@ -14,7 +14,7 @@ namespace py = pybind11;
 
 namespace pyvxl { namespace brip {
 
-vil_image_view<vxl_byte> truncate_nitf_image_to_byte(vil_image_view<vxl_uint_16> input_img, bool is_scale)
+vil_image_view<vxl_byte> _truncate_nitf_image_to_byte(vil_image_view<vxl_uint_16> input_img, bool is_scale)
 {
   // truncate the input 16 bits image to a byte image by ignoring the most significant 5 bits and less significant 3 bits
   std::cout << "vxl.contrib.brip.truncate_nitf_image truncating to byte image" << std::endl;
@@ -43,7 +43,7 @@ vil_image_view<vxl_byte> truncate_nitf_image_to_byte(vil_image_view<vxl_uint_16>
 
 }
 
-vil_image_view<vxl_uint_16> truncate_nitf_image_to_short(vil_image_view<vxl_uint_16> input_img)
+vil_image_view<vxl_uint_16> _truncate_nitf_image_to_short(vil_image_view<vxl_uint_16> input_img)
 {
   std::cout << "vxl.contrib.brip.truncate_nitf_image truncating to short image" << std::endl;
 
@@ -63,19 +63,16 @@ vil_image_view<vxl_uint_16> truncate_nitf_image_to_short(vil_image_view<vxl_uint
 }
 
 
-
-
-
-
 void wrap_brip(py::module &m)
 {
-  m.def("truncate_nitf_image_to_byte", &truncate_nitf_image_to_byte,
+  m.def("_truncate_nitf_image_to_byte", &_truncate_nitf_image_to_byte,
         py::arg("input_img"), py::arg("is_scale"));
-  m.def("truncate_nitf_image_to_short", &truncate_nitf_image_to_short,
+  m.def("_truncate_nitf_image_to_short", &_truncate_nitf_image_to_short,
         py::arg("input_img"));
 }
 
 }}
+
 
 PYBIND11_MODULE(_brip, m)
 {

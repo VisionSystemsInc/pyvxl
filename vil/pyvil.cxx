@@ -8,22 +8,12 @@
 #include <vil/vil_math.h>
 #include <vil/vil_pixel_format.h>
 #include <vil/vil_save.h>
-#include <vil/vil_smart_ptr.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
-// Define vil_smart_pointer
-PYBIND11_DECLARE_HOLDER_TYPE(vil_class, vil_smart_ptr<vil_class>, true);
-
-// pybind11 assumes .get() member is available
-namespace pybind11 { namespace detail {
-    template <typename vil_class>
-    struct holder_helper<vil_smart_ptr<vil_class>> { // <-- specialization
-        static const vil_class *get(const vil_smart_ptr<vil_class> &p) { return p.ptr(); }
-    };
-}}
+#include "pyvxl_holder_types.h"
 
 namespace py = pybind11;
 
@@ -599,10 +589,11 @@ void wrap_vil(py::module &m)
   wrap_vil_image_view<unsigned short int>(m, "image_view_uint16");
   wrap_vil_image_view<float>(m, "image_view_float");
   wrap_vil_image_view<int>(m, "image_view_int");
+  wrap_vil_image_view<vil_rgb<unsigned char> >(m, "image_view_rgb_byte");
 
 
   m.def("crop_image_resource", (vil_image_resource_sptr (*)(const vil_image_resource_sptr&, unsigned, unsigned, unsigned, unsigned)) &vil_crop,
-        py::arg("image_view"), py::arg("i0"), py::arg("ni"), py::arg("j0"), py::arg("nj"));
+        py::arg("image_resource"), py::arg("i0"), py::arg("ni"), py::arg("j0"), py::arg("nj"));
 
   m.def("img_sum", &vil_image_sum_wrapper<unsigned char>, "", py::arg("image"), py::arg("p") = 0);
   m.def("img_sum", &vil_image_sum_wrapper<unsigned short int>, "", py::arg("image"), py::arg("p") = 0);
@@ -655,6 +646,7 @@ void wrap_vil(py::module &m)
   // {
   //   return vil_save(img, filename.c_str());
   // });
+
 }
 }}
 
