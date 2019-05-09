@@ -533,6 +533,8 @@ void wrap_vil(py::module &m)
 
 
   // Wrap vil_image_resource with a vil_smart_ptr handler
+  // See: https://public.kitware.com/vxl/doc/development/books/core/book_7.html#SEC70
+  // This is an exception. Normally, don't use holder types
   py::class_<vil_image_resource, PyImageResource /* <- trampoline */, vil_image_resource_sptr /* <- holder type */ > (m, "image_resource")
     .def(py::init<>())
     .def("ni", &vil_image_resource::ni)
