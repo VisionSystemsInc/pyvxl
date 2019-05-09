@@ -116,8 +116,10 @@ void wrap_brad(py::module &m)
   py::class_<brad_image_metadata> (m, "brad_image_metadata")
     .def(py::init<>())
     .def(py::init<const std::string,std::string>())
-    .def("parse", &brad_image_metadata::parse)
-    .def("parse_from_meta_file", &brad_image_metadata::parse_from_meta_file)
+    .def("parse",
+         [](brad_image_metadata & md, std::string const& nitf_filename, std::string const& meta_folder) {bool success = md.parse(nitf_filename, meta_folder); if (!success) {throw std::invalid_argument("Could not parse metadata from NITF header");}})
+    .def("parse_from_meta_file",
+         [](brad_image_metadata & md, std::string const& meta_file) {bool success = md.parse_from_meta_file(meta_file); if (!success) {throw std::invalid_argument("Could not parse metadata from meta file");}})
     .def("same_time", &brad_image_metadata::same_time)
     .def("same_day", &brad_image_metadata::same_day)
     .def("time_minute_diff", &brad_image_metadata::time_minute_dif)
