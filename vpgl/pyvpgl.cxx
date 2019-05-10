@@ -38,7 +38,7 @@
 #include <sstream>
 #include <vector>
 #include <array>
-
+#include <fstream>
 namespace py = pybind11;
 
 namespace pyvxl {
@@ -449,6 +449,7 @@ void wrap_vpgl(py::module &m)
     .def("ray_dir", &vpgl_affine_camera<double>::ray_dir)
     .def("set_viewing_distance", &vpgl_affine_camera<double>::set_viewing_distance);
 
+  
   py::class_<vpgl_calibration_matrix<double> >(m, "calibration_matrix")
     .def(py::init<vnl_matrix_fixed<double,3,3> >())
     .def(py::init<double, vgl_point_2d<double> >());
@@ -767,7 +768,7 @@ void wrap_vpgl(py::module &m)
 
   // Init from a Geotiff filename
   m.def("read_geo_camera",
-    [](std::string filename)
+   [](std::string filename)
     {
       vpgl_geo_camera* cam = new vpgl_geo_camera;
       vil_image_resource_sptr img = vil_load_image_resource(filename.c_str());
@@ -777,6 +778,16 @@ void wrap_vpgl(py::module &m)
     "A function to read a geo camera from a geotiff header."
   );
 
+  // read an affine camera
+  m.def("read_affine_camera", [](std::string filename)
+    {
+      vpgl_affine_camera<double> acam;
+      std::ifstream istr(filename.c_str());
+      if(!istr)
+        return acam;
+      istr >> acam;
+      return acam;
+    }, "A function to read an affine camera from a file.");
 }
 }
 
