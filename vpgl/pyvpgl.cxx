@@ -18,6 +18,7 @@
 #include <vgl/vgl_homg_point_3d.h>
 
 #include <vpgl/file_formats/vpgl_geo_camera.h>
+#include <vpgl/file_formats/vpgl_nitf_rational_camera.h>
 
 #include <vil/vil_load.h>
 #include <vil/vil_image_resource.h>
@@ -522,6 +523,9 @@ void wrap_vpgl(py::module &m)
   m.def("_read_rational_camera",
         [](std::string const& fname){return read_rational_camera<double>(fname);},
         py::return_value_policy::take_ownership);
+  m.def("_read_rational_camera_from_txt",
+        [](std::string const& fname){return read_rational_camera_from_txt<double>(fname);},
+        py::return_value_policy::take_ownership);
   m.def("_correct_rational_camera", &correct_rational_camera);
 
   m.def("crop_image_using_3d_box", (std::tuple<vpgl_local_rational_camera<double>, unsigned, unsigned, unsigned, unsigned> (*)
@@ -565,6 +569,17 @@ void wrap_vpgl(py::module &m)
         [](std::string const& fname){return read_local_rational_camera<double>(fname);},
         py::return_value_policy::take_ownership);
   m.def("_correct_local_rational_camera", &correct_local_rational_camera);
+
+
+  py::class_<vpgl_nitf_rational_camera, vpgl_rational_camera<double> /* <- Parent */ > (m, "nitf_rational_camera");
+    /* .def(py::init<>()) */
+    /* .def(py::init<std::string const&, bool>()) */
+    /* .def(py::init<vil_nitf2_image*, bool>()); */
+
+  m.def("_read_rational_camera_nitf",
+        [](std::string const& fname){return read_rational_camera_from_txt<double>(fname);},
+        py::return_value_policy::take_ownership);
+
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
   py::class_<vpgl_lvcs> lvcs(m, "lvcs");
@@ -697,6 +712,12 @@ void wrap_vpgl(py::module &m)
 
     ;
 
+  m.def("create_lvcs",
+       [](double lat, double lon, double elev, std::string name)
+       {return new vpgl_lvcs(lat, lon, elev,
+                             vpgl_lvcs::str_to_enum(name.c_str()), vpgl_lvcs::DEG, vpgl_lvcs::METERS);},
+       py::return_value_policy::take_ownership);
+
 
   // =====LAT/LON to UTM CONVERTER=====
   py::class_<vpgl_utm>(m, "utm")
@@ -723,8 +744,26 @@ void wrap_vpgl(py::module &m)
         double lon, lat;
         G.img_to_global(u, v, lon, lat);
         return std::make_tuple(lon, lat);
-      }
-    );
+      })
+    .def("get_geotransform",
+      [](vpgl_geo_camera &G)
+      {
+        /* return GeoTransform suitable for GDAL GeoTiff */
+        /* Xgeo = GT(0) + Xpixel*GT(1) + Yline*GT(2) */
+        /* Ygeo = GT(3) + Xpixel*GT(4) + Yline*GT(5) */
+        /* http://www.gdal.org/gdal_datamodel.html */
+        /* Note that the pixel/line coordinates in the above are from (0.0,0.0) at the top */
+        /* left corner of the top left pixel to (width_in_pixels,height_in_pixels) at the */
+        /* bottom right corner of the bottom right pixel. The pixel/line location of the */
+        /* center of the top left pixel would therefore be (0.5,0.5). */
+        vnl_matrix<double> trans_matrix = G.trans_matrix();
+        return std::make_tuple((double)trans_matrix[0][3],   // GT(0)
+                               (double)trans_matrix[0][0],   // GT(1)
+                               (double)trans_matrix[1][0],   // GT(2)
+                               (double)trans_matrix[1][3],   // GT(3)
+                               (double)trans_matrix[0][1],   // GT(4)
+                               (double)trans_matrix[1][1]);  // GT(5)
+      });
 
   // Init from a Geotiff filename
   m.def("read_geo_camera",
@@ -737,6 +776,7 @@ void wrap_vpgl(py::module &m)
     },
     "A function to read a geo camera from a geotiff header."
   );
+
 }
 }
 

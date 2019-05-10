@@ -33,6 +33,34 @@ def load_rational_camera(cam_fname):
       raise ValueError("Invalid camera file <{}>".format(cam_fname))
 
 
+def load_rational_camera_from_txt(cam_fname):
+  """
+  Loads a rational camera.
+
+  Parameters
+  ----------
+  cam_fname : string
+    The file name of the camera file.
+
+  Returns
+  -------
+  vpgl_rational_camera
+
+  Raises
+  ------
+  ValueError
+    If cam_fname is not a valid camera file.
+  """
+
+  from ._vpgl import _read_rational_camera_from_txt
+
+  cam = _read_rational_camera_from_txt
+  if cam:
+    return cam
+  else:
+    raise ValueError("Invalid camera file <{}>".format(cam_fname))
+
+
 def correct_rational_camera(cam, gt_offset_u, gt_offset_v, verbose=False):
   """
   Adds (delta-u, delta-v) offset to a rational camera.
