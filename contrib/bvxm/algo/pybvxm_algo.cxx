@@ -65,9 +65,9 @@ void wrap_bvxm_algo(py::module &m)
   m.def("create_scene_large_scale", &bvxm_create_scene_xml_large_scale,
         py::arg("roi_kml"), py::arg("scene_root"),
         py::arg("world_dir"), py::arg("dem_folder"),
-        py::arg("land_folder"), py::arg("world_size_in"),
-        py::arg("voxel_size"), py::arg("height"),
-        py::arg("height_sub"), py::arg("extension"));
+        py::arg("world_size")=500.0, py::arg("voxel_size")=1.0,
+        py::arg("height_diff")=120.0, py::arg("height_sub")=25.0,
+        py::arg("extension")=500.0, py::arg("land_folder") = "");
 }
 
 }}}
