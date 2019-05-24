@@ -31,7 +31,7 @@ sdet_texture_classifier load_classifier(std::string input_ins_path)
   return tc;
 }
 
-sdet_texture_classifier load_atmospheric_classifier(std::string input_ins_path)
+sdet_atmospheric_image_classifier load_atmospheric_classifier(std::string input_ins_path)
 {
   sdet_texture_classifier tc = load_classifier(input_ins_path);
   return sdet_atmospheric_image_classifier(tc);
