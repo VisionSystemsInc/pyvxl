@@ -31,7 +31,7 @@ To avoid messing with your host machine, you can build pyvxl in a virtualenv
 virtualenv -p python3 env
 source env/bin/activate
 mkdir build && cd build
-cmake -DVXL_DIR=${VXL_DIR} -DPYBIND11_DIR=${PYBIND11_DIR} -G Ninja -DCMAKE_CXX_FLAGS="-fdiagnostics-color=always" -DCMAKE_C_FLAGS="-fdiagnostics-color=always" -DPYTHON_SITE=${YOUR_VIRTUALENV_SITE-PACKAGES} ..
+cmake -DVXL_DIR=${VXL_DIR} -DPYBIND11_DIR=${PYBIND11_DIR} -G Ninja -DPYTHON_SITE=${YOUR_VIRTUALENV_SITE-PACKAGES} ..
 ninja
 ninja install
 ```
@@ -42,7 +42,7 @@ If you're not going to use a virtualenv because you're in a docker, or your host
 
 ```bash
 mkdir build && cd build
-cmake -DVXL_DIR=${VXL_DIR} -DPYBIND11_DIR=${PYBIND11_DIR} -G Ninja -DCMAKE_CXX_FLAGS="-fdiagnostics-color=always" -DCMAKE_C_FLAGS="-fdiagnostics-color=always" ..
+cmake -DVXL_DIR=${VXL_DIR} -DPYBIND11_DIR=${PYBIND11_DIR} -G Ninja ..
 ninja
 ninja install
 ```
