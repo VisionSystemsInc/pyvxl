@@ -7,6 +7,7 @@
 #include <string>
 #include <iostream>
 
+#include <sdet/sdet_atmospheric_image_classifier.h>
 #include <sdet/sdet_texture_classifier.h>
 #include <sdet/sdet_texture_classifier_params.h>
 
