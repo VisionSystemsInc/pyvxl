@@ -14,13 +14,11 @@ namespace pyvxl { namespace sdet { namespace algo {
 
 void wrap_sdet_algo(py::module &m)
 {
+
   m.def("classify_clouds", &sdet_classify_clouds,
-        py::arg("cloud_classifier"), py::arg("texton_dict_path"),
-        py::arg("image_resource"),
-        py::arg("i"), py::arg("j"),
-        py::arg("ni"), py::arg("nj"),
-        py::arg("block_size"),
-        py::arg("first_category"),
+        py::arg("cloud_classifier"),
+        py::arg("float_image"),
+        py::arg("category"),
         py::arg("cat_ids_file") = std::string(""),
         py::arg("scale_factor") = 1.0 / 2048.0);
 }

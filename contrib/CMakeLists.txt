@@ -8,6 +8,7 @@ set(PYVXL_CONTRIB_MAKE_ALL FALSE CACHE BOOL "Build every optional vxl contrib mo
 set(PYVXL_CONTRIB_MAKE_BPGL ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BPGL build")
 set(PYVXL_CONTRIB_MAKE_BRAD ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BRAD build")
 set(PYVXL_CONTRIB_MAKE_BRIP ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BRIP build")
+set(PYVXL_CONTRIB_MAKE_BVGL ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BVGL build")
 set(PYVXL_CONTRIB_MAKE_BVXM ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BVXM build")
 set(PYVXL_CONTRIB_MAKE_SDET ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on SDET build")
 
@@ -46,6 +47,17 @@ if (PYVXL_CONTRIB_MAKE_BRIP)
   # Recurse
   add_subdirectory("brip" "brip-build")
 endif()
+
+# if (PYVXL_CONTRIB_MAKE_BVGL)
+#   # Create the bvgl install directory since it doesn't exist yet
+#   install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib/bvgl)
+
+#   # auto generate __init__ file
+#   install(CODE "file(APPEND ${PYTHON_SITE}/vxl/contrib/__init__.py \"\nfrom . import bvgl\")")
+
+#   # Recurse
+#   add_subdirectory("bvgl" "bvgl-build")
+# endif()
 
 if (PYVXL_CONTRIB_MAKE_BVXM)
   # Create the bvxm install directory since it doesn't exist yet
