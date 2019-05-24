@@ -36,7 +36,7 @@ void wrap_sdet(py::module &m)
     .def(py::init<sdet_texture_classifier_params const&>())
     .def("load_dictionary", &sdet_texture_classifier::load_dictionary)
     .def("max_filter_radius", &sdet_texture_classifier::max_filter_radius)
-    .def_readwrite("block_size", &sdet:sdet_texture_classifier::block_size_);
+    .def_readwrite("block_size", &sdet_texture_classifier::block_size_);
 
 
   m.def("load_classifier", &load_classifier, py::arg("input_ins_path"));
