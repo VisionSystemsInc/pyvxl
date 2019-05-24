@@ -45,6 +45,9 @@ void wrap_sdet(py::module &m)
     .def("max_filter_radius", &sdet_texture_classifier::max_filter_radius)
     .def_readwrite("block_size", &sdet_texture_classifier::block_size_);
 
+  py::class_<sdet_atmospheric_image_classifier, sdet_texture_classifier /* <- Parent */ > (m, "atmospheric_image_classifier")
+    .def(py::init<sdet_texture_classifier_params const&>());
+
 
   m.def("load_classifier", &load_classifier, py::arg("input_ins_path"));
   m.def("load_atmospheric_classifier", &load_atmospheric_classifier, py::arg("input_ins_path"));
