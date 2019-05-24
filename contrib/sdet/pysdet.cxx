@@ -30,6 +30,12 @@ sdet_texture_classifier load_classifier(std::string input_ins_path)
   return tc;
 }
 
+sdet_texture_classifier load_atmospheric_classifier(std::string input_ins_path)
+{
+  sdet_texture_classifier tc = load_classifier(input_ins_path);
+  return sdet_atmospheric_image_classifier(tc);
+}
+
 void wrap_sdet(py::module &m)
 {
   py::class_<sdet_texture_classifier> (m, "texture_classifier")
@@ -40,6 +46,7 @@ void wrap_sdet(py::module &m)
 
 
   m.def("load_classifier", &load_classifier, py::arg("input_ins_path"));
+  m.def("load_atmospheric_classifier", &load_atmospheric_classifier, py::arg("input_ins_path"));
 }
 
 }}
