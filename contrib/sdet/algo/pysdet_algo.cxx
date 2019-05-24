@@ -4,7 +4,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
-#include <sdet/algo/sdet_classify_clouds.h>
+#include <sdet/algo/sdet_classify.h>
 
 #include "pyvxl_holder_types.h"
 
@@ -15,8 +15,8 @@ namespace pyvxl { namespace sdet { namespace algo {
 void wrap_sdet_algo(py::module &m)
 {
 
-  m.def("classify_clouds", &sdet_classify_clouds,
-        py::arg("cloud_classifier"),
+  m.def("classify", &sdet_classify,
+        py::arg("classifier"),
         py::arg("float_image"),
         py::arg("category"),
         py::arg("cat_ids_file") = std::string(""),
