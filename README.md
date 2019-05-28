@@ -12,9 +12,6 @@ Python wrapper for vxl using pybind11
 
 pyvxl can be build standalone or as a module of an existing project.
 
-## Contrib
-Add 
-
 ## Standalone
 
 Whatever environment (your host or a docker container) you build pyvxl in will require these dependencies
