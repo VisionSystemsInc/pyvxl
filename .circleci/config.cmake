@@ -31,6 +31,7 @@ set(VXL_VCL_INCLUDE_DIR ${VXL_BINARY_DIR}/vcl ${VXL_SOURCE_DIR}/vcl)
 include_directories(${VXL_CORE_INCLUDE_DIR})
 include_directories(${VXL_VCL_INCLUDE_DIR})
 include_directories(${VXL_DIR}/contrib/brl/bbas)
+include_directories(${VXL_DIR}/contrib/brl/bseg)
 
 # add pybind11 & pyvxl
 add_subdirectory(${PYBIND11_SOURCE_DIR} ${PYBIND11_BINARY_DIR})
