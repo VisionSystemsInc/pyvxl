@@ -4,17 +4,11 @@ import unittest
 class TestAutoLoad(unittest.TestCase):
   """
   Test that importing vxl auto-loads all of the
-  modules inside vxl.
+  contrib modules (if they were built).
   """
 
   def test_imports(self):
     import vxl
-    vxl.vgl
-    vxl.vgl.algo
-    vxl.vil
-    vxl.vnl
-    vxl.vpgl
-    vxl.vpgl.algo
     vxl.contrib
     vxl.contrib.bpgl
     vxl.contrib.bpgl.algo

@@ -34,6 +34,9 @@ include_directories(${VXL_DIR}/contrib/brl/bbas)
 include_directories(${VXL_DIR}/contrib/brl/bseg)
 include_directories(${VXL_DIR}/contrib/gel)
 
-# add pybind11 & pyvxl
+# add pybind11
 add_subdirectory(${PYBIND11_SOURCE_DIR} ${PYBIND11_BINARY_DIR})
+
+# add pyvxl - build all the contrib modules
+set(PYVXL_CONTRIB_MAKE_ALL ON)
 add_subdirectory(${PYVXL_SOURCE_DIR} ${PYVXL_BINARY_DIR})
