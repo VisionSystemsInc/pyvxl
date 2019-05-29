@@ -41,7 +41,7 @@ jobs:
       - run:
           name: test
           working_directory: /source/pyvxl
-          command: unit2 discover -v
+          command: unit2 discover -v test
 
 
 workflows:
