@@ -472,7 +472,10 @@ void wrap_vpgl(py::module &m)
       }
       )
     .def("ray_dir", &vpgl_affine_camera<double>::ray_dir)
-    .def("set_viewing_distance", &vpgl_affine_camera<double>::set_viewing_distance);
+    .def_property("viewing_distance",
+                  &vpgl_affine_camera<double>::viewing_distance,  // getter
+                  &vpgl_affine_camera<double>::set_viewing_distance);  // setter
+    /* .def("set_viewing_distance", &vpgl_affine_camera<double>::set_viewing_distance); */
 
   py::class_<vpgl_calibration_matrix<double> >(m, "calibration_matrix")
     .def(py::init<vnl_matrix_fixed<double,3,3> >())
