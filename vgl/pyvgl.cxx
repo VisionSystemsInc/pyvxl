@@ -26,6 +26,7 @@
 
 #include <ios>
 #include <sstream>
+#include <fstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -253,7 +254,23 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
     .def("normals", &vgl_pointset_3d<T>::normals)
     .def("scalars", &vgl_pointset_3d<T>::scalars)
     .def("append_pointset", &vgl_pointset_3d<T>::append_pointset)
-    .def(py::self == py::self);
+    .def(py::self == py::self)
+    .def("save", [](vgl_pointset_3d<T> const& ptset, std::string const& filename) {
+         std::ofstream ofs(filename);
+         if (!ofs.good()) {
+           throw std::runtime_error("Bad filename");
+         }
+         ofs << ptset;
+       })
+    .def("load", [](vgl_pointset_3d<T> &ptset, std::string const& filename) {
+         std::ifstream ifs(filename);
+         if (!ifs.good()) {
+           throw std::runtime_error("Bad filename");
+         }
+         ifs >> ptset;
+       });
+
+
 
 }
 
