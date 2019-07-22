@@ -26,7 +26,7 @@ jobs:
           working_directory: /build
           command: |
             mv /source/pyvxl/.circleci/config.cmake /source/CMakeLists.txt
-            cmake -G Ninja /source -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/install
+            cmake -G Ninja /source -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/install -DPYVXL_CONTRIB_MAKE_ALL=ON
 
       - run:
           name: compile
@@ -41,7 +41,7 @@ jobs:
       - run:
           name: test
           working_directory: /source/pyvxl
-          command: unit2 discover -v
+          command: unit2 discover -v test
 
 
 workflows:

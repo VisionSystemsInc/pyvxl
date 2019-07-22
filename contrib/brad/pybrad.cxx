@@ -4,22 +4,59 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
+#include <stdexcept>
+#include <string>
 #include <memory>
 #include <sstream>
 #include <vector>
 #include <array>
 
+
+#include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
+#include <vnl/vnl_math.h>
 #include <brad/brad_image_atmospherics_est.h>
 #include <brad/brad_image_metadata.h>
+#include <brad/brad_calibration.h>
 
 namespace py = pybind11;
 
 namespace pyvxl { namespace brad {
 
+vil_image_view<float> estimate_reflectance(vil_image_view<float> const& radiance_img,
+                                           brad_image_metadata const& mdata,
+                                           float mean_reflectance,
+                                           bool average_airlight,
+                                           bool is_normalize)
+{
+
+  if (radiance_img.pixel_format() != VIL_PIXEL_FORMAT_FLOAT) {
+    throw std::invalid_argument("ERROR: vxl.contrib.brad.estimate_reflectance: expecting floating point radiance image\n");
+  }
+
+  unsigned int ni = radiance_img.ni();
+  unsigned int nj = radiance_img.nj();
+  unsigned int np = radiance_img.nplanes();
+  if (mean_reflectance <= 0.0)
+    is_normalize = false;
+
+  auto* reflectance_img = new vil_image_view<float>(ni, nj, np);
+  bool success = brad_estimate_reflectance_image(radiance_img, mdata, mean_reflectance, *reflectance_img, average_airlight, is_normalize);
+
+  if (!success)
+    throw std::runtime_error(std::string("ERROR: vxl.contrib.brad.estimate_reflectance: brad_estimate_reflectance_image failed.\n"));
+
+  return *reflectance_img;
+}
+
 void wrap_brad(py::module &m)
 {
-  m.def("estimate_reflectance", &brad_estimate_reflectance_image);
+  m.def("estimate_reflectance", &estimate_reflectance,
+        py::arg("radiance"), py::arg("mdata"), py::arg("mean_reflectance"),
+        py::arg("average_airlight"), py::arg("is_normalize"));
+
+  m.def("radiometrically_calibrate", &brad_nitf_abs_radiometric_calibrate,
+        py::arg("image"), py::arg("meta"));
 
   py::class_<image_time>(m, "image_time")
     .def_readwrite("year", &image_time::year)
@@ -32,8 +69,10 @@ void wrap_brad(py::module &m)
   py::class_<brad_image_metadata> (m, "brad_image_metadata")
     .def(py::init<>())
     .def(py::init<const std::string,std::string>())
-    .def("parse", &brad_image_metadata::parse)
-    .def("parse_from_meta_file", &brad_image_metadata::parse_from_meta_file)
+    .def("parse",
+         [](brad_image_metadata & md, std::string const& nitf_filename, std::string const& meta_folder) {bool success = md.parse(nitf_filename, meta_folder); if (!success) {throw std::invalid_argument("Could not parse metadata from NITF header");}})
+    .def("parse_from_meta_file",
+         [](brad_image_metadata & md, std::string const& meta_file) {bool success = md.parse_from_meta_file(meta_file); if (!success) {throw std::invalid_argument("Could not parse metadata from meta file");}})
     .def("same_time", &brad_image_metadata::same_time)
     .def("same_day", &brad_image_metadata::same_day)
     .def("time_minute_diff", &brad_image_metadata::time_minute_dif)
