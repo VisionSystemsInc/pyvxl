@@ -1,12 +1,11 @@
 import unittest
 
-try:
-  import numpy as np
-except:
-  np = None
-
 
 class TestAutoLoad(unittest.TestCase):
+  """
+  Test that importing vxl auto-loads all of the
+  core vxl modules.
+  """
 
   def test_imports(self):
     import vxl
@@ -16,7 +15,6 @@ class TestAutoLoad(unittest.TestCase):
     vxl.vnl
     vxl.vpgl
     vxl.vpgl.algo
-    vxl.contrib
 
 
 if __name__ == '__main__':

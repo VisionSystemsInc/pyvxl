@@ -16,8 +16,8 @@ install(TARGETS pyvgl DESTINATION ${PYTHON_SITE}/vxl/vgl)
 # Create the algo install directory in case it doesn't exist
 install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vgl/algo)
 
-# auto generate __init__ file
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/vgl/__init__.py \"from ._vgl import *\nfrom . import algo\")")
+# copy __init__ file over into module
+install(FILES __init__.py DESTINATION ${PYTHON_SITE}/vxl/vgl/)
 
 # Recurse
 add_subdirectory("algo" "algo-build")

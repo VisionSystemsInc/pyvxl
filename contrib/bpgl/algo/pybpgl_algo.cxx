@@ -14,12 +14,13 @@
 
 namespace py = pybind11;
 
-namespace pyvxl { namespace bpgl { namespace algo {
+namespace pyvxl {
+namespace bpgl {
+namespace algo {
 
 void wrap_bpgl_algo(py::module &m)
 {
   m.def("heightmap_from_disparity_affine", &bpgl_heightmap_from_disparity<vpgl_affine_camera<double> >);
-
 }
 
 }}}
@@ -29,10 +30,5 @@ PYBIND11_MODULE(_bpgl_algo, m)
   m.doc() =  "Python bindings for the VXL computer vision libraries";
 
   pyvxl::bpgl::algo::wrap_bpgl_algo(m);
-
-/* #ifdef PYVXL_WITH_CONTRIB_BPGL */
-/*   mod = m.def_submodule("bpgl"); */
-/*   mod = mod.def_submodule("algo"); */
-/*   pyvxl::bpgl::algo::wrap_bpgl_algo(mod); */
-/* #endif */
 }
+
