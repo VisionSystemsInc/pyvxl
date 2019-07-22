@@ -384,6 +384,22 @@ void wrap_vgl(py::module &m)
     .def(py::init<double,double,double,double>(),
         py::arg("min_x"),py::arg("max_x"),py::arg("min_y"),py::arg("max_y"))
     .def("__repr__", streamToString<vgl_box_2d<double> >)
+    .def(py::pickle(
+          [](const vgl_box_2d<double> &p) {  // __getstate__
+            /* Return a tuple, which is pickleable */
+            return py::make_tuple(p.min_x(), p.max_x(),
+                                  p.min_y(), p.max_y());
+          },
+          [](py::tuple t) {  // __setstate__
+            if (t.size() != 4)
+              throw std::runtime_error("Can't unpickle vgl_box_2d: Needs 4 elements!");
+
+            /* Create a new C++ instance */
+            vgl_box_2d<double> box(t[0].cast<double>(), t[1].cast<double>(),
+                                    t[2].cast<double>(), t[3].cast<double>());
+
+            return box;
+          }))
 
     .def_property("min_x", &vgl_box_2d<double>::min_x, &vgl_box_2d<double>::set_min_x)
     .def_property("min_y", &vgl_box_2d<double>::min_y, &vgl_box_2d<double>::set_min_y)
@@ -430,6 +446,22 @@ void wrap_vgl(py::module &m)
         py::arg("min_x"),py::arg("min_y"),py::arg("min_z"),
         py::arg("max_x"),py::arg("max_y"),py::arg("max_z"))
     .def("__repr__", streamToString<vgl_box_3d<double> >)
+    .def(py::pickle(
+          [](const vgl_box_3d<double> &p) {  // __getstate__
+            /* Return a tuple, which is pickleable */
+            return py::make_tuple(p.min_x(), p.min_y(), p.min_z(),
+                                  p.max_x(), p.max_y(), p.max_z());
+          },
+          [](py::tuple t) {  // __setstate__
+            if (t.size() != 6)
+              throw std::runtime_error("Can't unpickle vgl_box_3d: Needs 6 elements!");
+
+            /* Create a new C++ instance */
+            vgl_box_3d<double> box(t[0].cast<double>(), t[1].cast<double>(), t[2].cast<double>(),
+                                    t[3].cast<double>(), t[4].cast<double>(), t[5].cast<double>() );
+
+            return box;
+          }))
 
     .def_property("min_x", &vgl_box_3d<double>::min_x, &vgl_box_3d<double>::set_min_x)
     .def_property("min_y", &vgl_box_3d<double>::min_y, &vgl_box_3d<double>::set_min_y)
