@@ -49,53 +49,6 @@ vil_image_view<float> estimate_reflectance(vil_image_view<float> const& radiance
   return *reflectance_img;
 }
 
-/* std::tuple<unsigned int, > get_image_footprint() */
-/* { */
-/*   using namespace brad_get_image_footprint_process_globals; */
-
-/*   if (!pro.verify_inputs()) { */
-/*     std::cout << pro.name() << ": WRONG inputs!!!" << std::endl; */
-/*     return false; */
-/*   } */
-
-/*   //get the input(s) */
-/*   brad_image_metadata_sptr meta = pro.get_input<brad_image_metadata_sptr>(0); */
-
-/*   // vectorize footprint for output */
-/*   vgl_polygon<double> footprint = meta->footprint_; */
-/*   unsigned int nsheets = footprint.num_sheets(); */
-/*   std::vector<unsigned> nverts; */
-/*   std::vector<double> verts; */
-
-/*   for (unsigned int s = 0; s < nsheets; ++s) { */
-/*     nverts.push_back(footprint[s].size()); */
-/*     for (unsigned int p = 0; p < footprint[s].size(); ++p) { */
-/*       verts.push_back(footprint[s][p].x()); */
-/*       verts.push_back(footprint[s][p].y()); */
-/*     } */
-/*   } */
-
-/*   // fill out bbas_1d arrays */
-/*   bbas_1d_array_unsigned_sptr poly_nverts = new bbas_1d_array_unsigned(nverts.size()); */
-/*   unsigned nv = 0; */
-/*   for(std::vector<unsigned>::iterator nit = nverts.begin(); nit != nverts.end(); ++nit, ++nv) */
-/*     poly_nverts->data_array[nv]=*nit; */
-
-/*   bbas_1d_array_double_sptr poly_verts = new bbas_1d_array_double(verts.size()); */
-/*   unsigned iv = 0; */
-/*   for(std::vector<double>::iterator vit = verts.begin(); vit != verts.end(); ++vit, ++iv) */
-/*     poly_verts->data_array[iv]=*vit; */
-
-/*   // generate output */
-/*   unsigned i = 0; */
-/*   pro.set_output_val<unsigned int>(i++, nsheets); */
-/*   pro.set_output_val<bbas_1d_array_unsigned_sptr>(i++, poly_nverts); */
-/*   pro.set_output_val<bbas_1d_array_double_sptr>(i++, poly_verts); */
-
-/*   return true; */
-/* } */
-
-
 void wrap_brad(py::module &m)
 {
   m.def("estimate_reflectance", &estimate_reflectance,

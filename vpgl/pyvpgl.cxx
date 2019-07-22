@@ -285,7 +285,7 @@ bool __project_box(const vpgl_rational_camera<double>& rat_cam, vpgl_lvcs &lvcs,
   yoff = rat_cam.offset(vpgl_rational_camera<double>::Y_INDX);
   zoff = rat_cam.offset(vpgl_rational_camera<double>::Z_INDX);
 
-  // global to lcoal (wgs84 to meter in order to apply uncertainty)
+  // global to local (wgs84 to meter in order to apply uncertainty)
   double lx, ly, lz;
   lvcs.global_to_local(xoff, yoff, zoff, vpgl_lvcs::wgs84, lx, ly, lz, vpgl_lvcs::DEG, vpgl_lvcs::METERS);
   double center[3];
@@ -715,9 +715,9 @@ void wrap_vpgl(py::module &m)
            vpgl_lvcs::cs_names const ocs, vpgl_lvcs::AngUnits const oau,
            vpgl_lvcs::LenUnits const olu)
           {
-            double gx, gy, gz;
-            L.local_to_global(lx,ly,lz,ocs,gx,gy,gz,oau,olu);
-            return std::make_tuple(gx,gy,gz);
+            double glon, glat, gz;
+            L.local_to_global(lx,ly,lz,ocs,glon,glat,gz,oau,olu);
+            return std::make_tuple(glon,glat,gz);
           },
         py::arg("local_x"),py::arg("local_y"),py::arg("local_z"),
         py::arg("output_cs_name"),py::arg("output_ang_unit")=vpgl_lvcs::DEG,
