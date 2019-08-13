@@ -190,6 +190,20 @@ void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_point_2d<T>){return (size_t)2;})
     .def("__getitem__", getitem_2d<vgl_point_2d<T> >)
     .def("__repr__", streamToString<vgl_point_2d<T> >)
+    .def(py::pickle(
+          [](const vgl_point_2d<T> &p) {  // __getstate__
+            /* Return a tuple, which is pickleable */
+            return py::make_tuple(p.x(), p.y());
+          },
+          [](py::tuple t) {  // __setstate__
+            if (t.size() != 2)
+              throw std::runtime_error("Can't unpickle vgl_point_2d: Needs 2 elements!");
+
+            /* Create a new C++ instance */
+            vgl_point_2d<T> pt(t[0].cast<T>(), t[1].cast<T>());
+
+            return pt;
+          }))
     .def_property_readonly("x", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::x)
     .def_property_readonly("y", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::y)
     .def(py::self - py::self)
@@ -228,6 +242,20 @@ void wrap_vgl_point_3d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_point_3d<T>){return (size_t)3;})
     .def("__getitem__", getitem_3d<vgl_point_3d<T> >)
     .def("__repr__", streamToString<vgl_point_3d<T> >)
+    .def(py::pickle(
+          [](const vgl_point_3d<T> &p) {  // __getstate__
+            /* Return a tuple, which is pickleable */
+            return py::make_tuple(p.x(), p.y(), p.z());
+          },
+          [](py::tuple t) {  // __setstate__
+            if (t.size() != 3)
+              throw std::runtime_error("Can't unpickle vgl_point_3d: Needs 3 elements!");
+
+            /* Create a new C++ instance */
+            vgl_point_3d<T> pt(t[0].cast<T>(), t[1].cast<T>(), t[2].cast<T>());
+
+            return pt;
+          }))
     .def_property_readonly("x", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::x)
     .def_property_readonly("y", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::y)
     .def_property_readonly("z", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::z)
