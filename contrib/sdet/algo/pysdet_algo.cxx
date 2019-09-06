@@ -15,7 +15,7 @@ namespace pyvxl { namespace sdet { namespace algo {
 void wrap_sdet_algo(py::module &m)
 {
 
-  m.def("classify", &sdet_classify,
+  m.def("classify", &sdet_classify, py::call_guard<py::gil_scoped_release>(),
         py::arg("classifier"),
         py::arg("float_image"),
         py::arg("category"),
