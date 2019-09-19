@@ -357,10 +357,10 @@ crop_image_using_3d_box(
   std::cout << "vxl.vpgl.crop_image_using_3d_box: projected 2d roi box: " << roi_box_2d << " given uncertainty " << uncertainty << " meters." << std::endl;
 
   // convert to image coordinates
-  auto x0 = (unsigned)__clamp(std::floor(roi_box_2d.min_x()), 0, img_ncols-1);
-  auto x1 = (unsigned)__clamp(std::ceil( roi_box_2d.max_x()), 0, img_ncols-1);
-  auto y0 = (unsigned)__clamp(std::floor(roi_box_2d.min_y()), 0, img_nrows-1);
-  auto y1 = (unsigned)__clamp(std::ceil( roi_box_2d.max_y()), 0, img_nrows-1);
+  auto x0 = (unsigned)__clamp(std::round(roi_box_2d.min_x()), 0, img_ncols-1);
+  auto x1 = (unsigned)__clamp(std::round(roi_box_2d.max_x()), 0, img_ncols-1);
+  auto y0 = (unsigned)__clamp(std::round(roi_box_2d.min_y()), 0, img_nrows-1);
+  auto y1 = (unsigned)__clamp(std::round(roi_box_2d.max_y()), 0, img_nrows-1);
 
   // width & height
   auto nx = x1 - x0 + 1;
