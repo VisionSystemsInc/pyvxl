@@ -24,10 +24,6 @@
 #include <vil/vil_image_resource.h>
 #include <vil/vil_image_resource_sptr.h>
 
-#include <brip/brip_roi.h>
-#include <vsol/vsol_box_2d_sptr.h>
-#include <vsol/vsol_box_2d.h>
-
 #include "../pyvxl_util.h"
 
 #include <pybind11/pybind11.h>
@@ -38,6 +34,7 @@
 #include <sstream>
 #include <vector>
 #include <array>
+#include <cmath>
 namespace py = pybind11;
 
 namespace pyvxl {
@@ -320,11 +317,26 @@ bool __project_box(const vpgl_rational_camera<double>& rat_cam, vpgl_lvcs &lvcs,
   return true;
 }
 
+double __clamp(double val, double min_val, double max_val)
+{
+  if (min_val > max_val) {
+    throw std::runtime_error("invalid clip");
+  }
+
+  if (val < min_val)
+    val = min_val;
+  if (val > max_val)
+    val = max_val;
+
+  return val;
+}
+
 std::tuple<vpgl_local_rational_camera<double>, unsigned, unsigned, unsigned, unsigned>
-crop_image_using_3d_box(unsigned img_ni, unsigned img_nj, vpgl_rational_camera<double> const& cam,
-                        double lower_left_lon, double lower_left_lat, double lower_left_elev,
-                        double upper_right_lon, double upper_right_lat, double upper_right_elev,
-                        double uncertainty, vpgl_lvcs lvcs)
+crop_image_using_3d_box(
+    unsigned img_ncols, unsigned img_nrows, vpgl_rational_camera<double> const& cam,
+    double lower_left_lon, double lower_left_lat, double lower_left_elev,
+    double upper_right_lon, double upper_right_lat, double upper_right_elev,
+    double uncertainty, vpgl_lvcs lvcs)
 {
 
   // generate a lvcs coordinates to transfer camera offset coordinates
@@ -344,45 +356,27 @@ crop_image_using_3d_box(unsigned img_ni, unsigned img_nj, vpgl_rational_camera<d
   }
   std::cout << "vxl.vpgl.crop_image_using_3d_box: projected 2d roi box: " << roi_box_2d << " given uncertainty " << uncertainty << " meters." << std::endl;
 
-  // crop the image
-  brip_roi broi(img_ni, img_nj);
-  vsol_box_2d_sptr bb = new vsol_box_2d();
-  bb->add_point(roi_box_2d.min_x(), roi_box_2d.min_y());
-  bb->add_point(roi_box_2d.max_x(), roi_box_2d.max_y());
-  bb = broi.clip_to_image_bounds(bb);
+  // convert to image coordinates
+  auto x0 = (unsigned)__clamp(std::round(roi_box_2d.min_x()), 0, img_ncols-1);
+  auto x1 = (unsigned)__clamp(std::round(roi_box_2d.max_x()), 0, img_ncols-1);
+  auto y0 = (unsigned)__clamp(std::round(roi_box_2d.min_y()), 0, img_nrows-1);
+  auto y1 = (unsigned)__clamp(std::round(roi_box_2d.max_y()), 0, img_nrows-1);
 
-  // store output
-  auto i0 = (unsigned)bb->get_min_x();
-  auto j0 = (unsigned)bb->get_min_y();
-  auto ni = (unsigned)bb->width();
-  auto nj = (unsigned)bb->height();
+  // width & height
+  auto nx = x1 - x0 + 1;
+  auto ny = y1 - y0 + 1;
 
-  if (ni <= 0 || nj <= 0)
+  if (nx <= 1 || ny <= 1)
   {
     throw std::runtime_error("vxl.vpgl.crop_image_using_3d_box: clipping box is out of image boundary, empty crop image returned");
   }
 
   // create the local camera
-  vpgl_local_rational_camera<double> local_camera = __create_local_rational_camera(cam, lvcs, i0, j0);
+  vpgl_local_rational_camera<double> local_camera = __create_local_rational_camera(cam, lvcs, x0, y0);
 
-  return std::make_tuple(local_camera, i0, j0, ni, nj);
+  return std::make_tuple(local_camera, x0, y0, nx, ny);
 }
 
-
-std::tuple<vpgl_local_rational_camera<double>, unsigned, unsigned, unsigned, unsigned>
-crop_image_using_3d_box(unsigned img_ni, unsigned img_nj, vpgl_rational_camera<double> const& cam,
-                        double lower_left_lon, double lower_left_lat, double lower_left_elev,
-                        double upper_right_lon, double upper_right_lat, double upper_right_elev,
-                        double uncertainty)
-{
-  // Default lvcs at origin
-  vpgl_lvcs default_lvcs(0, 0, 0);
-
-  return crop_image_using_3d_box(img_ni, img_nj, cam,
-                                 lower_left_lon, lower_left_lat, lower_left_elev,
-                                 upper_right_lon, upper_right_lat, upper_right_elev,
-                                 uncertainty, default_lvcs);
-}
 
 void save_rational_camera(vpgl_camera<double> & cam, std::string camera_filename)
 {
@@ -584,26 +578,6 @@ void wrap_vpgl(py::module &m)
         [](std::string const& fname){return read_rational_camera_from_txt<double>(fname);},
         py::return_value_policy::take_ownership);
   m.def("_correct_rational_camera", &correct_rational_camera);
-
-  m.def("crop_image_using_3d_box", (std::tuple<vpgl_local_rational_camera<double>, unsigned, unsigned, unsigned, unsigned> (*)
-                                    (unsigned img_ni, unsigned img_nj, vpgl_rational_camera<double> const& cam,
-                                     double lower_left_lon, double lower_left_lat, double lower_left_elev,
-                                     double upper_right_lon, double upper_right_lat, double upper_right_elev,
-                                     double uncertainty)) &crop_image_using_3d_box, "Crop image passing in box upper right and lower left corners",
-        py::arg("img_ni"), py::arg("img_nj"), py::arg("cam"),
-        py::arg("lower_left_lon"), py::arg("lower_left_lat"), py::arg("lower_left_elev"),
-        py::arg("upper_right_lon"), py::arg("upper_right_lat"), py::arg("upper_right_elev"),
-        py::arg("uncertainty"));
-  m.def("crop_image_using_3d_box", (std::tuple<vpgl_local_rational_camera<double>, unsigned, unsigned, unsigned, unsigned> (*)
-                                    (unsigned img_ni, unsigned img_nj, vpgl_rational_camera<double> const& cam,
-                                     double lower_left_lon, double lower_left_lat, double lower_left_elev,
-                                     double upper_right_lon, double upper_right_lat, double upper_right_elev,
-                                     double uncertainty, vpgl_lvcs lvcs)) &crop_image_using_3d_box, "Crop image passing in vpgl_lvcs",
-        py::arg("img_ni"), py::arg("img_nj"), py::arg("cam"),
-        py::arg("lower_left_lon"), py::arg("lower_left_lat"), py::arg("lower_left_elev"),
-        py::arg("upper_right_lon"), py::arg("upper_right_lat"), py::arg("upper_right_elev"),
-        py::arg("uncertainty"), py::arg("lvcs"));
-
   m.def("save_rational_camera", &save_rational_camera,
         py::arg("cam"), py::arg("camera_filename"));
 
@@ -680,6 +654,7 @@ void wrap_vpgl(py::module &m)
 
     // python print
     .def("__str__", streamToString<vpgl_lvcs>)
+    .def("__repr__", streamToString<vpgl_lvcs>)
 
     // getters
     .def("get_origin",     [](vpgl_lvcs &L) {double lon,lat,e; L.get_origin(lat,lon,e); return std::make_tuple(lon,lat,e); })
@@ -790,6 +765,8 @@ void wrap_vpgl(py::module &m)
         py::arg("easting"),py::arg("northing"),py::arg("zone"),py::arg("is_south")=false)
     ;
 
+
+  // =====GEO-CAMERA=====
   // Geo- Camera definitions
   py::class_<vpgl_geo_camera, vpgl_camera<double> /* <- Parent */ > (m, "geo_camera")
     // Default methods
@@ -847,6 +824,18 @@ void wrap_vpgl(py::module &m)
     },
     "A function to read a geo camera from a geotiff header."
   );
+
+
+  // =====MISC=====
+
+  // image cropping extents from 3D box and rational camera
+  // Note this must be listed after the lvcs wrapper to enable the default lvcs
+  m.def("crop_image_using_3d_box", crop_image_using_3d_box,
+        "Determine image cropping extents given 3D box & rational camera",
+        py::arg("img_ncols"), py::arg("img_nrows"), py::arg("cam"),
+        py::arg("lower_left_lon"), py::arg("lower_left_lat"), py::arg("lower_left_elev"),
+        py::arg("upper_right_lon"), py::arg("upper_right_lat"), py::arg("upper_right_elev"),
+        py::arg("uncertainty"), py::arg("lvcs") = vpgl_lvcs());
 
 }
 }
