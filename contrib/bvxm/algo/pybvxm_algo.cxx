@@ -21,7 +21,7 @@ bvxm_voxel_world create_voxel_world(std::string const& vox_dir, std::string cons
 {
   if (!vul_file::is_directory(vox_dir) || !vul_file::exists(vox_dir)) {
     std::ostringstream buffer;
-    buffer << "In bvxm.create_voxel_world -- input directory "  << vox_dir << "is not valid!\n";
+    buffer << "In bvxm.create_voxel_world -- input directory "  << vox_dir << " is not valid!\n";
     throw std::invalid_argument(buffer.str());
   }
 
