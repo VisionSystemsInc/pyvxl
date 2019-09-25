@@ -266,15 +266,48 @@ T image_getitem(vil_image_view<T> const& img, std::tuple<size_t, size_t, size_t>
   return img(img_x, img_y, img_p);
 }
 
-template<class T>
-long image_len(vil_image_view<T> const& img)
-{
-  return img.ni() * img.nj() * img.nplanes();
+std::pair<uint64_t, bool> __multiply_with_overflow(size_t a, size_t b) {
+  uint64_t ret = a * b;
+  bool overflow;
+  if (a != 0 && (ret / a) != b) {
+    overflow = true;
+  } else {
+    overflow = false;
+  }
+  return std::pair<uint64_t, bool>(ret, overflow);
 }
 
-long resource_len(vil_image_resource const& img)
+template<class T>
+uint64_t image_len(vil_image_view<T> const& img)
 {
-  return img.ni() * img.nj() * img.nplanes();
+  std::pair<uint64_t, bool> single_channel_area = __multiply_with_overflow(img.ni(), img.nj());
+  if (single_channel_area.second) {
+    std::pair<uint64_t, bool> all_channels_area = __multiply_with_overflow(single_channel_area.first, img.nplanes());
+    if (all_channels_area.second) {
+      return all_channels_area.first;
+    }
+  }
+  std::ostringstream buffer;
+  buffer << "Image view length overflowed! Image view had dimensions:"
+    << std::endl << "ni: " << img.ni() << std::endl << "nj: " << img.nj()
+    << std::endl << "nplanes: " << img.nplanes() << std::endl;
+  throw std::runtime_error(buffer.str());
+}
+
+uint64_t resource_len(vil_image_resource const& img)
+{
+  std::pair<uint64_t, bool> single_channel_area = __multiply_with_overflow(img.ni(), img.nj());
+  if (single_channel_area.second) {
+    std::pair<uint64_t, bool> all_channels_area = __multiply_with_overflow(single_channel_area.first, img.nplanes());
+    if (all_channels_area.second) {
+      return all_channels_area.first;
+    }
+  }
+  std::ostringstream buffer;
+  buffer << "Image resource length overflowed! Image resource had dimensions:"
+    << std::endl << "ni: " << img.ni() << std::endl << "nj: " << img.nj()
+    << std::endl << "nplanes: " << img.nplanes() << std::endl;
+  throw std::runtime_error(buffer.str());
 }
 
 
