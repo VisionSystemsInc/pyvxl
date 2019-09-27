@@ -500,10 +500,10 @@ void wrap_vpgl(py::module &m)
   py::class_<vpgl_rational_camera<double>, vpgl_camera<double> /* <- Parent */ > rational_camera(m, "rational_camera");
 
   // enumerations, attached to parent class
-  py::enum_<vpgl_rational_order>(m, "rational_order")
-    .value("VXL", vpgl_rational_order::VXL)
-    .value("RPC00B", vpgl_rational_order::RPC00B)
-    ;
+  py::enum_<vpgl_rational_order> rational_order(m, "rational_order");
+  for (auto item : vpgl_rational_order_func::initializer_list) {
+    rational_order.value(vpgl_rational_order_func::to_string(item).c_str(), item);
+  }
 
   // enumerations, attached to this class
   py::enum_<vpgl_rational_camera<double>::coor_index>(rational_camera, "coor_index")
