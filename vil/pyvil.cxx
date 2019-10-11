@@ -268,13 +268,13 @@ T image_getitem(vil_image_view<T> const& img, std::tuple<size_t, size_t, size_t>
 
 std::pair<uint64_t, bool> __multiply_with_overflow(size_t a, size_t b) {
   uint64_t ret = a * b;
-  bool overflow;
+  bool no_overflow;
   if (a != 0 && (ret / a) != b) {
-    overflow = true;
+    no_overflow = false;
   } else {
-    overflow = false;
+    no_overflow = true;
   }
-  return std::pair<uint64_t, bool>(ret, overflow);
+  return std::pair<uint64_t, bool>(ret, no_overflow);
 }
 
 template<class T>
