@@ -136,16 +136,16 @@ class VnlMatrixBase(object):
 
     for r in range(shape[0]):
       for c in range(shape[1]):
+        self.assertEqual(x[r,c], data[r,c])
         self.assertEqual(x[r][c], data[r,c])
         self.assertEqual(x.get(r,c), data[r,c])
 
     for r in range(-shape[0], 0):
       for c in range(-shape[1], 0):
-        self.assertEqual(x[r][c], data[r,c])
+        self.assertEqual(x[r,c], data[r,c])
 
   def test_construct_shape(self):
     shape = self.fixed_shape or (4,5)
-    print('SHAPE: {}'.format(shape))
 
     if self.fixed_shape is None:
       x = self.cls(*shape)
@@ -169,6 +169,7 @@ class VnlMatrixBase(object):
 
     for r in range(shape[0]):
       for c in range(shape[1]):
+        self.assertEqual(x[r,c], value)
         self.assertEqual(x[r][c], value)
         self.assertEqual(x.get(r,c), value)
 

@@ -31,6 +31,8 @@ long _vnl_index(long i, unsigned int size)
   return i;
 }
 
+
+// __GETITEM__ wrappers
 template <class T>
 T vnl_vector_getitem(vnl_vector<T> const& v, long i)
 {
@@ -45,16 +47,30 @@ T vnl_vector_fixed_getitem(vnl_vector_fixed<T,N> const& v, long i)
 }
 
 template <class T>
-vnl_vector<T> vnl_matrix_getitem(vnl_matrix<T> const& m, long r)
+vnl_vector<T> vnl_matrix_getvector(vnl_matrix<T> const& m, long r)
 {
   r = _vnl_index(r, m.rows());
   return m.get_row(r);
 }
 
-template<class T, unsigned R, unsigned C>
-vnl_vector<T> vnl_matrix_fixed_getitem(vnl_matrix_fixed<T,R,C> const& m, long r)
+template <class T, unsigned R, unsigned C>
+vnl_vector<T> vnl_matrix_fixed_getvector(vnl_matrix_fixed<T,R,C> const& m, long r)
 {
-  return vnl_matrix_getitem<T>(m.as_ref(), r);
+  return vnl_matrix_getvector<T>(m.as_ref(), r);
+}
+
+template <class T>
+T vnl_matrix_getitem(vnl_matrix<T> const& m, std::tuple<long, long> i)
+{
+  auto r = _vnl_index(std::get<0>(i), m.rows());
+  auto c = _vnl_index(std::get<1>(i), m.cols());
+  return m[r][c];
+}
+
+template<class T, unsigned R, unsigned C>
+T vnl_matrix_fixed_getitem(vnl_matrix_fixed<T,R,C> const& m, std::tuple<long, long> i)
+{
+  return vnl_matrix_getitem<T>(m.as_ref(), i);
 }
 
 template<class T>
@@ -311,6 +327,7 @@ void wrap_vnl_matrix(py::module &m, std::string const& class_name)
     .def("get", &vnl_matrix<T>::get)
     .def_property_readonly("shape", &vnl_matrix_shape<T>)
     .def("__str__", streamToString<vnl_matrix<T> >)
+    .def("__getitem__", vnl_matrix_getvector<T>)
     .def("__getitem__", vnl_matrix_getitem<T>)
     .def("__len__", vnl_matrix_len<T>)
     .def(py::self + vnl_matrix<T>())
@@ -384,8 +401,9 @@ void wrap_vnl_matrix_fixed(py::module &m, std::string const& class_name)
     .def("get", &vnl_matrix_fixed<T,NR,NC>::get)
     .def_property_readonly("shape", &vnl_matrix_fixed_shape<T,NR,NC>)
     .def("__str__", streamToString<vnl_matrix_fixed<T,NR,NC> >)
-    .def("__getitem__", vnl_matrix_fixed_getitem<T,NR,NC>)
     .def("__len__", vnl_matrix_fixed_len<T,NR,NC>)
+    .def("__getitem__", vnl_matrix_fixed_getvector<T,NR,NC>)
+    .def("__getitem__", vnl_matrix_fixed_getitem<T,NR,NC>)
     .def(py::self + py::self)
     .def(py::self * vnl_vector<T>())
     .def(py::self * vnl_vector_fixed<T,NC>())
