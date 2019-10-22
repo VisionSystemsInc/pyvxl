@@ -322,7 +322,8 @@ template<class T>
 void wrap_vnl_matrix(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_matrix<T> >(m, class_name.c_str(), py::buffer_protocol())
-    .def(py::init<unsigned int,unsigned int>())
+    .def(py::init<unsigned int, unsigned int, T>(),
+         py::arg("nrows"), py::arg("ncols"), py::arg("fill_value") = T(0))
     .def(py::init(&matrix_from_buffer<T>))
     .def("get", &vnl_matrix<T>::get)
     .def_property_readonly("shape", &vnl_matrix_shape<T>)
@@ -346,8 +347,8 @@ template<class T>
 void wrap_vnl_vector(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_vector<T> >(m, class_name.c_str(), py::buffer_protocol())
-    .def(py::init<size_t>())
-    .def(py::init<size_t, T>())
+    .def(py::init<size_t, T>(),
+         py::arg("size"), py::arg("fill_value") = T(0))
     .def(py::init(&vector_from_buffer<T>))
     .def("get", &vnl_vector<T>::get)
     .def("size", &vnl_vector<T>::size)
@@ -369,6 +370,7 @@ template<class T, unsigned N>
 void wrap_vnl_vector_fixed(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_vector_fixed<T,N> >(m, class_name.c_str(), py::buffer_protocol())
+    .def(py::init<T>(), py::arg("fill_value") = T(0))
     .def(py::init(&vector_fixed_from_buffer<T,N>))
     .def("get", &vnl_vector_fixed<T,N>::get)
     .def_property_readonly("shape", &vnl_vector_fixed_shape<T,N>)
@@ -391,6 +393,7 @@ template<class T, unsigned NR, unsigned NC>
 void wrap_vnl_matrix_fixed(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_matrix_fixed<T,NR,NC> >(m, class_name.c_str(), py::buffer_protocol())
+    .def(py::init<T>(), py::arg("fill_value") = T(0))
     .def(py::init(&matrix_fixed_from_buffer<T,NR,NC>))
     .def("get", &vnl_matrix_fixed<T,NR,NC>::get)
     .def_property_readonly("shape", &vnl_matrix_fixed_shape<T,NR,NC>)
