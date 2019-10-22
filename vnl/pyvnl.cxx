@@ -87,6 +87,39 @@ T vnl_quaternion_getitem(vnl_quaternion<T> const& q, long i)
 }
 
 
+// __SETITEM__ wrappers
+template <class T>
+void vnl_vector_setitem(vnl_vector<T>& v, long i, T value)
+{
+  i = _vnl_index(i, v.size());
+  v[i] = value;
+}
+
+template<class T, unsigned N>
+void vnl_vector_fixed_setitem(vnl_vector_fixed<T,N>& v, long i, T value)
+{
+  i = _vnl_index(i, N);
+  v[i] = value;
+}
+
+template <class T>
+void vnl_matrix_setitem(vnl_matrix<T>& m, std::tuple<long, long> i, T value)
+{
+  auto r = _vnl_index(std::get<0>(i), m.rows());
+  auto c = _vnl_index(std::get<1>(i), m.cols());
+  m[r][c] = value;
+}
+
+template<class T, unsigned NR, unsigned NC>
+void vnl_matrix_fixed_setitem(vnl_matrix_fixed<T,NR,NC>& m, std::tuple<long, long> i, T value)
+{
+  auto r = _vnl_index(std::get<0>(i), NR);
+  auto c = _vnl_index(std::get<1>(i), NC);
+  m[r][c] = value;
+}
+
+
+// SIZE & SHAPE accessors
 template <class T>
 int vnl_vector_len(vnl_vector<T> const& v)
 {
@@ -135,6 +168,8 @@ std::tuple<int> vnl_quaternion_shape(vnl_quaternion<T> const& q)
   return std::make_tuple<int>(4);
 }
 
+
+// CONVERT numpy array_t to VNL object
 template<class T, unsigned NR, unsigned NC>
 vnl_matrix_fixed<T,NR,NC>* matrix_fixed_from_buffer(py::array_t<T> b)
 {
@@ -247,6 +282,8 @@ vnl_vector<T>* vector_from_buffer(py::array_t<T> b)
   return vec;
 }
 
+
+// CONVERT VNL object to buffer_info
 template<class T>
 py::buffer_info get_matrix_buffer(vnl_matrix<T> &m)
 {
@@ -327,9 +364,10 @@ void wrap_vnl_matrix(py::module &m, std::string const& class_name)
     .def("get", &vnl_matrix<T>::get)
     .def_property_readonly("shape", &vnl_matrix_shape<T>)
     .def("__str__", streamToString<vnl_matrix<T> >)
+    .def("__len__", vnl_matrix_len<T>)
     .def("__getitem__", vnl_matrix_getvector<T>)
     .def("__getitem__", vnl_matrix_getitem<T>)
-    .def("__len__", vnl_matrix_len<T>)
+    .def("__setitem__", vnl_matrix_setitem<T>)
     .def(py::self + vnl_matrix<T>())
     .def(py::self * vnl_vector<T>())
     .def(T() * py::self)
@@ -353,9 +391,10 @@ void wrap_vnl_vector(py::module &m, std::string const& class_name)
     .def(py::init(&vector_from_buffer<T>))
     .def("get", &vnl_vector<T>::get)
     .def_property_readonly("size", &vnl_vector<T>::size)
-    .def("__len__", vnl_vector_len<T>)
     .def("__str__", streamToString<vnl_vector<T> >)
+    .def("__len__", vnl_vector_len<T>)
     .def("__getitem__", vnl_vector_getitem<T>)
+    .def("__setitem__", vnl_vector_setitem<T>)
     .def(py::self + py::self)
     .def(T() * py::self)
     .def(py::self * T())
@@ -379,6 +418,7 @@ void wrap_vnl_vector_fixed(py::module &m, std::string const& class_name)
     .def("__str__", streamToString<vnl_vector_fixed<T,N> >)
     .def("__len__", vnl_vector_fixed_len<T,N>)
     .def("__getitem__", vnl_vector_fixed_getitem<T,N>)
+    .def("__setitem__", vnl_vector_fixed_setitem<T,N>)
     .def(py::self + vnl_vector<T>())
     .def(py::self + py::self)
     .def(T() * py::self)
@@ -404,6 +444,7 @@ void wrap_vnl_matrix_fixed(py::module &m, std::string const& class_name)
     .def("__len__", vnl_matrix_fixed_len<T,NR,NC>)
     .def("__getitem__", vnl_matrix_fixed_getvector<T,NR,NC>)
     .def("__getitem__", vnl_matrix_fixed_getitem<T,NR,NC>)
+    .def("__setitem__", vnl_matrix_fixed_setitem<T,NR,NC>)
     .def(py::self + py::self)
     .def(py::self * vnl_vector<T>())
     .def(py::self * vnl_vector_fixed<T,NC>())

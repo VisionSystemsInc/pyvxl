@@ -65,6 +65,18 @@ class VnlVectorBase(object):
       self.assertEqual(x[i], value)
       self.assertEqual(x.get(i),value)
 
+  def test_setitem(self):
+    size = self.fixed_size or 5
+
+    if self.fixed_size is None:
+      x = self.cls(size)
+    else:
+      x = self.cls()
+
+    for i in range(size):
+      x[i] = i
+      self.assertEqual(x[i], i)
+
   def test_operator_equal(self):
     size = self.fixed_size or 4
     value = 1.23
@@ -172,6 +184,20 @@ class VnlMatrixBase(object):
         self.assertEqual(x[r,c], value)
         self.assertEqual(x[r][c], value)
         self.assertEqual(x.get(r,c), value)
+
+  def test_setitem(self):
+    shape = self.fixed_shape or (4,5)
+
+    if self.fixed_shape is None:
+      x = self.cls(*shape)
+    else:
+      x = self.cls()
+
+    for r in range(shape[0]):
+      for c in range(shape[1]):
+        value = shape[0]*r + c
+        x[r,c] = value
+        self.assertEqual(x[r,c], value)
 
   def test_operator_equal(self):
     shape = self.fixed_shape or (6,7)
