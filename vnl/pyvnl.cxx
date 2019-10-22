@@ -19,34 +19,35 @@ namespace py = pybind11;
 namespace pyvxl { namespace vnl {
 // VNL HELPER FUNCTIONS
 
-template <class T>
-T vnl_vector_getitem(vnl_vector<T> const& v, long i)
+long _vnl_index(long i, unsigned int size)
 {
   // wrap around
   if (i < 0) {
-    i += v.size();
+    i += size;
   }
-  if ((i < 0) || (i >= v.size())) {
+  if ((i < 0) || (i >= size)) {
     throw py::index_error("index out of range");
   }
-  return v[i];
+  return i;
 }
 
 template <class T>
-int vnl_vector_len(vnl_vector<T> const& v)
+T vnl_vector_getitem(vnl_vector<T> const& v, long i)
 {
-  return v.size();
+  i = _vnl_index(i, v.size());
+  return v[i];
+}
+
+template<class T, unsigned N>
+T vnl_vector_fixed_getitem(vnl_vector_fixed<T,N> const& v, long i)
+{
+  return vnl_vector_getitem<T>(v.as_ref(), i);
 }
 
 template <class T>
 vnl_vector<T> vnl_matrix_getitem(vnl_matrix<T> const& m, long r)
 {
-  if (r < 0) {
-    r += m.rows();
-  }
-  if ((r < 0) || (r >= m.rows())) {
-    throw py::index_error("index out of range");
-  }
+  r = _vnl_index(r, m.rows());
   return m.get_row(r);
 }
 
@@ -56,22 +57,10 @@ vnl_vector<T> vnl_matrix_fixed_getitem(vnl_matrix_fixed<T,R,C> const& m, long r)
   return vnl_matrix_getitem<T>(m.as_ref(), r);
 }
 
-template<class T, unsigned N>
-T vnl_vector_fixed_getitem(vnl_vector_fixed<T,N> const& v, long i)
-{
-  return vnl_vector_getitem<T>(v.as_ref(), i);
-}
-
 template<class T>
 T vnl_quaternion_getitem(vnl_quaternion<T> const& q, long i)
 {
-  // wrap around
-  if (i < 0) {
-    i += 4;
-  }
-  if ((i < 0) || (i >= 4)) {
-    throw py::index_error("index out of range");
-  }
+  i = _vnl_index(i, 4);
   switch(i) {
     case 0: return q.x();
     case 1: return q.y();
@@ -81,6 +70,18 @@ T vnl_quaternion_getitem(vnl_quaternion<T> const& q, long i)
   return NAN;
 }
 
+
+template <class T>
+int vnl_vector_len(vnl_vector<T> const& v)
+{
+  return v.size();
+}
+
+template<class T>
+int vnl_quaternion_len(vnl_quaternion<T> const& q)
+{
+  return 4;
+}
 
 template <class T>
 int vnl_matrix_len(vnl_matrix<T> const& m)
@@ -98,12 +99,6 @@ template<class T, unsigned N>
 int vnl_vector_fixed_len(vnl_vector_fixed<T,N> const& v)
 {
   return N;
-}
-
-template<class T>
-int vnl_quaternion_len(vnl_quaternion<T> const& q)
-{
-  return 4;
 }
 
 template<class T>
