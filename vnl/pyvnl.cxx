@@ -112,22 +112,10 @@ std::tuple<int, int> vnl_matrix_shape(vnl_matrix<T> const& m)
   return std::make_tuple<int,int>(m.rows(), m.cols());
 }
 
-template<class T>
-std::tuple<int> vnl_vector_shape(vnl_vector<T> const& v)
-{
-  return std::make_tuple<int>(v.size());
-}
-
 template<class T, unsigned R, unsigned C>
 std::tuple<int, int> vnl_matrix_fixed_shape(vnl_matrix_fixed<T,R,C> const& m)
 {
   return std::make_tuple<int,int>(R,C);
-}
-
-template<class T, unsigned N>
-std::tuple<int> vnl_vector_fixed_shape(vnl_vector_fixed<T,N> const& v)
-{
-  return std::make_tuple<int>(N);
 }
 
 template<class T>
@@ -351,7 +339,7 @@ void wrap_vnl_vector(py::module &m, std::string const& class_name)
          py::arg("size"), py::arg("fill_value") = T(0))
     .def(py::init(&vector_from_buffer<T>))
     .def("get", &vnl_vector<T>::get)
-    .def("size", &vnl_vector<T>::size)
+    .def_property_readonly("size", &vnl_vector<T>::size)
     .def("__len__", vnl_vector_len<T>)
     .def("__str__", streamToString<vnl_vector<T> >)
     .def("__getitem__", vnl_vector_getitem<T>)
@@ -373,7 +361,7 @@ void wrap_vnl_vector_fixed(py::module &m, std::string const& class_name)
     .def(py::init<T>(), py::arg("fill_value") = T(0))
     .def(py::init(&vector_fixed_from_buffer<T,N>))
     .def("get", &vnl_vector_fixed<T,N>::get)
-    .def_property_readonly("shape", &vnl_vector_fixed_shape<T,N>)
+    .def_property_readonly("size", &vnl_vector_fixed<T,N>::size)
     .def("__str__", streamToString<vnl_vector_fixed<T,N> >)
     .def("__len__", vnl_vector_fixed_len<T,N>)
     .def("__getitem__", vnl_vector_fixed_getitem<T,N>)
