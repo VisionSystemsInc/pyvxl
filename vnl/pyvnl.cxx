@@ -19,41 +19,25 @@ namespace py = pybind11;
 namespace pyvxl { namespace vnl {
 // VNL HELPER FUNCTIONS
 
-template <class T>
-T vnl_vector_getitem(vnl_vector<T> const& v, long i)
+long _vnl_index(long i, unsigned int size)
 {
   // wrap around
   if (i < 0) {
-    i += v.size();
+    i += size;
   }
-  if ((i < 0) || (i >= v.size())) {
+  if ((i < 0) || (i >= size)) {
     throw py::index_error("index out of range");
   }
+  return i;
+}
+
+
+// __GETITEM__ wrappers
+template <class T>
+T vnl_vector_getitem(vnl_vector<T> const& v, long i)
+{
+  i = _vnl_index(i, v.size());
   return v[i];
-}
-
-template <class T>
-int vnl_vector_len(vnl_vector<T> const& v)
-{
-  return v.size();
-}
-
-template <class T>
-vnl_vector<T> vnl_matrix_getitem(vnl_matrix<T> const& m, long r)
-{
-  if (r < 0) {
-    r += m.rows();
-  }
-  if ((r < 0) || (r >= m.rows())) {
-    throw py::index_error("index out of range");
-  }
-  return m.get_row(r);
-}
-
-template<class T, unsigned R, unsigned C>
-vnl_vector<T> vnl_matrix_fixed_getitem(vnl_matrix_fixed<T,R,C> const& m, long r)
-{
-  return vnl_matrix_getitem<T>(m.as_ref(), r);
 }
 
 template<class T, unsigned N>
@@ -62,16 +46,37 @@ T vnl_vector_fixed_getitem(vnl_vector_fixed<T,N> const& v, long i)
   return vnl_vector_getitem<T>(v.as_ref(), i);
 }
 
+template <class T>
+vnl_vector<T> vnl_matrix_getvector(vnl_matrix<T> const& m, long r)
+{
+  r = _vnl_index(r, m.rows());
+  return m.get_row(r);
+}
+
+template <class T, unsigned R, unsigned C>
+vnl_vector<T> vnl_matrix_fixed_getvector(vnl_matrix_fixed<T,R,C> const& m, long r)
+{
+  return vnl_matrix_getvector<T>(m.as_ref(), r);
+}
+
+template <class T>
+T vnl_matrix_getitem(vnl_matrix<T> const& m, std::tuple<long, long> i)
+{
+  auto r = _vnl_index(std::get<0>(i), m.rows());
+  auto c = _vnl_index(std::get<1>(i), m.cols());
+  return m[r][c];
+}
+
+template<class T, unsigned R, unsigned C>
+T vnl_matrix_fixed_getitem(vnl_matrix_fixed<T,R,C> const& m, std::tuple<long, long> i)
+{
+  return vnl_matrix_getitem<T>(m.as_ref(), i);
+}
+
 template<class T>
 T vnl_quaternion_getitem(vnl_quaternion<T> const& q, long i)
 {
-  // wrap around
-  if (i < 0) {
-    i += 4;
-  }
-  if ((i < 0) || (i >= 4)) {
-    throw py::index_error("index out of range");
-  }
+  i = _vnl_index(i, 4);
   switch(i) {
     case 0: return q.x();
     case 1: return q.y();
@@ -81,6 +86,51 @@ T vnl_quaternion_getitem(vnl_quaternion<T> const& q, long i)
   return NAN;
 }
 
+
+// __SETITEM__ wrappers
+template <class T>
+void vnl_vector_setitem(vnl_vector<T>& v, long i, T value)
+{
+  i = _vnl_index(i, v.size());
+  v[i] = value;
+}
+
+template<class T, unsigned N>
+void vnl_vector_fixed_setitem(vnl_vector_fixed<T,N>& v, long i, T value)
+{
+  i = _vnl_index(i, N);
+  v[i] = value;
+}
+
+template <class T>
+void vnl_matrix_setitem(vnl_matrix<T>& m, std::tuple<long, long> i, T value)
+{
+  auto r = _vnl_index(std::get<0>(i), m.rows());
+  auto c = _vnl_index(std::get<1>(i), m.cols());
+  m[r][c] = value;
+}
+
+template<class T, unsigned NR, unsigned NC>
+void vnl_matrix_fixed_setitem(vnl_matrix_fixed<T,NR,NC>& m, std::tuple<long, long> i, T value)
+{
+  auto r = _vnl_index(std::get<0>(i), NR);
+  auto c = _vnl_index(std::get<1>(i), NC);
+  m[r][c] = value;
+}
+
+
+// SIZE & SHAPE accessors
+template <class T>
+int vnl_vector_len(vnl_vector<T> const& v)
+{
+  return v.size();
+}
+
+template<class T>
+int vnl_quaternion_len(vnl_quaternion<T> const& q)
+{
+  return 4;
+}
 
 template <class T>
 int vnl_matrix_len(vnl_matrix<T> const& m)
@@ -101,21 +151,9 @@ int vnl_vector_fixed_len(vnl_vector_fixed<T,N> const& v)
 }
 
 template<class T>
-int vnl_quaternion_len(vnl_quaternion<T> const& q)
-{
-  return 4;
-}
-
-template<class T>
 std::tuple<int, int> vnl_matrix_shape(vnl_matrix<T> const& m)
 {
   return std::make_tuple<int,int>(m.rows(), m.cols());
-}
-
-template<class T>
-std::tuple<int> vnl_vector_shape(vnl_vector<T> const& v)
-{
-  return std::make_tuple<int>(v.size());
 }
 
 template<class T, unsigned R, unsigned C>
@@ -124,18 +162,14 @@ std::tuple<int, int> vnl_matrix_fixed_shape(vnl_matrix_fixed<T,R,C> const& m)
   return std::make_tuple<int,int>(R,C);
 }
 
-template<class T, unsigned N>
-std::tuple<int> vnl_vector_fixed_shape(vnl_vector_fixed<T,N> const& v)
-{
-  return std::make_tuple<int>(N);
-}
-
 template<class T>
 std::tuple<int> vnl_quaternion_shape(vnl_quaternion<T> const& q)
 {
   return std::make_tuple<int>(4);
 }
 
+
+// CONVERT numpy array_t to VNL object
 template<class T, unsigned NR, unsigned NC>
 vnl_matrix_fixed<T,NR,NC>* matrix_fixed_from_buffer(py::array_t<T> b)
 {
@@ -248,6 +282,8 @@ vnl_vector<T>* vector_from_buffer(py::array_t<T> b)
   return vec;
 }
 
+
+// CONVERT VNL object to buffer_info
 template<class T>
 py::buffer_info get_matrix_buffer(vnl_matrix<T> &m)
 {
@@ -284,22 +320,63 @@ py::buffer_info get_vector_fixed_buffer(vnl_vector_fixed<T,N> &v)
                          {sizeof(T)});
 }
 
+// copy object data to py:array_t
+// used for pickling support (convert to pickle-able py:array)
+//
+// py::array_t inputs:
+// (1) shape, (2) strides (in bytes) for each index, (3) data pointer
+template<class T>
+py::array_t<T> get_matrix_array_t(const vnl_matrix<T> &m)
+{
+  return py::array_t<T>({m.rows(), m.cols()}, {sizeof(T)*m.cols(), sizeof(T)},
+                        m.data_block());
+}
+
+template<class T, unsigned NR, unsigned NC>
+py::array_t<T> get_matrix_fixed_array_t(const vnl_matrix_fixed<T,NR,NC> &m)
+{
+  return py::array_t<T>({NR, NC}, {sizeof(T)*NC, sizeof(T)},
+                        m.data_block());
+}
+
+template<class T>
+py::array_t<T> get_vector_array_t(const vnl_vector<T> &v)
+{
+  return py::array_t<T>({v.size()}, {sizeof(T)},
+                        v.data_block());
+}
+
+template<class T, unsigned N>
+py::array_t<T> get_vector_fixed_array_t(const vnl_vector_fixed<T,N> &v)
+{
+  return py::array_t<T>({N}, {sizeof(T)},
+                        v.data_block());
+}
+
+
 template<class T>
 void wrap_vnl_matrix(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_matrix<T> >(m, class_name.c_str(), py::buffer_protocol())
-    .def(py::init<unsigned int,unsigned int>())
+    .def(py::init<unsigned int, unsigned int, T>(),
+         py::arg("nrows"), py::arg("ncols"), py::arg("fill_value") = T(0))
     .def(py::init(&matrix_from_buffer<T>))
     .def("get", &vnl_matrix<T>::get)
     .def_property_readonly("shape", &vnl_matrix_shape<T>)
     .def("__str__", streamToString<vnl_matrix<T> >)
-    .def("__getitem__", vnl_matrix_getitem<T>)
     .def("__len__", vnl_matrix_len<T>)
+    .def("__getitem__", vnl_matrix_getvector<T>)
+    .def("__getitem__", vnl_matrix_getitem<T>)
+    .def("__setitem__", vnl_matrix_setitem<T>)
     .def(py::self + vnl_matrix<T>())
     .def(py::self * vnl_vector<T>())
     .def(T() * py::self)
     .def(py::self * T())
-    .def_buffer(get_matrix_buffer<T>);
+    .def(py::self == py::self)
+    .def_buffer(get_matrix_buffer<T>)
+    .def(py::pickle(&get_matrix_array_t<T>,
+                    &matrix_from_buffer<T>))
+    ;
 
   py::implicitly_convertible<py::array_t<T>, vnl_matrix<T> >();
 
@@ -309,18 +386,23 @@ template<class T>
 void wrap_vnl_vector(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_vector<T> >(m, class_name.c_str(), py::buffer_protocol())
-    .def(py::init<size_t>())
-    .def(py::init<size_t, T>())
+    .def(py::init<size_t, T>(),
+         py::arg("size"), py::arg("fill_value") = T(0))
     .def(py::init(&vector_from_buffer<T>))
     .def("get", &vnl_vector<T>::get)
-    .def("size", &vnl_vector<T>::size)
-    .def("__len__", vnl_vector_len<T>)
+    .def_property_readonly("size", &vnl_vector<T>::size)
     .def("__str__", streamToString<vnl_vector<T> >)
+    .def("__len__", vnl_vector_len<T>)
     .def("__getitem__", vnl_vector_getitem<T>)
+    .def("__setitem__", vnl_vector_setitem<T>)
     .def(py::self + py::self)
     .def(T() * py::self)
     .def(py::self * T())
-    .def_buffer(get_vector_buffer<T>);
+    .def(py::self == py::self)
+    .def_buffer(get_vector_buffer<T>)
+    .def(py::pickle(&get_vector_array_t<T>,
+                    &vector_from_buffer<T>))
+    ;
 
   py::implicitly_convertible<py::array_t<T>, vnl_vector<T> >();
 }
@@ -329,17 +411,23 @@ template<class T, unsigned N>
 void wrap_vnl_vector_fixed(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_vector_fixed<T,N> >(m, class_name.c_str(), py::buffer_protocol())
+    .def(py::init<T>(), py::arg("fill_value") = T(0))
     .def(py::init(&vector_fixed_from_buffer<T,N>))
     .def("get", &vnl_vector_fixed<T,N>::get)
-    .def_property_readonly("shape", &vnl_vector_fixed_shape<T,N>)
+    .def_property_readonly("size", &vnl_vector_fixed<T,N>::size)
     .def("__str__", streamToString<vnl_vector_fixed<T,N> >)
     .def("__len__", vnl_vector_fixed_len<T,N>)
     .def("__getitem__", vnl_vector_fixed_getitem<T,N>)
+    .def("__setitem__", vnl_vector_fixed_setitem<T,N>)
     .def(py::self + vnl_vector<T>())
     .def(py::self + py::self)
     .def(T() * py::self)
     .def(py::self * T())
-    .def_buffer(get_vector_fixed_buffer<T,N>);
+    .def(py::self == py::self)
+    .def_buffer(get_vector_fixed_buffer<T,N>)
+    .def(py::pickle(&get_vector_fixed_array_t<T,N>,
+                    &vector_fixed_from_buffer<T,N>))
+    ;
 
   py::implicitly_convertible<py::array_t<T>, vnl_vector_fixed<T,N> >();
 }
@@ -348,18 +436,25 @@ template<class T, unsigned NR, unsigned NC>
 void wrap_vnl_matrix_fixed(py::module &m, std::string const& class_name)
 {
   py::class_<vnl_matrix_fixed<T,NR,NC> >(m, class_name.c_str(), py::buffer_protocol())
+    .def(py::init<T>(), py::arg("fill_value") = T(0))
     .def(py::init(&matrix_fixed_from_buffer<T,NR,NC>))
     .def("get", &vnl_matrix_fixed<T,NR,NC>::get)
     .def_property_readonly("shape", &vnl_matrix_fixed_shape<T,NR,NC>)
     .def("__str__", streamToString<vnl_matrix_fixed<T,NR,NC> >)
-    .def("__getitem__", vnl_matrix_fixed_getitem<T,NR,NC>)
     .def("__len__", vnl_matrix_fixed_len<T,NR,NC>)
+    .def("__getitem__", vnl_matrix_fixed_getvector<T,NR,NC>)
+    .def("__getitem__", vnl_matrix_fixed_getitem<T,NR,NC>)
+    .def("__setitem__", vnl_matrix_fixed_setitem<T,NR,NC>)
     .def(py::self + py::self)
     .def(py::self * vnl_vector<T>())
     .def(py::self * vnl_vector_fixed<T,NC>())
     .def(T() * py::self)
     .def(py::self * T())
-    .def_buffer(get_matrix_fixed_buffer<T,NR,NC>);
+    .def(py::self == py::self)
+    .def_buffer(get_matrix_fixed_buffer<T,NR,NC>)
+    .def(py::pickle(&get_matrix_fixed_array_t<T,NR,NC>,
+                    &matrix_fixed_from_buffer<T,NR,NC>))
+    ;
 
   py::implicitly_convertible<py::array_t<T>, vnl_matrix_fixed<T,NR,NC> >();
 }
