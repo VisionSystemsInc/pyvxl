@@ -6,6 +6,12 @@
 #include <vnl/vnl_quaternion.h>
 #include <tuple>
 
+// io classes for py::pickle
+#include <vnl/io/vnl_io_vector.h>
+#include <vnl/io/vnl_io_matrix.h>
+#include <vnl/io/vnl_io_matrix_fixed.h>
+#include <vnl/io/vnl_io_vector_fixed.h>
+
 #include "../pyvxl_util.h"
 
 #include <pybind11/pybind11.h>
@@ -320,39 +326,6 @@ py::buffer_info get_vector_fixed_buffer(vnl_vector_fixed<T,N> &v)
                          {sizeof(T)});
 }
 
-// copy object data to py:array_t
-// used for pickling support (convert to pickle-able py:array)
-//
-// py::array_t inputs:
-// (1) shape, (2) strides (in bytes) for each index, (3) data pointer
-template<class T>
-py::array_t<T> get_matrix_array_t(const vnl_matrix<T> &m)
-{
-  return py::array_t<T>({m.rows(), m.cols()}, {sizeof(T)*m.cols(), sizeof(T)},
-                        m.data_block());
-}
-
-template<class T, unsigned NR, unsigned NC>
-py::array_t<T> get_matrix_fixed_array_t(const vnl_matrix_fixed<T,NR,NC> &m)
-{
-  return py::array_t<T>({NR, NC}, {sizeof(T)*NC, sizeof(T)},
-                        m.data_block());
-}
-
-template<class T>
-py::array_t<T> get_vector_array_t(const vnl_vector<T> &v)
-{
-  return py::array_t<T>({v.size()}, {sizeof(T)},
-                        v.data_block());
-}
-
-template<class T, unsigned N>
-py::array_t<T> get_vector_fixed_array_t(const vnl_vector_fixed<T,N> &v)
-{
-  return py::array_t<T>({N}, {sizeof(T)},
-                        v.data_block());
-}
-
 
 template<class T>
 void wrap_vnl_matrix(py::module &m, std::string const& class_name)
@@ -374,8 +347,8 @@ void wrap_vnl_matrix(py::module &m, std::string const& class_name)
     .def(py::self * T())
     .def(py::self == py::self)
     .def_buffer(get_matrix_buffer<T>)
-    .def(py::pickle(&get_matrix_array_t<T>,
-                    &matrix_from_buffer<T>))
+    .def(py::pickle(&vslPickleGetState<vnl_matrix<T> >,
+                    &vslPickleSetState<vnl_matrix<T> >))
     ;
 
   py::implicitly_convertible<py::array_t<T>, vnl_matrix<T> >();
@@ -400,8 +373,8 @@ void wrap_vnl_vector(py::module &m, std::string const& class_name)
     .def(py::self * T())
     .def(py::self == py::self)
     .def_buffer(get_vector_buffer<T>)
-    .def(py::pickle(&get_vector_array_t<T>,
-                    &vector_from_buffer<T>))
+    .def(py::pickle(&vslPickleGetState<vnl_vector<T> >,
+                    &vslPickleSetState<vnl_vector<T> >))
     ;
 
   py::implicitly_convertible<py::array_t<T>, vnl_vector<T> >();
@@ -425,8 +398,8 @@ void wrap_vnl_vector_fixed(py::module &m, std::string const& class_name)
     .def(py::self * T())
     .def(py::self == py::self)
     .def_buffer(get_vector_fixed_buffer<T,N>)
-    .def(py::pickle(&get_vector_fixed_array_t<T,N>,
-                    &vector_fixed_from_buffer<T,N>))
+    .def(py::pickle(&vslPickleGetState<vnl_vector_fixed<T,N> >,
+                    &vslPickleSetState<vnl_vector_fixed<T,N> >))
     ;
 
   py::implicitly_convertible<py::array_t<T>, vnl_vector_fixed<T,N> >();
@@ -452,8 +425,8 @@ void wrap_vnl_matrix_fixed(py::module &m, std::string const& class_name)
     .def(py::self * T())
     .def(py::self == py::self)
     .def_buffer(get_matrix_fixed_buffer<T,NR,NC>)
-    .def(py::pickle(&get_matrix_fixed_array_t<T,NR,NC>,
-                    &matrix_fixed_from_buffer<T,NR,NC>))
+    .def(py::pickle(&vslPickleGetState<vnl_matrix_fixed<T,NR,NC> >,
+                    &vslPickleSetState<vnl_matrix_fixed<T,NR,NC> >))
     ;
 
   py::implicitly_convertible<py::array_t<T>, vnl_matrix_fixed<T,NR,NC> >();
