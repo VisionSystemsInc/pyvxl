@@ -5,7 +5,7 @@ project("pyvxl-vpgl")
 pybind11_add_module(pyvpgl pyvpgl.h pyvpgl.cxx)
 
 # Link to vxl library
-target_link_libraries(pyvpgl PRIVATE vpgl vpgl_file_formats)
+target_link_libraries(pyvpgl PRIVATE vpgl vpgl_io vpgl_file_formats)
 
 # Set names
 set_target_properties(pyvpgl PROPERTIES OUTPUT_NAME "_vpgl")

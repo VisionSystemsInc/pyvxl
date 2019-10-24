@@ -24,9 +24,14 @@
 #include <vil/vil_image_resource.h>
 #include <vil/vil_image_resource_sptr.h>
 
+// io classes for py::pickle
+#include <vpgl/io/vpgl_io_proj_camera.h>
+#include <vpgl/io/vpgl_io_affine_camera.h>
+
 #include "../pyvxl_util.h"
 
 #include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
@@ -443,6 +448,8 @@ void wrap_vpgl(py::module &m)
     .def("is_a", &vpgl_camera<double>::is_a)
     .def("is_class", &vpgl_camera<double>::is_class);
 
+
+  // =====PROJECTIVE CAMERA=====
   py::class_<vpgl_proj_camera<double>, vpgl_camera<double> /* <- Parent */> (m, "proj_camera")
     .def(py::init<vnl_matrix_fixed<double,3,4> >())
     .def("__str__", streamToString<vpgl_proj_camera<double> >)
@@ -450,8 +457,13 @@ void wrap_vpgl(py::module &m)
     .def("project", vpgl_project_point<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_vector<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_xyz<vpgl_proj_camera<double> >)
-    .def("get_matrix", &vpgl_proj_camera<double>::get_matrix, py::return_value_policy::copy);
+    .def("get_matrix", &vpgl_proj_camera<double>::get_matrix, py::return_value_policy::copy)
+    .def(py::self == py::self)
+    .def(py::pickle(&vslPickleGetState<vpgl_proj_camera<double> >,
+                    &vslPickleSetState<vpgl_proj_camera<double> >))
+    ;
 
+  // =====AFFINE CAMERA=====
   py::class_<vpgl_affine_camera<double>, vpgl_proj_camera<double> /* <- Parent */> (m, "affine_camera")
     .def(py::init<vnl_matrix_fixed<double,3,4> >())
     .def(py::init<vgl_vector_3d<double>, vgl_vector_3d<double>, vgl_point_3d<double>,
@@ -468,8 +480,11 @@ void wrap_vpgl(py::module &m)
     .def("ray_dir", &vpgl_affine_camera<double>::ray_dir)
     .def_property("viewing_distance",
                   &vpgl_affine_camera<double>::viewing_distance,  // getter
-                  &vpgl_affine_camera<double>::set_viewing_distance);  // setter
+                  &vpgl_affine_camera<double>::set_viewing_distance)  // setter
     /* .def("set_viewing_distance", &vpgl_affine_camera<double>::set_viewing_distance); */
+    .def(py::pickle(&vslPickleGetState<vpgl_affine_camera<double> >,
+                    &vslPickleSetState<vpgl_affine_camera<double> >))
+    ;
 
   py::class_<vpgl_calibration_matrix<double> >(m, "calibration_matrix")
     .def(py::init<vnl_matrix_fixed<double,3,3> >())
