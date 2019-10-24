@@ -5,7 +5,7 @@ project("pyvxl-vnl")
 pybind11_add_module(pyvnl pyvnl.h pyvnl.cxx)
 
 # Link to vxl library
-target_link_libraries(pyvnl PRIVATE vnl)
+target_link_libraries(pyvnl PRIVATE vnl vnl_io)
 
 # Set names
 set_target_properties(pyvnl PROPERTIES OUTPUT_NAME "_vnl")
