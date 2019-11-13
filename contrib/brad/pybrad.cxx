@@ -52,10 +52,12 @@ vil_image_view<float> estimate_reflectance(vil_image_view<float> const& radiance
 void wrap_brad(py::module &m)
 {
   m.def("estimate_reflectance", &estimate_reflectance,
+        py::call_guard<py::gil_scoped_release>(),
         py::arg("radiance"), py::arg("mdata"), py::arg("mean_reflectance"),
         py::arg("average_airlight"), py::arg("is_normalize"));
 
   m.def("radiometrically_calibrate", &brad_nitf_abs_radiometric_calibrate,
+        py::call_guard<py::gil_scoped_release>(),
         py::arg("image"), py::arg("meta"));
 
   py::class_<image_time>(m, "image_time")

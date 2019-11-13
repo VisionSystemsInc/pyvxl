@@ -845,8 +845,9 @@ void wrap_vpgl(py::module &m)
 
   // image cropping extents from 3D box and rational camera
   // Note this must be listed after the lvcs wrapper to enable the default lvcs
-  m.def("crop_image_using_3d_box", crop_image_using_3d_box,
+  m.def("crop_image_using_3d_box", &crop_image_using_3d_box,
         "Determine image cropping extents given 3D box & rational camera",
+        py::call_guard<py::gil_scoped_release>(),
         py::arg("img_ncols"), py::arg("img_nrows"), py::arg("cam"),
         py::arg("lower_left_lon"), py::arg("lower_left_lat"), py::arg("lower_left_elev"),
         py::arg("upper_right_lon"), py::arg("upper_right_lat"), py::arg("upper_right_elev"),
