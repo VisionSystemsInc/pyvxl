@@ -41,6 +41,14 @@ class VpglCameraBase(object):
     camB = self._create_cam(data, check = True)
     self.assertEqual(camA, camB)
 
+  def test_clone(self):
+    data = self.test_data['default']
+    camA = self._create_cam(data, check = True)
+    camB = camA
+    self.assertIs(camA, camB)
+    camC = camA.clone()
+    self.assertIsNot(camA, camC)
+
   def test_pickle(self):
     data = self.test_data['default']
     camA = self._create_cam(data, check = True)
