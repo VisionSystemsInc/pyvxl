@@ -70,67 +70,19 @@ public:
       x, y, z, u, v         /* Arguments */
     );
   }
+
+  PyCameraDouble* clone(void) const override {
+    /* Generate wrapping code that enables native function overloading */
+    PYBIND11_OVERLOAD_PURE(
+      PyCameraDouble*,      /* Return type */
+      vpgl_camera<double>,  /* Parent class */
+      clone,                /* Name of function */
+                            /* No arguments, the trailing comma
+                             * is needed for some compilers */
+    );
+  }
+
 };
-
-/* /1* This is a "trampoline" helper class for the virtual methods in */
-/*  * vpgl_rational_camera<double>, which redirects virtual calls back to Python *1/ */
-/* class PyRationalCameraDouble : public vpgl_rational_camera<double> { */
-/* public: */
-/*   using vpgl_rational_camera<double>::vpgl_rational_camera; /1* Inherit constructors *1/ */
-
-/*   std::string type_name() const override { */
-/*     /1* Generate wrapping code that enables native function overloading *1/ */
-/*     PYBIND11_OVERLOAD( */
-/*       std::string,                   /1* Return type *1/ */
-/*       vpgl_rational_camera<double>,  /1* Parent class *1/ */
-/*       type_name,                     /1* Name of function *1/ */
-/*                                      /1* No arguments, the trailing comma */
-/*                                       * is needed for some compilers *1/ */
-/*     ); */
-/*   } */
-
-/*   void project(const double x, const double y, const double z, double& u, double& v) const override { */
-/*     /1* Generate wrapping code that enables native function overloading *1/ */
-/*     PYBIND11_OVERLOAD_PURE( */
-/*       void,                          /1* Return type *1/ */
-/*       vpgl_rational_camera<double>,  /1* Parent class *1/ */
-/*       project,                       /1* Name of function *1/ */
-/*       x, y, z, u, v                  /1* Arguments *1/ */
-/*     ); */
-/*   } */
-
-/*   void print(std::ostream& s=std::cout, vpgl_rational_order output_order=vpgl_rational_order::VXL) const override { */
-/*     /1* Generate wrapping code that enables native function overloading *1/ */
-/*     PYBIND11_OVERLOAD_PURE( */
-/*       void,                          /1* Return type *1/ */
-/*       vpgl_rational_camera<double>,  /1* Parent class *1/ */
-/*       print,                         /1* Name of function *1/ */
-/*       s, output_order                /1* Arguments *1/ */
-/*     ); */
-/*   } */
-
-/*   bool save(std::string cam_path, vpgl_rational_order output_order=vpgl_rational_order::RPC00B) const override { */
-/*     /1* Generate wrapping code that enables native function overloading *1/ */
-/*     PYBIND11_OVERLOAD_PURE( */
-/*       bool,                          /1* Return type *1/ */
-/*       vpgl_rational_camera<double>,  /1* Parent class *1/ */
-/*       save,                          /1* Name of function *1/ */
-/*       cam_path, output_order         /1* Arguments *1/ */
-/*     ); */
-/*   } */
-
-/*   void write_pvl(std::ostream& s, vpgl_rational_order output_order) const override { */
-/*     /1* Generate wrapping code that enables native function overloading *1/ */
-/*     PYBIND11_OVERLOAD_PURE( */
-/*       void,                          /1* Return type *1/ */
-/*       vpgl_rational_camera<double>,  /1* Parent class *1/ */
-/*       write_pvl,                     /1* Name of function *1/ */
-/*       s, output_order                /1* Arguments *1/ */
-/*     ); */
-/*   } */
-
-/* }; */
-
 
 
 template<class T>
@@ -446,7 +398,10 @@ void wrap_vpgl(py::module &m)
     .def("type_name", &vpgl_camera<double>::type_name)
     .def("project", &vpgl_camera<double>::project)
     .def("is_a", &vpgl_camera<double>::is_a)
-    .def("is_class", &vpgl_camera<double>::is_class);
+    .def("is_class", &vpgl_camera<double>::is_class)
+    .def("clone", &vpgl_camera<double>::clone)
+    .def("copy", &vpgl_camera<double>::clone)
+    ;
 
 
   // =====PROJECTIVE CAMERA=====
@@ -545,9 +500,6 @@ void wrap_vpgl(py::module &m)
                   vpgl_rational_order>(),
         py::arg("rational_coeffs"), py::arg("scale_offsets"),
         py::arg("input_rational_order") = vpgl_rational_order::VXL)
-
-    // copy constructor
-    .def("copy", &vpgl_rational_camera<double>::clone)
 
     // python print
     .def("__str__", streamToString<vpgl_rational_camera<double> >)
