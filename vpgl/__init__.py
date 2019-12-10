@@ -1,5 +1,4 @@
 from ._vpgl import *
-from . import algo
 
 
 def load_rational_camera(cam_fname):
