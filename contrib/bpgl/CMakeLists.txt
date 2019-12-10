@@ -4,8 +4,8 @@ project("pyvxl-contrib-bpgl")
 # Create the algo install directory in case it doesn't exist yet
 install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib/bpgl/algo)
 
-# auto generate __init__ file to load algo submodule by default
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/contrib/bpgl/__init__.py \"from . import algo\")")
+# copy __init__ file over into module
+install(FILES __init__.py DESTINATION ${PYTHON_SITE}/vxl/contrib/bpgl)
 
 # Recurse
 add_subdirectory("algo" "algo-build")

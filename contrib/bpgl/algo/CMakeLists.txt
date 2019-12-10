@@ -13,6 +13,6 @@ set_target_properties(pybpgl_algo PROPERTIES OUTPUT_NAME "_bpgl_algo")
 # install the .so file to the python install dir
 install(TARGETS pybpgl_algo DESTINATION ${PYTHON_SITE}/vxl/contrib/bpgl/algo)
 
-# auto generate __init__ file
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/contrib/bpgl/algo/__init__.py \"from ._bpgl_algo import *\")")
+# copy __init__ file over into module
+install(FILES __init__.py DESTINATION ${PYTHON_SITE}/vxl/contrib/bpgl/algo)
 
