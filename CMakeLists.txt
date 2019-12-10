@@ -1,6 +1,67 @@
 cmake_minimum_required(VERSION 3.5.1)
 project("pyvxl")
 
+# pyvxl project source directory
+set(PYVXL_PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
+
+# print pyvxl debug messages during cmake
+set(PYVXL_DEBUG_MESSAGES "OFF" CACHE BOOL "Print pyvxl debug messages")
+
+# function: add pyvxl module
+function(pyvxl_add_module vxl_name)
+
+    # target variables
+    set(target_name "py${vxl_name}")
+    set(output_name "_${vxl_name}")
+
+    # target files
+    set(target_file_h "${CMAKE_CURRENT_SOURCE_DIR}/${target_name}.h")
+    set(target_file_cxx "${CMAKE_CURRENT_SOURCE_DIR}/${target_name}.cxx")
+    set(target_files ${target_file_h} ${target_file_cxx})
+
+    # install directory
+    string(REPLACE
+           "${PYVXL_PROJECT_SOURCE_DIR}" # string to be replaced
+           "${PYTHON_SITE}/vxl"          # replace with this
+           install_dir                   # output
+           "${CMAKE_CURRENT_SOURCE_DIR}" # input
+           )
+
+    # debug messages (currently disabled)
+    if (PYVXL_DEBUG_MESSAGES)
+        message(STATUS "PYVXL_ADD_MODULE:")
+        message(STATUS "  vxl_name     = ${vxl_name}")
+        message(STATUS "  target_name  = ${target_name}")
+        message(STATUS "  output_name  = ${output_name}")
+        message(STATUS "  target_files = ${target_files}")
+        message(STATUS "  install_dir  = ${install_dir}")
+    endif()
+
+    # install directory setup
+    install(DIRECTORY DESTINATION ${install_dir})
+    install(FILES __init__.py DESTINATION ${install_dir})
+
+    # initialize target if necessary
+    if (EXISTS "${target_file_h}")
+        message(STATUS "pyvxl found ${target_name}")
+
+        # Add pybind11 module
+        pybind11_add_module(${target_name} ${target_files})
+
+        # Link to vxl library
+        target_link_libraries(${target_name} PRIVATE ${vxl_name})
+
+        # Set output_name of target
+        set_target_properties(${target_name} PROPERTIES OUTPUT_NAME ${output_name})
+
+        # target installation
+        install(TARGETS ${target_name} DESTINATION ${install_dir})
+
+    endif()
+
+endfunction()
+
+
 # If building PyVXL directly, build VXL and pybind11
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(PYVXL_TOP_LEVEL TRUE)
