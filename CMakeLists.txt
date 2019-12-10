@@ -119,21 +119,8 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
 
-# Create the install directories in case they aren't installed to, so auto-loading doesn't break
-install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vgl)
-install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vil)
-install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vnl)
-install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vpgl)
-install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib)
-
-# generate __init__ file to auto-load modules by default
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/__init__.py \"\
-from . import vgl\n\
-from . import vil\n\
-from . import vnl\n\
-from . import vpgl\n\
-from . import contrib\n\
-\")")
+# add main module
+pyvxl_add_module(vxl)
 
 # Recurse
 add_subdirectory("vgl" "pyvxl_build/vgl-build")
