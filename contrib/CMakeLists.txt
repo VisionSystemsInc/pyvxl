@@ -11,61 +11,43 @@ set(PYVXL_CONTRIB_MAKE_BRIP ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BRIP b
 set(PYVXL_CONTRIB_MAKE_BVXM ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BVXM build")
 set(PYVXL_CONTRIB_MAKE_SDET ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on SDET build")
 
-# Overwrite existing __init__ file
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/contrib/__init__.py \"\")")
-
-if (PYVXL_CONTRIB_MAKE_BPGL)
-  # Create the bpgl install directory since it doesn't exist yet
-  install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib/bpgl)
-
-  # auto generate __init__ file
-  install(CODE "file(APPEND ${PYTHON_SITE}/vxl/contrib/__init__.py \"\nfrom . import bpgl\")")
-
-  # Recurse
-  add_subdirectory("bpgl" "bpgl-build")
+# is ANY contrib guard active
+if (   ${PYVXL_CONTRIB_MAKE_ALL}
+    OR ${PYVXL_CONTRIB_MAKE_BPGL}
+    OR ${PYVXL_CONTRIB_MAKE_BRAD}
+    OR ${PYVXL_CONTRIB_MAKE_BRIP}
+    OR ${PYVXL_CONTRIB_MAKE_BVXM}
+    OR ${PYVXL_CONTRIB_MAKE_SDET}
+    )
+  set(pyvxl_contrib_make_any TRUE)
+else()
+  set(pyvxl_contrib_make_any FALSE)
 endif()
 
-if (PYVXL_CONTRIB_MAKE_BRAD)
-  # Create the brad install directory since it doesn't exist yet
-  install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib/brad)
-
-  # auto generate __init__ file
-  install(CODE "file(APPEND ${PYTHON_SITE}/vxl/contrib/__init__.py \"\nfrom . import brad\")")
+# add "contrib" module if necessary
+if (pyvxl_contrib_make_any)
+  pyvxl_add_module(contrib)
 
   # Recurse
-  add_subdirectory("brad" "brad-build")
-endif()
+  if (PYVXL_CONTRIB_MAKE_BPGL)
+    add_subdirectory("bpgl" "bpgl-build")
+  endif()
 
-if (PYVXL_CONTRIB_MAKE_BRIP)
-  # Create the brip install directory since it doesn't exist yet
-  install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib/brip)
+  if (PYVXL_CONTRIB_MAKE_BRAD)
+    add_subdirectory("brad" "brad-build")
+  endif()
 
-  # auto generate __init__ file
-  install(CODE "file(APPEND ${PYTHON_SITE}/vxl/contrib/__init__.py \"\nfrom . import brip\")")
+  if (PYVXL_CONTRIB_MAKE_BRIP)
+    add_subdirectory("brip" "brip-build")
+  endif()
 
-  # Recurse
-  add_subdirectory("brip" "brip-build")
-endif()
+  if (PYVXL_CONTRIB_MAKE_BVXM)
+    add_subdirectory("bvxm" "bvxm-build")
+  endif()
 
-if (PYVXL_CONTRIB_MAKE_BVXM)
-  # Create the bvxm install directory since it doesn't exist yet
-  install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib/bvxm)
+  if (PYVXL_CONTRIB_MAKE_SDET)
+    add_subdirectory("sdet" "sdet-build")
+  endif()
 
-  # auto generate __init__ file
-  install(CODE "file(APPEND ${PYTHON_SITE}/vxl/contrib/__init__.py \"\nfrom . import bvxm\")")
-
-  # Recurse
-  add_subdirectory("bvxm" "bvxm-build")
-endif()
-
-if (PYVXL_CONTRIB_MAKE_SDET)
-  # Create the sdet install directory since it doesn't exist yet
-  install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib/sdet)
-
-  # auto generate __init__ file
-  install(CODE "file(APPEND ${PYTHON_SITE}/vxl/contrib/__init__.py \"\nfrom . import sdet\")")
-
-  # Recurse
-  add_subdirectory("sdet" "sdet-build")
 endif()
 
