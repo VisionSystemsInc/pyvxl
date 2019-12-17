@@ -1,53 +1,49 @@
+# contrib modules are entirely optional, controlled by boolean cache
+# guards of the form PYVXL_CONTRIB_MAKE_*
+#
+# PYVXL_CONTRIB_MAKE_ALL sets the default across all contrib directories
+#
+# Users may also specify per-module inclusion, for example:
+#   PYVXL_CONTRIB_MAKE_BPGL controls BPGL inclusion
+#   PYVXL_CONTRIB_MAKE_SDET controls SDET inclusion
+#   etc.
+#
+# For developers, this CMakeLists.txt file will auto-discover any available
+# contrib modules, initialze a PYVXL_CONTRIB_MAKE_* guard if one does not
+# exist, and add the contrib subdirectory if necessary.
+#
 cmake_minimum_required(VERSION 3.5.1)
 project("pyvxl-contrib")
 
-# BUILD ALL GUARD
-set(PYVXL_CONTRIB_MAKE_ALL FALSE CACHE BOOL "Build every optional vxl contrib module which we have python wrappers for")
+# build all guard
+set(PYVXL_CONTRIB_MAKE_ALL FALSE CACHE BOOL "Build every optional pyvxl contrib module")
 
-# INDIVIDUAL GUARDS, inherit from ALL GUARD
-set(PYVXL_CONTRIB_MAKE_BPGL ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BPGL build")
-set(PYVXL_CONTRIB_MAKE_BRAD ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BRAD build")
-set(PYVXL_CONTRIB_MAKE_BRIP ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BRIP build")
-set(PYVXL_CONTRIB_MAKE_BVXM ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BVXM build")
-set(PYVXL_CONTRIB_MAKE_SDET ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on SDET build")
+# list of contrib components
+get_subdir_list("${CMAKE_CURRENT_SOURCE_DIR}" contrib_components)
 
-# is ANY contrib guard active
-if (   ${PYVXL_CONTRIB_MAKE_ALL}
-    OR ${PYVXL_CONTRIB_MAKE_BPGL}
-    OR ${PYVXL_CONTRIB_MAKE_BRAD}
-    OR ${PYVXL_CONTRIB_MAKE_BRIP}
-    OR ${PYVXL_CONTRIB_MAKE_BVXM}
-    OR ${PYVXL_CONTRIB_MAKE_SDET}
-    )
-  set(pyvxl_contrib_make_any TRUE)
-else()
-  set(pyvxl_contrib_make_any FALSE)
-endif()
+# has base contrib module already been added?
+set(contrib_added FALSE)
 
-# add "contrib" module if necessary
-if (pyvxl_contrib_make_any)
-  pyvxl_add_module(contrib)
+# add contrib components
+foreach(component ${contrib_components})
 
-  # Recurse
-  if (PYVXL_CONTRIB_MAKE_BPGL)
-    add_subdirectory("bpgl" "bpgl-build")
+  # cache variable for boolean guard
+  string(TOUPPER "${component}" component_upper)
+  set(guard_name "PYVXL_CONTRIB_MAKE_${component_upper}")
+  set(${guard_name} ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on ${component_upper} build")
+
+  # add component if requested
+  if(${${guard_name}})
+
+    # add base contrib directory
+    if(NOT contrib_added)
+      pyvxl_add_module(contrib)
+      set(contrib_added TRUE)
+    endif()
+
+    # add component subdirectory
+    add_subdirectory("${component}" "${component}-build")
+
   endif()
 
-  if (PYVXL_CONTRIB_MAKE_BRAD)
-    add_subdirectory("brad" "brad-build")
-  endif()
-
-  if (PYVXL_CONTRIB_MAKE_BRIP)
-    add_subdirectory("brip" "brip-build")
-  endif()
-
-  if (PYVXL_CONTRIB_MAKE_BVXM)
-    add_subdirectory("bvxm" "bvxm-build")
-  endif()
-
-  if (PYVXL_CONTRIB_MAKE_SDET)
-    add_subdirectory("sdet" "sdet-build")
-  endif()
-
-endif()
-
+endforeach()
