@@ -72,3 +72,59 @@ add_subdirectory(${Your pybind11 dir})
 add_subdirectory(${Your pyvxl dir})
 ```
 
+## Adding a new contrib module
+
+To add a new contrib module `xyz`:
+- Add `xyz` to the list of `contrib_components` in `contrib/CMakeLists.txt`
+- Create a new directory `contrib/xyz`
+- Add required files to new directory per the below
+
+Required files for contrib module `xyz` are as follows:
+
+_CMakeLists.txt_
+```cmake
+project("pyvxl-contrib-xyz")
+pyvxl_add_module(xyz)
+```
+
+_pyxyz.h_
+```c++
+#ifndef pyxyz_h_included_
+#define pyxyz_h_included_
+
+#include <pybind11/pybind11.h>
+
+namespace pyvxl { namespace xyz {
+
+void wrap_xyz(pybind11::module &m);
+
+}}
+
+#endif  // pyxyz_h_included_
+```
+
+_pyxyz.cxx_
+```c++
+#include "pyxyz.h"
+
+namespace py = pybind11;
+
+namespace pyvxl { namespace xyz {
+
+void wrap_xyz(py::module &m)
+{
+  // wrapping code ...
+}
+
+}}
+
+PYBIND11_MODULE(_xyz, m)
+{
+  m.doc() =  "Python bindings for the VXL contrib XYZ computer vision library";
+  pyvxl::xyz::wrap_xyz(m);
+}
+```
+_\_\_init\_\_.py_
+```python
+from ._xyz import *
+```
