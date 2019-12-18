@@ -61,6 +61,18 @@ function(pyvxl_add_module vxl_name)
 
 endfunction()
 
+# function: list of subdirectories relative to ${input_dir}
+function(get_subdir_list input_dir result_name)
+    file(GLOB children RELATIVE ${input_dir} ${input_dir}/*)
+    set(dir_list "")
+    foreach(child ${children})
+        if(IS_DIRECTORY ${input_dir}/${child})
+            list(APPEND dir_list ${child})
+        endif()
+    endforeach()
+    set(${result_name} ${dir_list} PARENT_SCOPE)
+endfunction()
+
 
 # If building PyVXL directly, build VXL and pybind11
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
@@ -122,10 +134,11 @@ set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directo
 # add main module
 pyvxl_add_module(vxl)
 
-# Recurse
-add_subdirectory("vgl" "pyvxl_build/vgl-build")
-add_subdirectory("vil" "pyvxl_build/vil-build")
-add_subdirectory("vnl" "pyvxl_build/vnl-build")
-add_subdirectory("vpgl" "pyvxl_build/vpgl-build")
-add_subdirectory("contrib" "pyvxl_build/contrib-build")
+# add core components
+set(core_components "vgl" "vil" "vnl" "vpgl")
+foreach(component ${core_components})
+    add_subdirectory("${component}" "pyvxl_build/${component}-build")
+endforeach()
 
+# add contrib components
+add_subdirectory("contrib" "pyvxl_build/contrib-build")
