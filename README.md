@@ -18,7 +18,7 @@ Whatever environment (your host or a docker container) you build pyvxl in will r
 - g++
 - Python 3 development libraries (e.g. `python3-devel`)
 - GeoTIFF development libraries (e.g. `libgeotiff-devel`)
-- CMake
+- CMake 3.10.2
 - Ninja (optional)
 
 If you're not using ninja, replace "ninja" in the commands below with "make".
