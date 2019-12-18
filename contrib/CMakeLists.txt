@@ -12,7 +12,6 @@
 # contrib modules, initialze a PYVXL_CONTRIB_MAKE_* guard if one does not
 # exist, and add the contrib subdirectory if necessary.
 #
-cmake_minimum_required(VERSION 3.5.1)
 project("pyvxl-contrib")
 
 # build all guard
