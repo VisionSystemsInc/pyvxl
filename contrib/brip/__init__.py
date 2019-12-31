@@ -1,4 +1,5 @@
 from ._brip import *
+from vxl import vil
 
 
 def truncate_nitf_image(img, is_byte, is_scale):

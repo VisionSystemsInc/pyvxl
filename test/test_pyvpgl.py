@@ -4,6 +4,7 @@ import pickle
 from vxl import vnl
 from vxl import vpgl
 
+
 # helper function: populate vnl.matrix_fixed_3x4
 # (without numpy requirement - input is list of lists)
 def matrix_fixed_3x4(data):
@@ -15,7 +16,7 @@ def matrix_fixed_3x4(data):
   matrix = vnl.matrix_fixed_3x4()
   for r in range(matrix.shape[0]):
     for c in range(matrix.shape[1]):
-      matrix[r,c] = data[r][c]
+      matrix[r, c] = data[r][c]
 
   return matrix
 
@@ -55,6 +56,7 @@ class VpglCameraBase(object):
     camB = pickle.loads(pickle.dumps(camA))
     self.assertEqual(camA, camB)
 
+
 # projective camera
 class VpglProjCamera(VpglCameraBase, unittest.TestCase):
 
@@ -69,9 +71,9 @@ class VpglProjCamera(VpglCameraBase, unittest.TestCase):
             [437.5, 128.5575, -153.20889, 20153.20898],
             [0.0,  -206.5869, -434.42847, 20434.42968],
             [0.0,   0.642787,   -0.76604,    100.7660]
-          ]),
-        }
+        ]),
       }
+    }
 
   def _create_cam(self, data, check = False):
     cam = self.cls(data['matrix'])
@@ -80,6 +82,7 @@ class VpglProjCamera(VpglCameraBase, unittest.TestCase):
 
   def _check_cam(self, cam, data):
     self.assertEqual(cam.get_matrix(), data['matrix'])
+
 
 # affine camera
 class VpglAffineCamera(VpglCameraBase, unittest.TestCase):
@@ -97,8 +100,8 @@ class VpglAffineCamera(VpglCameraBase, unittest.TestCase):
             [0.0, 0.0, 0.0, 1.0]
           ]),
         "viewing_distance": 9325.6025071654913,
-        },
-      }
+      },
+    }
 
   def _create_cam(self, data, check = False):
     cam = self.cls(data['matrix'])
