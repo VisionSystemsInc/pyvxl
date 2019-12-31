@@ -647,30 +647,50 @@ void wrap_vil(py::module &m)
   m.def("save_image_view", &vil_save_wrapper<float>);
   m.def("save_image_view", &vil_save_wrapper<int>);
 
-  m.def("_stretch_image_to_byte", &vil_stretch_image_to_byte_wrapper<unsigned char>);
-  m.def("_stretch_image_to_byte", &vil_stretch_image_to_byte_wrapper<unsigned short int>);
-  m.def("_stretch_image_to_byte", &vil_stretch_image_to_byte_wrapper<float>);
-  m.def("_stretch_image_to_byte", &vil_stretch_image_to_byte_wrapper<int>);
+  m.def("_stretch_image_to_byte", &vil_stretch_image_to_byte_wrapper<unsigned char>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("_stretch_image_to_byte", &vil_stretch_image_to_byte_wrapper<unsigned short int>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("_stretch_image_to_byte", &vil_stretch_image_to_byte_wrapper<float>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("_stretch_image_to_byte", &vil_stretch_image_to_byte_wrapper<int>,
+        py::call_guard<py::gil_scoped_release>());
 
-  m.def("_stretch_image_to_short", &vil_stretch_image_to_short_wrapper<unsigned char>);
-  m.def("_stretch_image_to_short", &vil_stretch_image_to_short_wrapper<unsigned short int>);
-  m.def("_stretch_image_to_short", &vil_stretch_image_to_short_wrapper<float>);
-  m.def("_stretch_image_to_short", &vil_stretch_image_to_short_wrapper<int>);
+  m.def("_stretch_image_to_short", &vil_stretch_image_to_short_wrapper<unsigned char>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("_stretch_image_to_short", &vil_stretch_image_to_short_wrapper<unsigned short int>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("_stretch_image_to_short", &vil_stretch_image_to_short_wrapper<float>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("_stretch_image_to_short", &vil_stretch_image_to_short_wrapper<int>,
+        py::call_guard<py::gil_scoped_release>());
 
-  m.def("_stretch_image_to_float", &vil_stretch_image_to_float_wrapper<unsigned char>);
-  m.def("_stretch_image_to_float", &vil_stretch_image_to_float_wrapper<unsigned short int>);
-  m.def("_stretch_image_to_float", &vil_stretch_image_to_float_wrapper<float>);
-  m.def("_stretch_image_to_float", &vil_stretch_image_to_float_wrapper<int>);
+  m.def("_stretch_image_to_float", &vil_stretch_image_to_float_wrapper<unsigned char>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("_stretch_image_to_float", &vil_stretch_image_to_float_wrapper<unsigned short int>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("_stretch_image_to_float", &vil_stretch_image_to_float_wrapper<float>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("_stretch_image_to_float", &vil_stretch_image_to_float_wrapper<int>,
+        py::call_guard<py::gil_scoped_release>());
 
-  m.def("truncate_image_range", &vil_math_truncate_range<unsigned char>);
-  m.def("truncate_image_range", &vil_math_truncate_range<unsigned short int>);
-  m.def("truncate_image_range", &vil_math_truncate_range<float>);
-  m.def("truncate_image_range", &vil_math_truncate_range<int>);
+  m.def("truncate_image_range", &vil_math_truncate_range<unsigned char>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("truncate_image_range", &vil_math_truncate_range<unsigned short int>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("truncate_image_range", &vil_math_truncate_range<float>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("truncate_image_range", &vil_math_truncate_range<int>,
+        py::call_guard<py::gil_scoped_release>());
 
-  m.def("image_range", &vil_image_range_wrapper<unsigned char>);
-  m.def("image_range", &vil_image_range_wrapper<unsigned short int>);
-  m.def("image_range", &vil_image_range_wrapper<float>);
-  m.def("image_range", &vil_image_range_wrapper<int>);
+  m.def("image_range", &vil_image_range_wrapper<unsigned char>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("image_range", &vil_image_range_wrapper<unsigned short int>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("image_range", &vil_image_range_wrapper<float>,
+        py::call_guard<py::gil_scoped_release>());
+  m.def("image_range", &vil_image_range_wrapper<int>,
+        py::call_guard<py::gil_scoped_release>());
 
   // Lambda version of the above, in case that helps with the todo
   // m.def("load", [](std::string const& filename)

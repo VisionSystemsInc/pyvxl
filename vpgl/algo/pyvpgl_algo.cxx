@@ -54,6 +54,7 @@ void wrap_vpgl_algo(py::module &m)
     return cam_out;
   },
   "convert vpgl_local_rational_camera to vpgl_affine_camera",
+  py::call_guard<py::gil_scoped_release>(),
   py::arg("rcam"), py::arg("roi"), py::arg("num_points")=10000);
 
   py::module persp_compute_mod = m.def_submodule("perspective_camera_compute");

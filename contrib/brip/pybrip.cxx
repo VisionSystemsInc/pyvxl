@@ -66,8 +66,10 @@ vil_image_view<vxl_uint_16> _truncate_nitf_image_to_short(vil_image_view<vxl_uin
 void wrap_brip(py::module &m)
 {
   m.def("_truncate_nitf_image_to_byte", &_truncate_nitf_image_to_byte,
+        py::call_guard<py::gil_scoped_release>(),
         py::arg("input_img"), py::arg("is_scale"));
   m.def("_truncate_nitf_image_to_short", &_truncate_nitf_image_to_short,
+        py::call_guard<py::gil_scoped_release>(),
         py::arg("input_img"));
 }
 
