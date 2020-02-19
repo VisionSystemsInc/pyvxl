@@ -24,6 +24,8 @@
 #include <vil/vil_image_resource.h>
 #include <vil/vil_image_resource_sptr.h>
 
+#include "vul/vul_file.h"
+
 // io classes for py::pickle
 #include <vpgl/io/vpgl_io_proj_camera.h>
 #include <vpgl/io/vpgl_io_affine_camera.h>
@@ -40,6 +42,8 @@
 #include <vector>
 #include <array>
 #include <cmath>
+
+
 namespace py = pybind11;
 
 namespace pyvxl {
@@ -362,6 +366,34 @@ void save_rational_camera(vpgl_camera<double> & cam, std::string camera_filename
   }
 }
 
+template<class T>
+vpgl_perspective_camera<T> _load_perspective_cam(std::string const& camera_filename)
+{
+  // open file
+  std::ifstream ifs(camera_filename.c_str());
+  if (!ifs.is_open()) {
+    std::ostringstream buffer;
+    buffer << "Failed to open perspective camera file " << camera_filename << std::endl;
+    throw std::runtime_error(buffer.str());
+  }
+
+  // create perspective camera
+  vpgl_perspective_camera<T> pcam;
+
+  // load the file data into the camera
+  std::string ext = vul_file_extension(camera_filename);
+  if (ext == ".vsl") // binary form
+  {
+    vsl_b_ifstream bp_in(camera_filename.c_str());
+    vsl_b_read(bp_in, pcam);
+    bp_in.close();
+  }
+  else {
+   ifs >> pcam;
+  }
+  return pcam;
+}
+
 std::unique_ptr<vpgl_geo_camera> create_geocam(vnl_matrix<double> const& trans_matrix)
 {
   if ((trans_matrix.rows() != 4) || (trans_matrix.cols() != 4)) {
@@ -447,7 +479,11 @@ void wrap_vpgl(py::module &m)
 
   py::class_<vpgl_perspective_camera<double>, vpgl_proj_camera<double> /* <- Parent */ > (m, "perspective_camera")
     .def(py::init<vpgl_calibration_matrix<double>, vgl_rotation_3d<double>, vgl_vector_3d<double> >())
-    .def("__str__", streamToString<vpgl_perspective_camera<double> >);
+    .def("__str__", streamToString<vpgl_perspective_camera<double> >)
+    ;
+
+  m.def("load_perspective_camera", &_load_perspective_cam<double>, "load perspective camera",
+        py::arg("camera_filename"));
 
   py::class_<vpgl_scale_offset<double> >(m, "scale_offset")
     .def(py::init<>())
