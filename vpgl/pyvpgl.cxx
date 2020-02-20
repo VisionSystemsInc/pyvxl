@@ -12,6 +12,7 @@
 #include <vgl/vgl_box_3d.h>
 #include <vgl/vgl_point_3d.h>
 #include <vgl/vgl_point_2d.h>
+#include <vgl/vgl_ray_3d.h>
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_vector_2d.h>
 #include <vgl/vgl_homg_point_2d.h>
@@ -480,6 +481,35 @@ void wrap_vpgl(py::module &m)
   py::class_<vpgl_perspective_camera<double>, vpgl_proj_camera<double> /* <- Parent */ > (m, "perspective_camera")
     .def(py::init<vpgl_calibration_matrix<double>, vgl_rotation_3d<double>, vgl_vector_3d<double> >())
     .def("__str__", streamToString<vpgl_perspective_camera<double> >)
+    .def_property("camera_center",
+                  &vpgl_perspective_camera<double>::get_camera_center,
+                  &vpgl_perspective_camera<double>::set_camera_center)
+    .def_property("calibration",
+                  &vpgl_perspective_camera<double>::get_calibration,
+                  &vpgl_perspective_camera<double>::set_calibration)
+    .def_property("rotation",
+                  &vpgl_perspective_camera<double>::get_rotation,
+                  &vpgl_perspective_camera<double>::set_rotation)
+    .def_property("translation",
+                  &vpgl_perspective_camera<double>::get_translation,
+                  &vpgl_perspective_camera<double>::set_translation)
+    .def("save", &vpgl_perspective_camera<double>::save, "save to a text file",
+         "cam_path")
+    .def("principal_axis", &vpgl_perspective_camera<double>::principal_axis,
+         "compute the principal axis (i.e. the vector perpendicular to the image plane pointing towards the front of the camera")
+    .def("is_behind_camera", &vpgl_perspective_camera<double>::is_behind_camera,
+         "Determine whether the given homogeneous world point lies in front of the principal plane",
+         py::arg("world_point"))
+    /* .def("backproject", */
+    /*      (vgl_line_3d_2_points<double> (vpgl_perspective_camera<double>::*)(double u, double v)) */
+    /*      &vpgl_perspective_camera<double>::backproject, */
+    /*      "Finite backprojection of an image point into a line", */
+    /*      py::arg("u"), py::arg("v")) */
+    /* .def("backproject_ray", */
+    /*      (vgl_ray_3d<double> (vpgl_perspective_camera<double>::*)(double, double)) */
+    /*      &vpgl_perspective_camera<double>::backproject_ray, */
+    /*      "Finite backprojection of an image point into a ray", */
+    /*      py::arg("u"), py::arg("v")) */
     ;
 
   m.def("load_perspective_camera", &_load_perspective_cam<double>, "load perspective camera",
