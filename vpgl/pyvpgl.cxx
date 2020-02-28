@@ -500,16 +500,19 @@ void wrap_vpgl(py::module &m)
     .def("is_behind_camera", &vpgl_perspective_camera<double>::is_behind_camera,
          "Determine whether the given homogeneous world point lies in front of the principal plane",
          py::arg("world_point"))
-    /* .def("backproject", */
-    /*      (vgl_line_3d_2_points<double> (vpgl_perspective_camera<double>::*)(double u, double v)) */
-    /*      &vpgl_perspective_camera<double>::backproject, */
-    /*      "Finite backprojection of an image point into a line", */
-    /*      py::arg("u"), py::arg("v")) */
-    /* .def("backproject_ray", */
-    /*      (vgl_ray_3d<double> (vpgl_perspective_camera<double>::*)(double, double)) */
-    /*      &vpgl_perspective_camera<double>::backproject_ray, */
-    /*      "Finite backprojection of an image point into a ray", */
-    /*      py::arg("u"), py::arg("v")) */
+    .def("backproject",
+      [](vpgl_perspective_camera<double> &cam, double u, double v){
+        vgl_line_3d_2_points<double> line2pts = cam.backproject(u,v);
+        return line2pts;
+      }
+      )
+    .def("backproject_ray",
+      [](vpgl_perspective_camera<double> &cam, double u, double v){
+        vgl_homg_point_2d<double> image_point(u, v);
+        vgl_ray_3d<double> ray = cam.backproject_ray(image_point);
+        return ray;
+      }
+      )
     ;
 
   m.def("load_perspective_camera", &_load_perspective_cam<double>, "load perspective camera",
