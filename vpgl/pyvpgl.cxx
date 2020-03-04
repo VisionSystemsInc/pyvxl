@@ -168,7 +168,7 @@ std::tuple<double,double> vpgl_project_xyz(T const& cam, double x, double y, dou
 }
 
 vpgl_local_rational_camera<double> correct_local_rational_camera(vpgl_local_rational_camera<double> const& cam,
-                                                     double gt_offset_u, double gt_offset_v, bool verbose)
+                                                                 double gt_offset_u, double gt_offset_v, bool verbose)
 {
   if (verbose) {
     std::cout << "vxl.vpgl.correct_rational_camera, LOCAL rational camera, (off_u, off_v) = ("

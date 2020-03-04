@@ -6,8 +6,10 @@
 #include <vil/vil_image_view_base.h>
 #include <vil/vil_load.h>
 #include <vil/vil_math.h>
+#include <vil/vil_new.h>
 #include <vil/vil_pixel_format.h>
 #include <vil/vil_save.h>
+#include <vil/vil_smart_ptr.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -568,7 +570,7 @@ void wrap_vil(py::module &m)
   // Wrap vil_image_resource with a vil_smart_ptr handler
   // See: https://public.kitware.com/vxl/doc/development/books/core/book_7.html#SEC70
   // This is an exception. Normally, don't use holder types
-  py::class_<vil_image_resource, PyImageResource /* <- trampoline */, vil_image_resource_sptr /* <- holder type */ > (m, "image_resource")
+  py::class_<vil_image_resource, PyImageResource /* <- trampoline */, vil_smart_ptr<vil_image_resource> /* <- holder type */ > (m, "image_resource")
     .def(py::init<>())
     .def("ni", &vil_image_resource::ni)
     .def("nj", &vil_image_resource::nj)
@@ -603,7 +605,6 @@ void wrap_vil(py::module &m)
     .def_property_readonly("shape", &image_resource_shape);
 
 
-
   // Need to provide a python wrapping for the base class so that
   // the derived classes work correctly.
   py::class_<vil_image_view_base, PyBaseView /* <- trampoline */> (m, "image_view_base")
@@ -619,13 +620,15 @@ void wrap_vil(py::module &m)
     .def("pixel_format", &vil_image_view_base::pixel_format)
     .def("is_class", &vil_image_view_base::is_class);
 
-  //  image view classes
+  // image view classes
   wrap_vil_image_view<unsigned char>(m, "image_view_byte");
   wrap_vil_image_view<unsigned short int>(m, "image_view_uint16");
   wrap_vil_image_view<float>(m, "image_view_float");
   wrap_vil_image_view<int>(m, "image_view_int");
   wrap_vil_image_view<vil_rgb<unsigned char> >(m, "image_view_rgb_byte");
 
+  m.def("new_image_resource_of_view", &vil_new_image_resource_of_view,
+        "construct resource from view", py::arg("view"));
 
   m.def("crop_image_resource", (vil_image_resource_sptr (*)(const vil_image_resource_sptr&, unsigned, unsigned, unsigned, unsigned)) &vil_crop,
         py::arg("image_resource"), py::arg("i0"), py::arg("ni"), py::arg("j0"), py::arg("nj"));
@@ -712,4 +715,3 @@ PYBIND11_MODULE(_vil, m)
 
   pyvxl::vil::wrap_vil(m);
 }
-
