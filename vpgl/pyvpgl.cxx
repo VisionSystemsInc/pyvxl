@@ -12,6 +12,7 @@
 #include <vgl/vgl_box_3d.h>
 #include <vgl/vgl_point_3d.h>
 #include <vgl/vgl_point_2d.h>
+#include <vgl/vgl_ray_3d.h>
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_vector_2d.h>
 #include <vgl/vgl_homg_point_2d.h>
@@ -23,6 +24,8 @@
 #include <vil/vil_load.h>
 #include <vil/vil_image_resource.h>
 #include <vil/vil_image_resource_sptr.h>
+
+#include "vul/vul_file.h"
 
 // io classes for py::pickle
 #include <vpgl/io/vpgl_io_proj_camera.h>
@@ -40,6 +43,8 @@
 #include <vector>
 #include <array>
 #include <cmath>
+
+
 namespace py = pybind11;
 
 namespace pyvxl {
@@ -362,6 +367,34 @@ void save_rational_camera(vpgl_camera<double> & cam, std::string camera_filename
   }
 }
 
+template<class T>
+vpgl_perspective_camera<T> _load_perspective_cam(std::string const& camera_filename)
+{
+  // open file
+  std::ifstream ifs(camera_filename.c_str());
+  if (!ifs.is_open()) {
+    std::ostringstream buffer;
+    buffer << "Failed to open perspective camera file " << camera_filename << std::endl;
+    throw std::runtime_error(buffer.str());
+  }
+
+  // create perspective camera
+  vpgl_perspective_camera<T> pcam;
+
+  // load the file data into the camera
+  std::string ext = vul_file_extension(camera_filename);
+  if (ext == ".vsl") // binary form
+  {
+    vsl_b_ifstream bp_in(camera_filename.c_str());
+    vsl_b_read(bp_in, pcam);
+    bp_in.close();
+  }
+  else {
+   ifs >> pcam;
+  }
+  return pcam;
+}
+
 std::unique_ptr<vpgl_geo_camera> create_geocam(vnl_matrix<double> const& trans_matrix)
 {
   if ((trans_matrix.rows() != 4) || (trans_matrix.cols() != 4)) {
@@ -447,7 +480,43 @@ void wrap_vpgl(py::module &m)
 
   py::class_<vpgl_perspective_camera<double>, vpgl_proj_camera<double> /* <- Parent */ > (m, "perspective_camera")
     .def(py::init<vpgl_calibration_matrix<double>, vgl_rotation_3d<double>, vgl_vector_3d<double> >())
-    .def("__str__", streamToString<vpgl_perspective_camera<double> >);
+    .def("__str__", streamToString<vpgl_perspective_camera<double> >)
+    .def_property("camera_center",
+                  &vpgl_perspective_camera<double>::get_camera_center,
+                  &vpgl_perspective_camera<double>::set_camera_center)
+    .def_property("calibration",
+                  &vpgl_perspective_camera<double>::get_calibration,
+                  &vpgl_perspective_camera<double>::set_calibration)
+    .def_property("rotation",
+                  &vpgl_perspective_camera<double>::get_rotation,
+                  &vpgl_perspective_camera<double>::set_rotation)
+    .def_property("translation",
+                  &vpgl_perspective_camera<double>::get_translation,
+                  &vpgl_perspective_camera<double>::set_translation)
+    .def("save", &vpgl_perspective_camera<double>::save, "save to a text file",
+         "cam_path")
+    .def("principal_axis", &vpgl_perspective_camera<double>::principal_axis,
+         "compute the principal axis (i.e. the vector perpendicular to the image plane pointing towards the front of the camera")
+    .def("is_behind_camera", &vpgl_perspective_camera<double>::is_behind_camera,
+         "Determine whether the given homogeneous world point lies in front of the principal plane",
+         py::arg("world_point"))
+    .def("backproject",
+      [](vpgl_perspective_camera<double> &cam, double u, double v){
+        vgl_line_3d_2_points<double> line2pts = cam.backproject(u,v);
+        return line2pts;
+      }
+      )
+    .def("backproject_ray",
+      [](vpgl_perspective_camera<double> &cam, double u, double v){
+        vgl_homg_point_2d<double> image_point(u, v);
+        vgl_ray_3d<double> ray = cam.backproject_ray(image_point);
+        return ray;
+      }
+      )
+    ;
+
+  m.def("load_perspective_camera", &_load_perspective_cam<double>, "load perspective camera",
+        py::arg("camera_filename"));
 
   py::class_<vpgl_scale_offset<double> >(m, "scale_offset")
     .def(py::init<>())
