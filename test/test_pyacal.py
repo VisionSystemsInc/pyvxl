@@ -1,29 +1,22 @@
 import unittest
+from utils import VxlBase
 
 from vxl.contrib import acal
 
 
-class acal_generic(object):
+class AcalBase(VxlBase):
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.default_data = dict()
 
-  def assertHasAttr(self, obj, attr):
-    self.assertTrue(hasattr(obj, attr),
-                    msg = 'attribute {} not found'.format(attr))
-
   def test_create(self):
     instance = self.cls()
     self.assertIsInstance(instance, self.cls)
-
-    for k, v in self.default_data.items():
-      self.assertHasAttr(instance, k)
-      self.assertEqual(getattr(instance, k), v,
-                       '{} has unexpected value'.format(k))
+    self.assertAttributes(instance, self.default_data)
 
 
-class acal_f_params(acal_generic, unittest.TestCase):
+class acal_f_params(AcalBase, unittest.TestCase):
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -38,7 +31,7 @@ class acal_f_params(acal_generic, unittest.TestCase):
     }
 
 
-class acal_match_params(acal_generic, unittest.TestCase):
+class acal_match_params(AcalBase, unittest.TestCase):
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -51,7 +44,7 @@ class acal_match_params(acal_generic, unittest.TestCase):
     }
 
 
-class acal_match_graph(acal_generic, unittest.TestCase):
+class acal_match_graph(AcalBase, unittest.TestCase):
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)

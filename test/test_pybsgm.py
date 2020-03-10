@@ -1,52 +1,15 @@
 import unittest
+from utils import VxlBase
 
 from vxl import vgl
 from vxl.contrib import bsgm
 
 
-class bsgm_generic(object):
+class BsgmBase(VxlBase):
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.default_data = dict()
-
-
-  # recursive check for attribute existence/value
-  def assertAttributes(self, instance, attr_dct):
-
-    def nested_func(obj, dct, parent_keys = tuple()):
-
-      for key, val in dct.items():
-        keys = parent_keys + (key,)
-        keys_str = '.'.join(keys)
-
-        # check for key existence
-        self.assertTrue(hasattr(obj, key),
-                        msg = 'attribute {} not found'.format(keys_str))
-
-        # get key value
-        obj_val = getattr(obj, key)
-
-        # recursion
-        if isinstance(val, dict):
-          nested_func(obj_val, val, keys)
-          continue
-
-        # check value
-        if isinstance(val, float):
-          assertFunc = self.assertAlmostEqual
-          opts = {'places': 7}
-        else:
-          assertFunc = self.assertEqual
-          opts = {}
-
-        assertFunc(obj_val, val,
-                   msg = 'attribute {} unexpected value'.format(keys_str),
-                   **opts)
-
-    # call recursive check
-    nested_func(instance, attr_dct)
-
 
   def test_create(self):
     instance = self.cls()
@@ -54,7 +17,7 @@ class bsgm_generic(object):
     self.assertAttributes(instance, self.default_data)
 
 
-class bsgm_disparity_estimator_params(bsgm_generic, unittest.TestCase):
+class bsgm_disparity_estimator_params(BsgmBase, unittest.TestCase):
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -79,7 +42,7 @@ class bsgm_disparity_estimator_params(bsgm_generic, unittest.TestCase):
     }
 
 
-class bsgm_pairwise_params(bsgm_generic, unittest.TestCase):
+class bsgm_pairwise_params(BsgmBase, unittest.TestCase):
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -100,6 +63,7 @@ class bsgm_pairwise_params(bsgm_generic, unittest.TestCase):
         'min_neighbors': 3,
         'max_neighbors': 5,
         'neighbor_dist_factor': 3.0,
+        "coarse_dsm_disparity_estimate": True,
     }
 
     self.default_data['de_params'] = {
@@ -118,6 +82,32 @@ class bsgm_pairwise_params(bsgm_generic, unittest.TestCase):
         'census_tol': 2,
         'census_rad': 2,
         'print_timing': False,
+    }
+
+
+class bsgm_prob_pairwise_dsm_affine(BsgmBase, unittest.TestCase):
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.cls = bsgm.prob_pairwise_dsm_affine
+
+    self.default_data = {
+        'min_disparity': -100,
+        'max_disparity': 100,
+        'midpoint_z': float('nan'),
+    }
+
+
+class bsgm_prob_pairwise_dsm_perspective(BsgmBase, unittest.TestCase):
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.cls = bsgm.prob_pairwise_dsm_perspective
+
+    self.default_data = {
+        'min_disparity': -100,
+        'max_disparity': 100,
+        'midpoint_z': float('nan'),
     }
 
 
