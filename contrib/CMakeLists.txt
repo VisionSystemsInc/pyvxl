@@ -18,7 +18,7 @@ project("pyvxl-contrib")
 set(PYVXL_CONTRIB_MAKE_ALL FALSE CACHE BOOL "Build every optional pyvxl contrib module")
 
 # list of contrib components
-set(contrib_components acal bpgl brad brip bvxm sdet)
+set(contrib_components acal bpgl brad brip bsgm bvxm sdet)
 
 # has base contrib module already been added?
 set(contrib_added FALSE)
