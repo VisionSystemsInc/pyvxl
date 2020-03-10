@@ -11,6 +11,137 @@ namespace py = pybind11;
 
 namespace pyvxl { namespace bsgm {
 
+// simplify overload casting (C++11 version)
+// https://pybind11.readthedocs.io/en/stable/classes.html#overloaded-methods
+template <typename... Args>
+using overload_cast_ = py::detail::overload_cast_impl<Args...>;
+
+
+// wrapping for bsgm_prob_pairwise_dsm
+template<class CAM_T>
+void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
+{
+  using BSGM_T = bsgm_prob_pairwise_dsm<CAM_T>;
+  using IMAGE_T = vil_image_view<unsigned char>;
+
+  py::class_<BSGM_T> (m, class_name.c_str())
+    .def(py::init<>())
+    .def(py::init<IMAGE_T const&, CAM_T const&,
+                  IMAGE_T const&, CAM_T const&>())
+
+    .def("set_images_and_cams",
+        overload_cast_<IMAGE_T const&, CAM_T const&,
+                       IMAGE_T const&, CAM_T const&>()
+        (&BSGM_T::set_images_and_cams),
+        "set images and cameras")
+
+    .def_property("params",
+        overload_cast_<>()(&BSGM_T::params, py::const_),
+        overload_cast_<pairwise_params const&>()(&BSGM_T::params),
+        "pairwise parameters")
+
+    .def_property("min_disparity",
+        overload_cast_<>()(&BSGM_T::min_disparity, py::const_),
+        overload_cast_<int>()(&BSGM_T::min_disparity),
+        "minimum disparity to start search along an epipolar line")
+
+    .def_property("max_disparity",
+        overload_cast_<>()(&BSGM_T::max_disparity, py::const_),
+        overload_cast_<int>()(&BSGM_T::max_disparity),
+        "maximum disparity to end search along an epipolar line")
+
+    .def_property_readonly("num_disparities",
+        &BSGM_T::num_disparities,
+        "number of disparities")
+
+    .def_property_readonly("num_active_disparities",
+        &BSGM_T::num_active_disparities,
+        "how many disparity values are searched around the coarse search result")
+
+    .def_property("midpoint_z",
+        overload_cast_<>()(&BSGM_T::midpoint_z, py::const_),
+        overload_cast_<double>()(&BSGM_T::midpoint_z),
+        "plane elevation for minimum least squares disparity")
+
+    .def_property("scene_box",
+        overload_cast_<>()(&BSGM_T::scene_box, py::const_),
+        overload_cast_<vgl_box_3d<double> >()(&BSGM_T::scene_box),
+        "scene box for analysis")
+
+    .def("rectified_bview0", &BSGM_T::rectified_bview0,
+         "rectified image view 0")
+    .def("rectified_bview1", &BSGM_T::rectified_bview1,
+         "rectified image view 1")
+
+    .def("rectified_cam0", &BSGM_T::rectified_cam0,
+         "rectified camera 0")
+    .def("rectified_cam1", &BSGM_T::rectified_cam1,
+         "rectified camera 1")
+
+    .def("invalid_map_fwd", &BSGM_T::invalid_map_fwd,
+         "invalid map for forward disparity")
+    .def("invalid_map_rev", &BSGM_T::invalid_map_rev,
+         "invalid map for reverse disparity")
+
+    .def("disparity_fwd", &BSGM_T::disparity_fwd,
+         "forward disparity")
+    .def("disparity_rev", &BSGM_T::disparity_rev,
+         "reverse disparity")
+
+    .def("tri_3d_fwd", &BSGM_T::tri_3d_fwd,
+         "forward triangulation result")
+    .def("tri_3d_rev", &BSGM_T::tri_3d_rev,
+         "reverse triangulation result")
+
+    .def("heightmap_fwd", &BSGM_T::heightmap_fwd,
+         "forward heightmap")
+    .def("heightmap_rev", &BSGM_T::heightmap_rev,
+         "reverse heightmap")
+
+    .def("ptset_fwd", &BSGM_T::ptset_fwd,
+         "forward pointset")
+    .def("ptset_rev", &BSGM_T::ptset_rev,
+         "reverse pointset")
+
+    .def("prob_ptset", &BSGM_T::prob_ptset,
+         "probabilistic pointset")
+    .def("prob_pdf", &BSGM_T::prob_pdf,
+         "probabilistic pdf")
+
+    .def("prob_heightmap", &BSGM_T::prob_heightmap,
+         "probabilistic heightmap")
+    .def("prob_confidence", &BSGM_T::prob_confidence,
+         "probabilistic confidence")
+
+    .def("rectify", &BSGM_T::rectify,
+         "image rectification")
+
+    .def("compute_disparity_fwd", &BSGM_T::compute_disparity_fwd,
+         "compute forward disparity")
+    .def("compute_disparity_rev", &BSGM_T::compute_disparity_rev,
+         "compute reverse disparity")
+
+    .def("compute_height_fwd", &BSGM_T::compute_height_fwd,
+         "compute forward height data (tri_3d, ptset, heightmap)")
+    .def("compute_height_rev", &BSGM_T::compute_height_rev,
+         "compute reverse height data (tri_3d, ptset, heightmap)")
+
+    .def("compute_prob", &BSGM_T::compute_prob,
+         "compute probabilistic height")
+
+    .def("process", &BSGM_T::process,
+         py::arg("with_consistency_check") = true,
+         "Main process method")
+
+    .def("save_prob_ptset_color", &BSGM_T::save_prob_ptset_color,
+         py::arg("path"),
+         "apply a color map to probabilty values and output an ascii color point cloud")
+
+    ;
+}
+
+
+
 void wrap_bsgm(py::module &m)
 {
 
@@ -86,7 +217,13 @@ void wrap_bsgm(py::module &m)
                    "pointset->heightmap gridding maximum number of neighbors")
     .def_readwrite("neighbor_dist_factor", &pairwise_params::neighbor_dist_factor_,
                    "pointset->heightmap gridding distance of (neighbor_dist_factor * ground_sample_distance)")
+    .def_readwrite("coarse_dsm_disparity_estimate", &pairwise_params::coarse_dsm_disparity_estimate_,
+                   "use the reduced resolution dsm to estimate min disparity")
     ;
+
+    // bsgm_prob_pairwise_dsm
+    wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double> >(m, "prob_pairwise_dsm_affine");
+    wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double> >(m, "prob_pairwise_dsm_perspective");
 
 } // wrap_bsgm
 
