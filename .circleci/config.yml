@@ -31,7 +31,7 @@ jobs:
       - run:
           name: compile
           working_directory: /build
-          command: ninja
+          command: set -x && ninja -j${NINJA_JOBS:-$((`nproc` / 2))}
 
       - run:
           name: install
