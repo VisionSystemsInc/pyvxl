@@ -476,7 +476,8 @@ void wrap_vpgl(py::module &m)
 
   py::class_<vpgl_calibration_matrix<double> >(m, "calibration_matrix")
     .def(py::init<vnl_matrix_fixed<double,3,3> >())
-    .def(py::init<double, vgl_point_2d<double> >());
+    .def(py::init<double, vgl_point_2d<double> >())
+    .def("get_matrix",&vpgl_calibration_matrix<double>::get_matrix);
 
   py::class_<vpgl_perspective_camera<double>, vpgl_proj_camera<double> /* <- Parent */ > (m, "perspective_camera")
     .def(py::init<vpgl_calibration_matrix<double>, vgl_rotation_3d<double>, vgl_vector_3d<double> >())
