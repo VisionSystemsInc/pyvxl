@@ -1,8 +1,10 @@
 #include "pyvgl.h"
 #include <vgl/vgl_vector_2d.h>
 #include <vgl/vgl_point_2d.h>
+#include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_point_3d.h>
+#include <vgl/vgl_homg_point_3d.h>
 #include <vgl/vgl_ray_3d.h>
 #include <vgl/vgl_pointset_3d.h>
 #include <vgl/vgl_plane_3d.h>
@@ -61,6 +63,31 @@ double getitem_3d(T const& a, long i)
 }
 
 template<class T>
+double getitem_3d_homg(T const& a, long i)
+{
+  // wrap around
+  if (i < 0) {
+    i += 4;
+  }
+  if (i == 0) {
+    return a.x();
+  }
+  else if (i == 1) {
+    return a.y();
+  }
+  else if (i == 2) {
+    return a.z();
+  }
+  else if (i == 3) {
+    return a.w();
+  }
+  else {
+    throw py::index_error("index out of range");
+  }
+  return 0;  // to avoid compiler warning
+}
+
+template<class T>
 double getitem_2d(T const& a, long i)
 {
   // wrap around
@@ -77,6 +104,28 @@ double getitem_2d(T const& a, long i)
     throw py::index_error("index out of range");
   }
   return 0; // to avoid compiler warning
+}
+
+template<class T>
+double getitem_2d_homg(T const& a, long i)
+{
+  // wrap around
+  if (i < 0) {
+    i += 3;
+  }
+  if (i == 0) {
+    return a.x();
+  }
+  else if (i == 1) {
+    return a.y();
+  }
+  else if (i == 2) {
+    return a.w();
+  }
+  else {
+    throw py::index_error("index out of range");
+  }
+  return 0;  // to avoid compiler warning
 }
 
 template <class T, class BUFF_T>
@@ -211,6 +260,37 @@ void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
 }
 
 template<typename T>
+void wrap_vgl_homg_point_2d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_homg_point_2d<T> > (m, class_name.c_str())
+    .def(py::init<>())
+    .def(py::init<T,T,T>(),
+         py::arg("px"), py::arg("py"), py::arg("pw") = 1)
+    .def("__len__", [](vgl_homg_point_2d<T>){return (size_t)3;})
+    .def("__getitem__", getitem_2d_homg<vgl_homg_point_2d<T> >)
+    .def("__repr__", streamToString<vgl_homg_point_2d<T> >)
+    .def(py::pickle(
+          [](const vgl_homg_point_2d<T> &p) {  // __getstate__
+            /* Return a tuple, which is pickleable */
+            return py::make_tuple(p.x(), p.y(), p.w());
+          },
+          [](py::tuple t) {  // __setstate__
+            if (t.size() != 3)
+              throw std::runtime_error("Can't unpickle vgl_homg_point_2d: Needs 3 elements!");
+
+            /* Create a new C++ instance */
+            vgl_homg_point_2d<T> pt(t[0].cast<T>(), t[1].cast<T>(), t[2].cast<T>());
+
+            return pt;
+          }))
+    .def_property_readonly("x", (T (vgl_homg_point_2d<T>::*)() const) &vgl_homg_point_2d<T>::x)
+    .def_property_readonly("y", (T (vgl_homg_point_2d<T>::*)() const) &vgl_homg_point_2d<T>::y)
+    .def_property_readonly("w", (T (vgl_homg_point_2d<T>::*)() const) &vgl_homg_point_2d<T>::w)
+    .def(py::self - py::self)
+    .def(py::self == py::self);
+}
+
+template<typename T>
 void wrap_vgl_vector_2d(py::module &m, std::string const& class_name)
 {
   py::class_<vgl_vector_2d<T> > (m, class_name.c_str())
@@ -259,6 +339,38 @@ void wrap_vgl_point_3d(py::module &m, std::string const& class_name)
     .def_property_readonly("x", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::x)
     .def_property_readonly("y", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::y)
     .def_property_readonly("z", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::z)
+    .def(py::self - py::self)
+    .def(py::self == py::self);
+}
+
+template<typename T>
+void wrap_vgl_homg_point_3d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_homg_point_3d<T> > (m, class_name.c_str())
+    .def(py::init<>())
+    .def(py::init<T,T,T,T>(),
+         py::arg("px"), py::arg("py"), py::arg("pz"), py::arg("pw") = 1)
+    .def("__len__", [](vgl_homg_point_3d<T>){return (size_t)4;})
+    .def("__getitem__", getitem_3d_homg<vgl_homg_point_3d<T> >)
+    .def("__repr__", streamToString<vgl_homg_point_3d<T> >)
+    .def(py::pickle(
+          [](const vgl_homg_point_3d<T> &p) {  // __getstate__
+            /* Return a tuple, which is pickleable */
+            return py::make_tuple(p.x(), p.y(), p.z(), p.w());
+          },
+          [](py::tuple t) {  // __setstate__
+            if (t.size() != 4)
+              throw std::runtime_error("Can't unpickle vgl_homg_point_3d: Needs 4 elements!");
+
+            /* Create a new C++ instance */
+            vgl_homg_point_3d<T> pt(t[0].cast<T>(), t[1].cast<T>(), t[2].cast<T>(), t[3].cast<T>());
+
+            return pt;
+          }))
+    .def_property_readonly("x", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::x)
+    .def_property_readonly("y", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::y)
+    .def_property_readonly("z", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::z)
+    .def_property_readonly("w", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::w)
     .def(py::self - py::self)
     .def(py::self == py::self);
 }
@@ -341,20 +453,26 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
 
 void wrap_vgl(py::module &m)
 {
-  wrap_vgl_point_2d<double>(m,"point_2d");
-  wrap_vgl_point_2d<float>(m,"point_2d_float");
+  wrap_vgl_point_2d<double>(m, "point_2d");
+  wrap_vgl_point_2d<float>(m, "point_2d_float");
 
-  wrap_vgl_vector_2d<double>(m,"vector_2d");
-  wrap_vgl_vector_2d<float>(m,"vector_2d_float");
+  wrap_vgl_homg_point_2d<double>(m, "homg_point_2d");
+  wrap_vgl_homg_point_2d<float>(m, "homg_point_2d_float");
 
-  wrap_vgl_point_3d<double>(m,"point_3d");
-  wrap_vgl_point_3d<float>(m,"point_3d_float");
+  wrap_vgl_vector_2d<double>(m, "vector_2d");
+  wrap_vgl_vector_2d<float>(m, "vector_2d_float");
 
-  wrap_vgl_vector_3d<double>(m,"vector_3d");
-  wrap_vgl_vector_3d<float>(m,"vector_3d_float");
+  wrap_vgl_point_3d<double>(m, "point_3d");
+  wrap_vgl_point_3d<float>(m, "point_3d_float");
 
-  wrap_vgl_pointset_3d<double>(m,"pointset_3d");
-  wrap_vgl_pointset_3d<float>(m,"pointset_3d_float");
+  wrap_vgl_homg_point_3d<double>(m, "homg_point_3d");
+  wrap_vgl_homg_point_3d<float>(m, "homg_point_3d_float");
+
+  wrap_vgl_vector_3d<double>(m, "vector_3d");
+  wrap_vgl_vector_3d<float>(m, "vector_3d_float");
+
+  wrap_vgl_pointset_3d<double>(m, "pointset_3d");
+  wrap_vgl_pointset_3d<float>(m, "pointset_3d_float");
 
   py::class_<vgl_ray_3d<double> >(m, "ray_3d")
     .def(py::init<vgl_point_3d<double>, vgl_vector_3d<double> >())
