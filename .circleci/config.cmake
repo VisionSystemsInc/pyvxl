@@ -25,14 +25,14 @@ set(VXL_DIR ${VXL_SOURCE_DIR})
 add_subdirectory(${VXL_SOURCE_DIR} ${VXL_BINARY_DIR} EXCLUDE_FROM_ALL)
 
 # include core vxl in include paths
-set(VXL_CORE_INCLUDE_DIR ${VXL_BINARY_DIR}/core ${VXL_SOURCE_DIR}/core)
-set(VXL_VCL_INCLUDE_DIR ${VXL_BINARY_DIR}/vcl ${VXL_SOURCE_DIR}/vcl)
+#set(VXL_CORE_INCLUDE_DIR ${VXL_BINARY_DIR}/core ${VXL_SOURCE_DIR}/core)
+#set(VXL_VCL_INCLUDE_DIR ${VXL_BINARY_DIR}/vcl ${VXL_SOURCE_DIR}/vcl)
 
-include_directories(${VXL_CORE_INCLUDE_DIR})
-include_directories(${VXL_VCL_INCLUDE_DIR})
-include_directories(${VXL_DIR}/contrib/brl/bbas)
-include_directories(${VXL_DIR}/contrib/brl/bseg)
-include_directories(${VXL_DIR}/contrib/gel)
+include_directories(${VXL_SOURCE_DIR} ${VXL_BINARY_DIR})
+#include_directories(${VXL_VCL_INCLUDE_DIR})
+#include_directories(${VXL_DIR}/contrib/brl/bbas)
+#include_directories(${VXL_DIR}/contrib/brl/bseg)
+#include_directories(${VXL_DIR}/contrib/gel)
 
 # add pybind11
 add_subdirectory(${PYBIND11_SOURCE_DIR} ${PYBIND11_BINARY_DIR})
