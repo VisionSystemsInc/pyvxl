@@ -73,4 +73,69 @@ T vslPickleSetState(pybind11::bytes b)
   return obj;
 }
 
+
+// Conversion from struct to dict
+template<typename T>
+pybind11::dict struct_to_dict(const T& obj)
+{
+  pybind11::object pyobj = pybind11::cast(&obj);
+  pybind11::dict classDict = pyobj.attr("__class__").attr("__dict__");
+  pybind11::dict output;
+
+  for (auto item : classDict)
+  {
+    switch (PyObject_IsInstance(item.second.ptr(), (PyObject*)(&PyProperty_Type)))
+    {
+      case 1:
+        output[item.first] = pyobj.attr(item.first);
+        break;
+      case -1:
+        throw std::runtime_error("Could not determine the type of "
+                                 + item.first.cast<std::string>());
+        break;
+    }
+  }
+
+  return output;
+}
+
+// __repr__ via struct_to_dict
+template<typename T>
+pybind11::str repr_by_dict(const T& obj)
+{
+  return struct_to_dict(obj).attr("__repr__")();
+}
+
+// set object attributes from nested dictionary
+void _set_attrs_from_dict(pybind11::object &obj, pybind11::dict dict)
+{
+  for (auto item : dict) {
+    if (pybind11::isinstance<pybind11::dict>(item.second)) {
+      auto attr_obj = obj.attr(item.first).cast<pybind11::object>();
+      auto value_as_dict = item.second.cast<pybind11::dict>();
+      _set_attrs_from_dict(attr_obj, value_as_dict);
+    }
+    else {
+      obj.attr(item.first) = item.second;
+    }
+  }
+}
+
+// set struct values via keyword arguments
+template<typename T>
+void set_struct_from_kwargs(T &self, pybind11::kwargs kwargs)
+{
+  pybind11::object pyself = pybind11::cast(&self);
+  _set_attrs_from_dict(pyself, kwargs);
+}
+
+// init struct via keyword arguments
+template<typename T>
+T init_struct_from_kwargs(pybind11::kwargs kwargs)
+{
+  T self;
+  set_struct_from_kwargs<T>(self, kwargs);
+  return self;
+}
+
 #endif
