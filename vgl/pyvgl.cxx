@@ -24,6 +24,14 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
+// io classes for py::pickle
+#include <vgl/io/vgl_io_point_2d.h>
+#include <vgl/io/vgl_io_homg_point_2d.h>
+#include <vgl/io/vgl_io_vector_2d.h>
+#include <vgl/io/vgl_io_point_3d.h>
+#include <vgl/io/vgl_io_homg_point_3d.h>
+#include <vgl/io/vgl_io_vector_3d.h>
+
 #include "../pyvxl_util.h"
 
 #include <ios>
@@ -239,24 +247,13 @@ void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_point_2d<T>){return (size_t)2;})
     .def("__getitem__", getitem_2d<vgl_point_2d<T> >)
     .def("__repr__", streamToString<vgl_point_2d<T> >)
-    .def(py::pickle(
-          [](const vgl_point_2d<T> &p) {  // __getstate__
-            /* Return a tuple, which is pickleable */
-            return py::make_tuple(p.x(), p.y());
-          },
-          [](py::tuple t) {  // __setstate__
-            if (t.size() != 2)
-              throw std::runtime_error("Can't unpickle vgl_point_2d: Needs 2 elements!");
-
-            /* Create a new C++ instance */
-            vgl_point_2d<T> pt(t[0].cast<T>(), t[1].cast<T>());
-
-            return pt;
-          }))
+    .def(py::pickle(&vslPickleGetState<vgl_point_2d<T> >,
+                    &vslPickleSetState<vgl_point_2d<T> >))
     .def_property_readonly("x", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::x)
     .def_property_readonly("y", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::y)
     .def(py::self - py::self)
-    .def(py::self == py::self);
+    .def(py::self == py::self)
+    ;
 }
 
 template<typename T>
@@ -269,25 +266,14 @@ void wrap_vgl_homg_point_2d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_homg_point_2d<T>){return (size_t)3;})
     .def("__getitem__", getitem_2d_homg<vgl_homg_point_2d<T> >)
     .def("__repr__", streamToString<vgl_homg_point_2d<T> >)
-    .def(py::pickle(
-          [](const vgl_homg_point_2d<T> &p) {  // __getstate__
-            /* Return a tuple, which is pickleable */
-            return py::make_tuple(p.x(), p.y(), p.w());
-          },
-          [](py::tuple t) {  // __setstate__
-            if (t.size() != 3)
-              throw std::runtime_error("Can't unpickle vgl_homg_point_2d: Needs 3 elements!");
-
-            /* Create a new C++ instance */
-            vgl_homg_point_2d<T> pt(t[0].cast<T>(), t[1].cast<T>(), t[2].cast<T>());
-
-            return pt;
-          }))
+    .def(py::pickle(&vslPickleGetState<vgl_homg_point_2d<T> >,
+                    &vslPickleSetState<vgl_homg_point_2d<T> >))
     .def_property_readonly("x", (T (vgl_homg_point_2d<T>::*)() const) &vgl_homg_point_2d<T>::x)
     .def_property_readonly("y", (T (vgl_homg_point_2d<T>::*)() const) &vgl_homg_point_2d<T>::y)
     .def_property_readonly("w", (T (vgl_homg_point_2d<T>::*)() const) &vgl_homg_point_2d<T>::w)
     .def(py::self - py::self)
-    .def(py::self == py::self);
+    .def(py::self == py::self)
+    ;
 }
 
 template<typename T>
@@ -300,6 +286,8 @@ void wrap_vgl_vector_2d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_vector_2d<T>){return (size_t)2;})
     .def("__getitem__",getitem_2d<vgl_vector_2d<T> >)
     .def("__repr__", streamToString<vgl_vector_2d<T> >)
+    .def(py::pickle(&vslPickleGetState<vgl_vector_2d<T> >,
+                    &vslPickleSetState<vgl_vector_2d<T> >))
     .def_property_readonly("x", &vgl_vector_2d<T>::x)
     .def_property_readonly("y", &vgl_vector_2d<T>::y)
     .def("length", &vgl_vector_2d<T>::length)
@@ -309,7 +297,8 @@ void wrap_vgl_vector_2d(py::module &m, std::string const& class_name)
     .def("__neg__", [](vgl_vector_2d<T> const &v){return -v;})
     .def(py::self / T())
     .def(py::self * T())
-    .def(T() * py::self);
+    .def(T() * py::self)
+    ;
 }
 
 template<typename T>
@@ -322,25 +311,14 @@ void wrap_vgl_point_3d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_point_3d<T>){return (size_t)3;})
     .def("__getitem__", getitem_3d<vgl_point_3d<T> >)
     .def("__repr__", streamToString<vgl_point_3d<T> >)
-    .def(py::pickle(
-          [](const vgl_point_3d<T> &p) {  // __getstate__
-            /* Return a tuple, which is pickleable */
-            return py::make_tuple(p.x(), p.y(), p.z());
-          },
-          [](py::tuple t) {  // __setstate__
-            if (t.size() != 3)
-              throw std::runtime_error("Can't unpickle vgl_point_3d: Needs 3 elements!");
-
-            /* Create a new C++ instance */
-            vgl_point_3d<T> pt(t[0].cast<T>(), t[1].cast<T>(), t[2].cast<T>());
-
-            return pt;
-          }))
+    .def(py::pickle(&vslPickleGetState<vgl_point_3d<T> >,
+                    &vslPickleSetState<vgl_point_3d<T> >))
     .def_property_readonly("x", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::x)
     .def_property_readonly("y", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::y)
     .def_property_readonly("z", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::z)
     .def(py::self - py::self)
-    .def(py::self == py::self);
+    .def(py::self == py::self)
+    ;
 }
 
 template<typename T>
@@ -353,26 +331,15 @@ void wrap_vgl_homg_point_3d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_homg_point_3d<T>){return (size_t)4;})
     .def("__getitem__", getitem_3d_homg<vgl_homg_point_3d<T> >)
     .def("__repr__", streamToString<vgl_homg_point_3d<T> >)
-    .def(py::pickle(
-          [](const vgl_homg_point_3d<T> &p) {  // __getstate__
-            /* Return a tuple, which is pickleable */
-            return py::make_tuple(p.x(), p.y(), p.z(), p.w());
-          },
-          [](py::tuple t) {  // __setstate__
-            if (t.size() != 4)
-              throw std::runtime_error("Can't unpickle vgl_homg_point_3d: Needs 4 elements!");
-
-            /* Create a new C++ instance */
-            vgl_homg_point_3d<T> pt(t[0].cast<T>(), t[1].cast<T>(), t[2].cast<T>(), t[3].cast<T>());
-
-            return pt;
-          }))
+    .def(py::pickle(&vslPickleGetState<vgl_homg_point_3d<T> >,
+                    &vslPickleSetState<vgl_homg_point_3d<T> >))
     .def_property_readonly("x", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::x)
     .def_property_readonly("y", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::y)
     .def_property_readonly("z", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::z)
     .def_property_readonly("w", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::w)
     .def(py::self - py::self)
-    .def(py::self == py::self);
+    .def(py::self == py::self)
+    ;
 }
 
 template<typename T>
@@ -386,6 +353,8 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_vector_3d<T>){return (size_t)3;})
     .def("__getitem__", getitem_3d<vgl_vector_3d<T> >)
     .def("__repr__", streamToString<vgl_vector_3d<T> >)
+    .def(py::pickle(&vslPickleGetState<vgl_vector_3d<T> >,
+                    &vslPickleSetState<vgl_vector_3d<T> >))
     .def_property_readonly("x", &vgl_vector_3d<T>::x)
     .def_property_readonly("y", &vgl_vector_3d<T>::y)
     .def_property_readonly("z", &vgl_vector_3d<T>::z)
@@ -397,7 +366,8 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     .def("__neg__", [](vgl_vector_3d<T> const &v){return -v;})
     .def(py::self / T())
     .def(py::self * T())
-    .def(T() * py::self);
+    .def(T() * py::self)
+    ;
 }
 
 template<typename T>
@@ -445,10 +415,8 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
            throw std::runtime_error("Bad filename");
          }
          ifs >> ptset;
-       });
-
-
-
+       })
+    ;
 }
 
 void wrap_vgl(py::module &m)
