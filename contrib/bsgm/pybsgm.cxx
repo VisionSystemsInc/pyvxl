@@ -7,6 +7,8 @@
 #include <bsgm/bsgm_disparity_estimator.h>
 #include <bsgm/bsgm_prob_pairwise_dsm.h>
 
+#include "../../pyvxl_util.h"
+
 namespace py = pybind11;
 
 namespace pyvxl { namespace bsgm {
@@ -147,7 +149,10 @@ void wrap_bsgm(py::module &m)
 
   // bsgm_disparity_estimator_params
   py::class_<bsgm_disparity_estimator_params> (m, "disparity_estimator_params")
-    .def(py::init<>())
+    .def(py::init(&init_struct_from_kwargs<bsgm_disparity_estimator_params>))
+    .def("__repr__", repr_by_dict<bsgm_disparity_estimator_params>)
+    .def("as_dict", struct_to_dict<bsgm_disparity_estimator_params>)
+    .def("set", set_struct_from_kwargs<bsgm_disparity_estimator_params>)
     .def_readwrite("use_16_directions", &bsgm_disparity_estimator_params::use_16_directions,
                    "Use 16 directions in the dynamic programming, otherwise 8")
     .def_readwrite("p1_scale", &bsgm_disparity_estimator_params::p1_scale,
@@ -182,7 +187,10 @@ void wrap_bsgm(py::module &m)
 
   // bsgm_prob_pairwise_dsm pairwise_params
   py::class_<pairwise_params> (m, "pairwise_params")
-    .def(py::init<>())
+    .def(py::init(&init_struct_from_kwargs<pairwise_params>))
+    .def("__repr__", repr_by_dict<pairwise_params>)
+    .def("as_dict", struct_to_dict<pairwise_params>)
+    .def("set", set_struct_from_kwargs<pairwise_params>)
     .def_readwrite("de_params", &pairwise_params::de_params_,
                    "disparity estimator params")
     .def_property("shadow_thresh",
@@ -221,9 +229,9 @@ void wrap_bsgm(py::module &m)
                    "use the reduced resolution dsm to estimate min disparity")
     ;
 
-    // bsgm_prob_pairwise_dsm
-    wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double> >(m, "prob_pairwise_dsm_affine");
-    wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double> >(m, "prob_pairwise_dsm_perspective");
+  // bsgm_prob_pairwise_dsm
+  wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double> >(m, "prob_pairwise_dsm_affine");
+  wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double> >(m, "prob_pairwise_dsm_perspective");
 
 } // wrap_bsgm
 

@@ -1,4 +1,14 @@
+import collections.abc
 import math
+
+# nested dictionary update
+def update_nested_dict(d, u):
+  for k, v in u.items():
+    if isinstance(v, collections.abc.Mapping):
+      d[k] = update_nested_dict(d.get(k, {}), v)
+    else:
+      d[k] = v
+  return d
 
 # safe nan check
 def safe_isnan(val):
@@ -34,8 +44,10 @@ class VxlBase(object):
         # get key value
         obj_val = getattr(obj, key)
 
-        # recursion
+        # recursion ("val" dictionary cannot be empty)
         if isinstance(val, dict):
+          if not val:
+            raise ValueError('empty attribute validator {}'.format(keys_str))
           nested_func(obj_val, val, keys)
           continue
 
@@ -58,3 +70,14 @@ class VxlBase(object):
     # call recursive check
     nested_func(instance, attr_dct)
 
+
+# decorator: skip unit test if attribute is missing or None
+def skipUnlessAttr(attr):
+  def decorator(func):
+    def wrapper(self, *args, **kwargs):
+      if getattr(self, attr, None) is None:
+        self.skipTest('"{}" not available'.format(attr))
+      else:
+        func(self, *args, **kwargs)
+    return wrapper
+  return decorator
