@@ -44,7 +44,9 @@ void wrap_vgl_algo(py::module &m)
     .def("__repr__", streamToString<vgl_rotation_3d<double> >)
     .def(py::self * vgl_vector_3d<double>())
     .def(py::self * vgl_point_3d<double>())
-    .def(py::self * py::self);
+    .def(py::self * py::self)
+    .def(py::self == py::self)
+    ;
 
 }
 }}}
