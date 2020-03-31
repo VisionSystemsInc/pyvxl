@@ -30,6 +30,7 @@
 // io classes for py::pickle
 #include <vpgl/io/vpgl_io_proj_camera.h>
 #include <vpgl/io/vpgl_io_affine_camera.h>
+#include <vpgl/io/vpgl_io_perspective_camera.h>
 
 #include "../pyvxl_util.h"
 
@@ -367,8 +368,8 @@ void save_rational_camera(vpgl_camera<double> & cam, std::string camera_filename
   }
 }
 
-template<class T>
-vpgl_perspective_camera<T> _load_perspective_cam(std::string const& camera_filename)
+template<class CAM_T>
+CAM_T load_camera(std::string const& camera_filename)
 {
   // open file
   std::ifstream ifs(camera_filename.c_str());
@@ -378,21 +379,21 @@ vpgl_perspective_camera<T> _load_perspective_cam(std::string const& camera_filen
     throw std::runtime_error(buffer.str());
   }
 
-  // create perspective camera
-  vpgl_perspective_camera<T> pcam;
+  // create camera
+  CAM_T cam;
 
   // load the file data into the camera
   std::string ext = vul_file_extension(camera_filename);
   if (ext == ".vsl") // binary form
   {
     vsl_b_ifstream bp_in(camera_filename.c_str());
-    vsl_b_read(bp_in, pcam);
+    vsl_b_read(bp_in, cam);
     bp_in.close();
   }
   else {
-   ifs >> pcam;
+   ifs >> cam;
   }
-  return pcam;
+  return cam;
 }
 
 std::unique_ptr<vpgl_geo_camera> create_geocam(vnl_matrix<double> const& trans_matrix)
@@ -449,7 +450,13 @@ void wrap_vpgl(py::module &m)
     .def(py::self == py::self)
     .def(py::pickle(&vslPickleGetState<vpgl_proj_camera<double> >,
                     &vslPickleSetState<vpgl_proj_camera<double> >))
+    .def("save", &vpgl_proj_camera<double>::save,
+         "save camera to text file", py::arg("camera_filename"))
     ;
+
+  m.def("load_proj_camera", &load_camera<vpgl_proj_camera<double> >,
+        py::arg("camera_filename"));
+
 
   // =====AFFINE CAMERA=====
   py::class_<vpgl_affine_camera<double>, vpgl_proj_camera<double> /* <- Parent */> (m, "affine_camera")
@@ -474,13 +481,21 @@ void wrap_vpgl(py::module &m)
                     &vslPickleSetState<vpgl_affine_camera<double> >))
     ;
 
+  m.def("load_affine_camera", &load_camera<vpgl_affine_camera<double> >,
+        py::arg("camera_filename"));
+
+
+  // =====PERSPECTIVE CAMERA=====
   py::class_<vpgl_calibration_matrix<double> >(m, "calibration_matrix")
     .def(py::init<vnl_matrix_fixed<double,3,3> >())
     .def(py::init<double, vgl_point_2d<double> >())
-    .def("get_matrix",&vpgl_calibration_matrix<double>::get_matrix);
+    .def("get_matrix",&vpgl_calibration_matrix<double>::get_matrix)
+    .def(py::self == py::self)
+    ;
 
   py::class_<vpgl_perspective_camera<double>, vpgl_proj_camera<double> /* <- Parent */ > (m, "perspective_camera")
     .def(py::init<vpgl_calibration_matrix<double>, vgl_rotation_3d<double>, vgl_vector_3d<double> >())
+    .def(py::init<vpgl_calibration_matrix<double>, vgl_point_3d<double>, vgl_rotation_3d<double> >())
     .def("__str__", streamToString<vpgl_perspective_camera<double> >)
     .def_property("camera_center",
                   &vpgl_perspective_camera<double>::get_camera_center,
@@ -494,8 +509,6 @@ void wrap_vpgl(py::module &m)
     .def_property("translation",
                   &vpgl_perspective_camera<double>::get_translation,
                   &vpgl_perspective_camera<double>::set_translation)
-    .def("save", &vpgl_perspective_camera<double>::save, "save to a text file",
-         "cam_path")
     .def("principal_axis", &vpgl_perspective_camera<double>::principal_axis,
          "compute the principal axis (i.e. the vector perpendicular to the image plane pointing towards the front of the camera")
     .def("is_behind_camera", &vpgl_perspective_camera<double>::is_behind_camera,
@@ -514,11 +527,15 @@ void wrap_vpgl(py::module &m)
         return ray;
       }
       )
+    .def(py::pickle(&vslPickleGetState<vpgl_perspective_camera<double> >,
+                    &vslPickleSetState<vpgl_perspective_camera<double> >))
     ;
 
-  m.def("load_perspective_camera", &_load_perspective_cam<double>, "load perspective camera",
+  m.def("load_perspective_camera", &load_camera<vpgl_perspective_camera<double> >,
         py::arg("camera_filename"));
 
+
+  // =====SCALE OFFSET=====
   py::class_<vpgl_scale_offset<double> >(m, "scale_offset")
     .def(py::init<>())
     .def(py::init<double, double>())
