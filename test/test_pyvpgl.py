@@ -1,24 +1,40 @@
 import unittest
+import os
 import pickle
+import tempfile
 
+try:
+  import numpy as np
+except:
+  np = None
+
+from vxl import vgl
+import vxl.vgl.algo
 from vxl import vnl
 from vxl import vpgl
 
 
-# helper function: populate vnl.matrix_fixed_3x4
+# helper function: populate vnl.matrix_fixed
 # (without numpy requirement - input is list of lists)
-def matrix_fixed_3x4(data):
+def _matrix_fixed(data, vnl_cls):
 
-  # check size
-  if len(data) != 3 or any(len(row) != 4 for row in data):
-    raise Exception('3x4 matrix expects 3x4 data')
+  matrix = vnl_cls()
+  sz = matrix.shape
 
-  matrix = vnl.matrix_fixed_3x4()
-  for r in range(matrix.shape[0]):
-    for c in range(matrix.shape[1]):
+  if len(data) != sz[0] or any(len(row) != sz[1] for row in data):
+    raise Exception('fixed matrix expects {}x{} data'.format(*sz))
+
+  for r in range(sz[0]):
+    for c in range(sz[1]):
       matrix[r, c] = data[r][c]
 
   return matrix
+
+def matrix_fixed_3x3(data):
+  return _matrix_fixed(data, vnl.matrix_fixed_3x3)
+
+def matrix_fixed_3x4(data):
+  return _matrix_fixed(data, vnl.matrix_fixed_3x4)
 
 
 # ----------
@@ -56,6 +72,22 @@ class VpglCameraBase(object):
     camB = pickle.loads(pickle.dumps(camA))
     self.assertEqual(camA, camB)
 
+  @unittest.skipUnless(np, "Numpy not found")
+  def test_save_load(self):
+    # save/load to an ASCII file of limited precision
+    # test near equality of camera matrices via "assert_allclose"
+
+    data = self.test_data['default']
+    camA = self._create_cam(data, check = True)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+      file = os.path.join(temp_dir, 'camera.txt')
+      camA.save(file)
+      camB = self.load(file)
+
+    np.testing.assert_allclose(camA.get_matrix(), camB.get_matrix(),
+                               rtol = 1e-5, atol = 0)
+
 
 # projective camera
 class VpglProjCamera(VpglCameraBase, unittest.TestCase):
@@ -63,6 +95,7 @@ class VpglProjCamera(VpglCameraBase, unittest.TestCase):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.cls = vpgl.proj_camera
+    self.load = vpgl.load_proj_camera
 
     # test data
     self.test_data = {
@@ -90,6 +123,7 @@ class VpglAffineCamera(VpglCameraBase, unittest.TestCase):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.cls = vpgl.affine_camera
+    self.load = vpgl.load_affine_camera
 
     # test data
     self.test_data = {
@@ -112,6 +146,38 @@ class VpglAffineCamera(VpglCameraBase, unittest.TestCase):
   def _check_cam(self, cam, data):
     self.assertEqual(cam.get_matrix(), data['matrix'])
     self.assertEqual(cam.viewing_distance, data['viewing_distance'])
+
+
+# perspective camera
+class VpglPerspectiveCamera(VpglCameraBase, unittest.TestCase):
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.cls = vpgl.perspective_camera
+    self.load = vpgl.load_perspective_camera
+
+    # test data
+    self.test_data = {
+      "default": {
+        "calibration": vpgl.calibration_matrix(matrix_fixed_3x3([
+            [2000.0, 0.0, 512.0],
+            [0.0, 2000.0, 384.0],
+            [0.0, 0.0, 1.0]
+        ])),
+        "camera_center": vgl.point_3d(0.0, 0.0, -10.0),
+        "rotation": vgl.algo.rotation_3d(),
+      }
+    }
+
+  def _create_cam(self, data, check = False):
+    cam = self.cls(data['calibration'], data['camera_center'], data['rotation'])
+    if check: self._check_cam(cam, data)
+    return cam
+
+  def _check_cam(self, cam, data):
+    self.assertEqual(cam.calibration, data['calibration'])
+    self.assertEqual(cam.camera_center, data['camera_center'])
+    self.assertEqual(cam.rotation, data['rotation'])
 
 
 # ----------
