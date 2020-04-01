@@ -114,6 +114,8 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          "probabilistic heightmap")
     .def("prob_confidence", &BSGM_T::prob_confidence,
          "probabilistic confidence")
+    .def("radial_std_dev_image", &BSGM_T::radial_std_dev_image,
+         "radial standard deviation")
 
     .def("rectify", &BSGM_T::rectify,
          py::call_guard<py::gil_scoped_release>(),
