@@ -116,22 +116,29 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          "probabilistic confidence")
 
     .def("rectify", &BSGM_T::rectify,
+         py::call_guard<py::gil_scoped_release>(),
          "image rectification")
 
     .def("compute_disparity_fwd", &BSGM_T::compute_disparity_fwd,
+         py::call_guard<py::gil_scoped_release>(),
          "compute forward disparity")
     .def("compute_disparity_rev", &BSGM_T::compute_disparity_rev,
+         py::call_guard<py::gil_scoped_release>(),
          "compute reverse disparity")
 
     .def("compute_height_fwd", &BSGM_T::compute_height_fwd,
+         py::call_guard<py::gil_scoped_release>(),
          "compute forward height data (tri_3d, ptset, heightmap)")
     .def("compute_height_rev", &BSGM_T::compute_height_rev,
+         py::call_guard<py::gil_scoped_release>(),
          "compute reverse height data (tri_3d, ptset, heightmap)")
 
     .def("compute_prob", &BSGM_T::compute_prob,
+         py::call_guard<py::gil_scoped_release>(),
          "compute probabilistic height")
 
     .def("process", &BSGM_T::process,
+         py::call_guard<py::gil_scoped_release>(),
          py::arg("with_consistency_check") = true,
          "Main process method")
 
