@@ -39,13 +39,13 @@ vil_image_view<float> estimate_reflectance(vil_image_view<float> const& radiance
   if (mean_reflectance <= 0.0)
     is_normalize = false;
 
-  auto* reflectance_img = new vil_image_view<float>(ni, nj, np);
-  bool success = brad_estimate_reflectance_image(radiance_img, mdata, mean_reflectance, *reflectance_img, average_airlight, is_normalize);
+  vil_image_view<float> reflectance_img(ni, nj, np);
+  bool success = brad_estimate_reflectance_image(radiance_img, mdata, mean_reflectance, reflectance_img, average_airlight, is_normalize);
 
   if (!success)
     throw std::runtime_error(std::string("ERROR: vxl.contrib.brad.estimate_reflectance: brad_estimate_reflectance_image failed.\n"));
 
-  return *reflectance_img;
+  return reflectance_img;
 }
 
 void wrap_brad(py::module &m)
