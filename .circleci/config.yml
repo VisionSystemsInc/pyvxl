@@ -17,6 +17,8 @@ jobs:
             mkdir -p /source/vxl /source/pybind11 /source/pyvxl
             git clone https://github.com/vxl/vxl.git /source/vxl
             git clone https://github.com/pybind/pybind11.git /source/pybind11
+            echo "NINJA_JOBS = ${NINJA_JOBS:-missing}"
+            printenv
 
       - checkout:
           path: /source/pyvxl
