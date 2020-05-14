@@ -200,8 +200,8 @@ void wrap_acal_match_graph(py::module &m) {
           std::vector<size_t> match_tree_metrics = mg.get_match_tree_metrics();
 
           /* We can't (easily) directly serialize these shared pointers.
-           * So instead we'll replace map IDs to each object, and represent
-           * those objects by their IDs. Then on the deserialization side,
+           * So instead we'll assign an ID to each object, and replace
+           * references to these objects with their IDs. Then when we deserialize,
            * we'll rebuild the lower level objects and fill in the references.
            */
 
