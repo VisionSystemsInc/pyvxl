@@ -5,6 +5,8 @@ import unittest
 import utils
 
 from vxl import vgl
+from vxl import vnl
+from vxl import vpgl
 from vxl.contrib import acal
 
 
@@ -124,6 +126,51 @@ class acal_match_params(AcalBase, unittest.TestCase):
     }
 
 
+class acal_match_node(AcalBase, unittest.TestCase):
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.cls = acal.match_node
+    self.default_data = {
+      'cam_id': np.uint(-1),
+      'node_depth': 0,
+      'children': [],
+      'self_to_child_matches': [],
+    }
+
+
+class acal_match_tree(AcalBase, unittest.TestCase):
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.cls = acal.match_tree
+    self.default_data = {
+      'min_n_tracks': 1,
+    }
+
+
+class acal_match_vertex(AcalBase, unittest.TestCase):
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.cls = acal.match_vertex
+    self.default_data = {
+      'cam_id': np.uint(-1),
+      'mark': False,
+    }
+
+
+class acal_match_edge(AcalBase, unittest.TestCase):
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.cls = acal.match_edge
+    self.default_data = {
+      'id': np.uint(-1),
+      'matches': [],
+    }
+
+
 class acal_match_graph(AcalBase, unittest.TestCase):
 
   def __init__(self, *args, **kwargs):
@@ -133,6 +180,35 @@ class acal_match_graph(AcalBase, unittest.TestCase):
   @unittest.skip("not yet implemented")
   def test_equal(self):
     pass
+
+
+  def construct_example(self):
+    incidence_matrix = dict()
+    incidence_matrix[0] = dict()
+    incidence_matrix[0][1] = list()
+    incidence_matrix[0][1].append(acal.match_pair(acal.corr(0, vgl.point_2d(0, 0)), acal.corr(1, vgl.point_2d(1, 1))))
+    incidence_matrix[0][1].append(acal.match_pair(acal.corr(0, vgl.point_2d(2, 2)), acal.corr(1, vgl.point_2d(3, 3))))
+    incidence_matrix = incidence_matrix
+
+    mg = acal.match_graph(incidence_matrix)
+    mg.image_paths = {0: 'image1', 1: 'image2'}
+
+    acam1 = np.full((3, 4), 1)
+    acam1[2, :3] = 0
+    acam1[0, 0] = 5
+    acam2 = np.full((3, 4), 2)
+    acam2[2, :3] = 0
+    acam2[2, 3] = 1
+    acam2[0, 0] = 5
+    mg.acams = {0: vpgl.affine_camera(vnl.matrix_fixed_3x4(acam1)),
+                1: vpgl.affine_camera(vnl.matrix_fixed_3x4(acam2))}
+
+    mg.find_connected_components()
+    mg.compute_focus_tracks()
+    mg.compute_match_trees()
+    mg.validate_match_trees_and_set_metric()
+
+    return mg
 
 
 if __name__ == '__main__':
