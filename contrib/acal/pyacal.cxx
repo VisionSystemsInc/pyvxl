@@ -53,9 +53,9 @@ void wrap_match_params(py::module &m) {
                    "minimum number of tracks for a graph edge")
     .def_readwrite("min_n_cams", &match_params::min_n_cams_,
                    "minimum number of cameras in a graph clique")
-    .def_readwrite("max_proj_error_", &match_params::max_proj_error_,
+    .def_readwrite("max_proj_error", &match_params::max_proj_error_,
                    "max projection error for a reasonable solution")
-    .def_readwrite("max_uncal_proj_error_", &match_params::max_uncal_proj_error_,
+    .def_readwrite("max_uncal_proj_error", &match_params::max_uncal_proj_error_,
                    "max initial projection error")
     .def(py::pickle(
         [](const match_params &mp) {  // __getstate__
