@@ -84,7 +84,7 @@ void wrap_match_params(py::module &m) {
 
 
 void wrap_acal_corr(py::module &m) {
-  py::class_<acal_corr>(m, "acal_corr")
+  py::class_<acal_corr>(m, "corr")
     .def(py::init<>())
     .def(py::init<size_t, vgl_point_2d<double> const&>())
     .def_readwrite("id", &acal_corr::id_)
@@ -108,7 +108,7 @@ void wrap_acal_corr(py::module &m) {
 
 
 void wrap_acal_match_pair(py::module &m) {
-  py::class_<acal_match_pair>(m, "acal_match_pair")
+  py::class_<acal_match_pair>(m, "match_pair")
     .def(py::init<>())
     .def(py::init<acal_corr const&, acal_corr const&>())
     .def_readwrite("corr1", &acal_match_pair::corr1_)
@@ -153,7 +153,7 @@ void wrap_match_edge(py::module &m) {
 
 
 void wrap_acal_match_tree(py::module &m) {
-  py::class_<acal_match_tree, std::shared_ptr<acal_match_tree> /* <- holder type */>(m, "acal_match_tree")
+  py::class_<acal_match_tree, std::shared_ptr<acal_match_tree> /* <- holder type */>(m, "match_tree")
     .def(py::init<>())
     .def("save_tree_dot_format", &acal_match_tree::save_tree_dot_format, "save a match tree to a dot file",
           py::arg("path"))
@@ -162,7 +162,7 @@ void wrap_acal_match_tree(py::module &m) {
 
 
 void wrap_acal_match_graph(py::module &m) {
-  py::class_<acal_match_graph>(m, "acal_match_graph")
+  py::class_<acal_match_graph>(m, "match_graph")
 
     // Constructors
     .def(py::init<>())
