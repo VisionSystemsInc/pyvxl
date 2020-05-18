@@ -1,5 +1,5 @@
 #include "pyacal.h"
-#include "py_struct.h"
+#include "../../pyvxl_util.h"
 
 #include <map>
 #include <sstream>
@@ -24,7 +24,7 @@ namespace pyvxl { namespace acal {
 void wrap_f_params(py::module &m) {
   py::class_<f_params> (m, "f_params")
     .def(py::init<>())
-    .def(py::init(&dict_to_struct<f_params>))
+    .def(py::init(&init_struct_from_kwargs<f_params>))
     .def("as_dict", struct_to_dict<f_params>)
     .def("__repr__", repr_by_dict<f_params>)
     .def_readwrite("epi_dist_mul", &f_params::epi_dist_mul_,
@@ -46,7 +46,7 @@ void wrap_f_params(py::module &m) {
 void wrap_match_params(py::module &m) {
   py::class_<match_params> (m, "match_params")
     .def(py::init<>())
-    .def(py::init(&dict_to_struct<match_params>))
+    .def(py::init(&init_struct_from_kwargs<match_params>))
     .def("as_dict", struct_to_dict<match_params>)
     .def("__repr__", repr_by_dict<match_params>)
     .def_readwrite("min_n_tracks", &match_params::min_n_tracks_,
@@ -410,7 +410,9 @@ void wrap_acal_match_graph(py::module &m) {
             std::vector<int> children_ids = std::get<3>(serialized_nodes[node_id]);
 
             // If this node isn't the root, fill in parent
-            if (parent_id != -1) {
+            if (parent_id == -1) {
+              node->parent_ = nullptr;
+            } else {
               const std::shared_ptr<acal_match_node>& parent = nodes[parent_id];
               node->parent_ = parent.get();
             }
