@@ -13,6 +13,7 @@ void wrap_acal_corr(py::module &m);
 void wrap_acal_match_pair(py::module &m);
 void wrap_match_vertex(py::module &m);
 void wrap_match_edge(py::module &m);
+void wrap_acal_match_node(py::module &m);
 void wrap_acal_match_tree(py::module &m);
 void wrap_acal_match_graph(py::module &m);
 

@@ -152,9 +152,27 @@ void wrap_match_edge(py::module &m) {
 }
 
 
+void wrap_acal_match_node(py::module &m) {
+  py::class_<acal_match_node, std::shared_ptr<acal_match_node> /* <- holder type */>(m, "match_node")
+    .def(py::init<>())
+    .def("__len__", &acal_match_node::size)
+    .def("is_leaf", &acal_match_node::is_leaf)
+    .def("is_root", &acal_match_node::is_root)
+    .def_readonly("cam_id", &acal_match_node::cam_id_)
+    .def_readonly("node_depth", &acal_match_node::node_depth_)
+    .def_readonly("children", &acal_match_node::children_)
+    .def_readonly("self_to_child_matches", &acal_match_node::self_to_child_matches_)
+    .def("parent", &acal_match_node::parent, py::arg("root"))
+    ;
+}
+
+
 void wrap_acal_match_tree(py::module &m) {
   py::class_<acal_match_tree, std::shared_ptr<acal_match_tree> /* <- holder type */>(m, "match_tree")
     .def(py::init<>())
+    .def("__len__", &acal_match_tree::size)
+    .def_readonly("min_n_tracks", &acal_match_tree::min_n_tracks_)
+    .def_readonly("root", &acal_match_tree::root_)
     .def("save_tree_dot_format", &acal_match_tree::save_tree_dot_format, "save a match tree to a dot file",
           py::arg("path"))
     ;
@@ -166,6 +184,7 @@ void wrap_acal_match_graph(py::module &m) {
 
     // Constructors
     .def(py::init<>())
+    .def(py::init<std::map<size_t, std::map<size_t, std::vector<acal_match_pair> > > const&>())
 
     // Properties
     .def_property("params", &acal_match_graph::get_params, &acal_match_graph::set_params)
@@ -180,6 +199,16 @@ void wrap_acal_match_graph(py::module &m) {
     .def_property("tree_metrics", &acal_match_graph::get_match_tree_metrics, &acal_match_graph::set_match_tree_metrics)
 
     // Methods
+    .def("find_connected_components", &acal_match_graph::find_connected_components,
+         "Construct connected components from vertices")
+    .def("compute_focus_tracks", &acal_match_graph::compute_focus_tracks,
+         "Identify consistent correspondence tracks")
+    .def("load_affine_cams", &acal_match_graph::load_affine_cams, "Load uncorrected cameras",
+         py::arg("affine_cam_path"))
+    .def("compute_match_trees", &acal_match_graph::compute_match_trees,
+         "For each focus vertex, create a tree of consistent matches")
+    .def("validate_match_trees_and_set_metric", &acal_match_graph::validate_match_trees_and_set_metric,
+         "")
     .def("save_graph_dot_format", &acal_match_graph::save_graph_dot_format, "save a match graph to a dot file",
           py::arg("path"))
 
@@ -500,6 +529,7 @@ PYBIND11_MODULE(_acal, m)
   pyvxl::acal::wrap_acal_match_pair(m);
   pyvxl::acal::wrap_match_vertex(m);
   pyvxl::acal::wrap_match_edge(m);
+  pyvxl::acal::wrap_acal_match_node(m);
   pyvxl::acal::wrap_acal_match_tree(m);
   pyvxl::acal::wrap_acal_match_graph(m);
 }
