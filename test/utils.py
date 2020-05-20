@@ -71,13 +71,31 @@ class VxlBase(object):
     nested_func(instance, attr_dct)
 
 
-# decorator: skip unit test if attribute is missing or None
-def skipUnlessAttr(attr):
+# decorator: skip unit test if [class or self ] is missing attributes
+def _skipUnlessAttr(mode, *attrs):
   def decorator(func):
     def wrapper(self, *args, **kwargs):
-      if getattr(self, attr, None) is None:
-        self.skipTest('"{}" not available'.format(attr))
+
+      if mode == 'class':
+        dir_list = dir(self.cls)
+        missing_func = lambda a : a not in dir_list
+      else:
+        missing_func = lambda a : getattr(self, a, None) is None
+
+      missing_attrs = [a for a in attrs if missing_func(a)]
+      if missing_attrs:
+        self.skipTest('{} {} not available'.format(mode, missing_attrs))
       else:
         func(self, *args, **kwargs)
+
     return wrapper
   return decorator
+
+# decorator: skip unit test if self.cls is missing attributes
+def skipUnlessClassAttr(*attrs):
+  return _skipUnlessAttr('class', *attrs)
+
+# decorator: skip unit test if self is missing attributes
+def skipUnlessAttr(*attrs):
+  return _skipUnlessAttr('test', *attrs)
+
