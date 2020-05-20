@@ -1,3 +1,4 @@
+import pickle
 import unittest
 from utils import VxlBase
 
@@ -14,6 +15,13 @@ class AcalBase(VxlBase):
     instance = self.cls()
     self.assertIsInstance(instance, self.cls)
     self.assertAttributes(instance, self.default_data)
+
+  @utils.skipUnlessAttr('__getstate__')
+  def test_pickle(self):
+    init_data = self.default_data
+    insstance_A = self.cls(**init_data)
+    insstance_B = pickle.loads(pickle.dumps(insstance_B))
+    self.assertEqual(insstance_A, insstance_B)
 
 
 class acal_f_params(AcalBase, unittest.TestCase):
