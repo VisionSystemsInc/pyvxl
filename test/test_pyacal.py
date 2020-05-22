@@ -74,10 +74,6 @@ class acal_f_params(AcalBase, unittest.TestCase):
         'min_num_matches': 6,
     }
 
-  @unittest.skip("not yet implemented")
-  def test_equal(self):
-    pass
-
 
 class acal_corr(AcalBase, unittest.TestCase):
 

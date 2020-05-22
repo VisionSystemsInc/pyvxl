@@ -11,6 +11,7 @@
 #include <acal/acal_match_utils.h>
 
 // io classes for py::pickle
+#include <acal/io/acal_io_f_utils.h>
 #include <acal/io/acal_io_match_graph.h>
 #include <acal/io/acal_io_match_utils.h>
 
@@ -39,6 +40,9 @@ void wrap_acal(py::module &m)
                    "max ray uncertainty to keep camera pair")
     .def_readwrite("min_num_matches", &f_params::min_num_matches_,
                    "minimum number of required matches to output to fmatches file")
+    .def(py::self == py::self)
+    .def(py::pickle(&vslPickleGetState<f_params>,
+                    &vslPickleSetState<f_params>))
     ;
 
   // acal_match_utils::acal_corr
@@ -67,7 +71,7 @@ void wrap_acal(py::module &m)
                     &vslPickleSetState<acal_match_pair>))
     ;
 
-  // match_params
+  // acal_match_graph::match_params
   py::class_<match_params> (m, "match_params")
     .def(py::init(&init_struct_from_kwargs<match_params>))
     .def("__repr__", repr_by_dict<match_params>)
@@ -86,7 +90,7 @@ void wrap_acal(py::module &m)
                     &vslPickleSetState<match_params>))
     ;
 
-  // acal_match_graph
+  // acal_match_graph::acal_match_graph
   py::class_<acal_match_graph>(m, "match_graph")
     .def(py::init<>())
     ;
