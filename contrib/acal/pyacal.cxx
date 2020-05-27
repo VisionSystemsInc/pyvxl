@@ -19,6 +19,12 @@ namespace py = pybind11;
 
 namespace pyvxl { namespace acal {
 
+// simplify overload casting (C++11 version)
+// https://pybind11.readthedocs.io/en/stable/classes.html#overloaded-methods
+template <typename... Args>
+using overload_cast_ = py::detail::overload_cast_impl<Args...>;
+
+
 void wrap_acal(py::module &m)
 {
 
@@ -96,44 +102,57 @@ void wrap_acal(py::module &m)
 
   // acal_match_tree::acal_match_node
   py::class_<acal_match_node, std::shared_ptr<acal_match_node> >(m, "match_node")
-    .def(py::init<>())
+    .def(py::init<size_t>(), py::arg("cam_id") = 0)
+    .def("__str__", streamToString<acal_match_node>)
     .def("__len__", &acal_match_node::size)
     .def("is_leaf", &acal_match_node::is_leaf)
     .def("is_root", &acal_match_node::is_root)
+    .def("has_parent", &acal_match_node::has_parent)
     .def_readonly("cam_id", &acal_match_node::cam_id_)
-    .def_readonly("node_depth", &acal_match_node::node_depth_)
     .def_readonly("children", &acal_match_node::children_)
     .def_readonly("self_to_child_matches", &acal_match_node::self_to_child_matches_)
-    .def("parent", &acal_match_node::parent, py::arg("root"))
+    .def("parent", overload_cast_<>()(&acal_match_node::parent, py::const_))
+    .def(py::self == py::self)
     ;
 
   // acal_match_tree::acal_match_tree
   py::class_<acal_match_tree, std::shared_ptr<acal_match_tree> >(m, "match_tree")
-    // .def(py::init<>())
-    .def(py::init<std::shared_ptr<acal_match_node> >())
+    .def(py::init<size_t>(), py::arg("root_id") = 0)
+    .def("__str__", streamToString<acal_match_tree>)
     .def("__len__", &acal_match_tree::size)
     .def_readonly("min_n_tracks", &acal_match_tree::min_n_tracks_)
     .def_readonly("root", &acal_match_tree::root_)
+    .def_property_readonly("root_id", [] (const acal_match_tree& self) { return self.root_->cam_id_; } )
     .def("save_tree_dot_format", &acal_match_tree::save_tree_dot_format,
          "save a match tree to a dot file",
          py::arg("path"))
+    .def(py::self == py::self)
     ;
 
   // acal_match_graph::match_vertex
   py::class_<match_vertex, std::shared_ptr<match_vertex> >(m, "match_vertex")
-    .def(py::init<>())
-    .def(py::init<size_t>())
+    .def(py::init<size_t>(), py::arg("cam_id") = 0)
+    .def("__str__", streamToString<match_vertex>)
     .def_readwrite("cam_id", &match_vertex::cam_id_)
     .def_readwrite("mark", &match_vertex::mark_)
+    .def("edge_ids", &match_vertex::edge_ids)
+    .def(py::self == py::self)
     ;
 
   // acal_match_graph::match_edge
   py::class_<match_edge, std::shared_ptr<match_edge> >(m, "match_edge")
-    .def(py::init<>())
+    .def(py::init<std::shared_ptr<match_vertex>, std::shared_ptr<match_vertex>,
+                  std::vector<acal_match_pair> const&, size_t>(),
+         py::arg("v0"), py::arg("v1"), py::arg("matches"), py::arg("id") = 0)
+    .def("__str__", streamToString<match_edge>)
     .def_readwrite("id", &match_edge::id_)
     .def_readwrite("matches", &match_edge::matches_)
     .def_readwrite("v0", &match_edge::v0_)
+    .def_property_readonly("v0_id", [] (const match_edge& self) { return self.v0_->cam_id_; } )
+    .def_property_readonly("v1_id", [] (const match_edge& self) { return self.v1_->cam_id_; } )
     .def_readwrite("v1", &match_edge::v1_)
+    .def("vertex_ids", &match_edge::vertex_ids)
+    .def(py::self == py::self)
     ;
 
   // acal_match_graph::acal_match_graph
@@ -170,6 +189,7 @@ void wrap_acal(py::module &m)
          "validate match trees and set metric")
     .def("save_graph_dot_format", &acal_match_graph::save_graph_dot_format,
          "save a match graph to a dot file", py::arg("path"))
+    .def(py::self == py::self)
 
     ;
 

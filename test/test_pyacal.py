@@ -23,10 +23,11 @@ class AcalBase(utils.VxlBase):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.default_data = dict()
+    self.init_data = dict()
 
-  def _set_data_full(self):
+  def _data_after_init(self):
     data = copy.deepcopy(self.default_data)
-    data = utils.update_nested_dict(data, getattr(self, 'set_data', {}))
+    data = utils.update_nested_dict(data, getattr(self, 'init_data', {}))
     return data
 
   def _cls_instance(self, *args, **kwargs):
@@ -38,32 +39,30 @@ class AcalBase(utils.VxlBase):
     self.assertIsInstance(instance, self.cls)
     self.assertAttributes(instance, self.default_data)
 
-  @utils.skipUnlessAttr('set_data')
+  @utils.skipUnlessAttr('init_data')
   def test_init(self):
-    init_data = self._set_data_full()
-    instance = self._cls_instance(**init_data)
+    instance = self._cls_instance(**self.init_data)
+    new_data = self._data_after_init()
     self.assertIsInstance(instance, self.cls)
-    self.assertAttributes(instance, init_data)
+    self.assertAttributes(instance, new_data)
 
-  @utils.skipUnlessAttr('set_data')
+  @utils.skipUnlessClassAttr('set')
   def test_set(self):
     instance = self._cls_instance()
-    instance.set(**self.set_data)
-    new_data = self._set_data_full()
+    instance.set(**self.init_data)
+    new_data = self._data_after_init()
     self.assertAttributes(instance, new_data)
 
   def test_equal(self):
-    init_data = self._set_data_full()
-    instance_A = self._cls_instance(**init_data)
-    instance_B = self._cls_instance(**init_data)
+    instance_A = self._cls_instance(**self.init_data)
+    instance_B = self._cls_instance(**self.init_data)
     self.assertEqual(instance_A, instance_B)
 
   @utils.skipUnlessClassAttr('__getstate__')
   def test_pickle(self):
-    init_data = self._set_data_full()
-    insstance_A = self._cls_instance(**init_data)
-    insstance_B = pickle.loads(pickle.dumps(insstance_A))
-    self.assertEqual(insstance_A, insstance_B)
+    instance_A = self._cls_instance(**self.init_data)
+    instance_B = pickle.loads(pickle.dumps(instance_A))
+    self.assertEqual(instance_A, instance_B)
 
 
 class acal_f_params(AcalBase, unittest.TestCase):
@@ -79,7 +78,7 @@ class acal_f_params(AcalBase, unittest.TestCase):
         'ray_uncertainty_tol': 50.0,
         'min_num_matches': 5,
     }
-    self.set_data = {
+    self.init_data = {
         'epi_dist_mul': 3.0,
         'max_epi_dist': 5.5,
         'F_similar_abcd_tol': 0.51,
@@ -98,7 +97,7 @@ class acal_corr(AcalBase, unittest.TestCase):
         'id': np.uint(-1),
         'pt': vgl.point_2d(-1, -1)
     }
-    self.set_data = {
+    self.init_data = {
         'id': 10,
         'pt': vgl.point_2d(10.0, 20.0)
     }
@@ -113,7 +112,7 @@ class acal_match_pair(AcalBase, unittest.TestCase):
         'corr1': {'id': np.uint(-1), 'pt': vgl.point_2d(-1, -1)},
         'corr2': {'id': np.uint(-1), 'pt': vgl.point_2d(-1, -1)},
     }
-    self.set_data = {
+    self.init_data = {
         'corr1': {'id': 10, 'pt': vgl.point_2d(10.0, 20.0)},
         'corr2': {'id': 15, 'pt': vgl.point_2d(15.0, 25.0)},
     }
@@ -130,7 +129,7 @@ class acal_match_params(AcalBase, unittest.TestCase):
         'max_proj_error': 1.0,
         'max_uncal_proj_error': 20.0,
     }
-    self.set_data = {
+    self.init_data = {
         'min_n_tracks': 5,
         'min_n_cams': 10,
         'max_proj_error': 10.0,
@@ -144,15 +143,13 @@ class acal_match_node(AcalBase, unittest.TestCase):
     super().__init__(*args, **kwargs)
     self.cls = acal.match_node
     self.default_data = {
-      'cam_id': np.uint(-1),
-      'node_depth': 0,
+      'cam_id': 0,
       'children': [],
       'self_to_child_matches': [],
     }
-
-  @unittest.skip("not yet implemented")
-  def test_equal(self):
-    pass
+    self.init_data = {
+      'cam_id': 100,
+    }
 
 
 class acal_match_tree(AcalBase, unittest.TestCase):
@@ -161,16 +158,12 @@ class acal_match_tree(AcalBase, unittest.TestCase):
     super().__init__(*args, **kwargs)
     self.cls = acal.match_tree
     self.default_data = {
+      'root_id' : 0,
       'min_n_tracks': 1,
     }
-
-  def _cls_instance(self, *args, **kwargs):
-    root = acal.match_node()
-    return acal.match_tree(root, *args, **kwargs)
-
-  @unittest.skip("not yet implemented")
-  def test_equal(self):
-    pass
+    self.init_data = {
+      'root_id': 100,
+    }
 
 
 class acal_match_vertex(AcalBase, unittest.TestCase):
@@ -179,13 +172,12 @@ class acal_match_vertex(AcalBase, unittest.TestCase):
     super().__init__(*args, **kwargs)
     self.cls = acal.match_vertex
     self.default_data = {
-      'cam_id': np.uint(-1),
+      'cam_id': 0,
       'mark': False,
     }
-
-  @unittest.skip("not yet implemented")
-  def test_equal(self):
-    pass
+    self.init_data = {
+      'cam_id': 100,
+    }
 
 
 class acal_match_edge(AcalBase, unittest.TestCase):
@@ -194,13 +186,31 @@ class acal_match_edge(AcalBase, unittest.TestCase):
     super().__init__(*args, **kwargs)
     self.cls = acal.match_edge
     self.default_data = {
-      'id': np.uint(-1),
+      'id': 0,
+      'v0_id': 0,
+      'v1_id': 1,
       'matches': [],
     }
+    self.init_data = {
+      'id': 100,
+      'v0_id': 100,
+      'v1_id': 200,
+    }
 
-  @unittest.skip("not yet implemented")
-  def test_equal(self):
-    pass
+  def _cls_instance(self, **kwargs):
+
+    if 'v0' not in kwargs:
+      v0_id = kwargs.pop('v0_id', self.default_data['v0_id'])
+      kwargs['v0'] = acal.match_vertex(cam_id = v0_id)
+
+    if 'v1' not in kwargs:
+      v1_id = kwargs.pop('v1_id', self.default_data['v1_id'])
+      kwargs['v1'] = acal.match_vertex(cam_id = v1_id)
+
+    if 'matches' not in kwargs:
+      kwargs['matches'] = []
+
+    return self.cls(**kwargs)
 
 
 class acal_match_graph(AcalBase, unittest.TestCase):
@@ -209,13 +219,8 @@ class acal_match_graph(AcalBase, unittest.TestCase):
     super().__init__(*args, **kwargs)
     self.cls = acal.match_graph
 
-  @unittest.skip("not yet implemented")
-  def test_equal(self):
-    pass
 
-
-  @staticmethod
-  def _construct_example():
+  def _construct_example(self):
     '''
     Example graph inputs for two connected components
        component "A" = 4 images/cameras (index 0-3) with 4 correspondences
@@ -280,21 +285,16 @@ class acal_match_graph(AcalBase, unittest.TestCase):
 
     incidence_matrix = incidenceA + incidenceB
     incidence_matrix = {item[0]: {item[1]: item[2]} for item in incidence_matrix}
-
-    return (cams, image_paths, incidence_matrix)
-
-
-  def test_run(self):
-
-    cams, image_paths, incidence_matrix = self._construct_example()
     # print(json.dumps(incidence_matrix, indent = 2, default = json_serializer))
 
+    # create match graph
     match_graph = self._cls_instance()
     match_graph.acams = cams
     match_graph.image_paths = image_paths
     success = match_graph.load_incidence_matrix(incidence_matrix)
     self.assertTrue(success, "incidence matrix failed to load")
 
+    # connected components
     match_graph.find_connected_components()
     components = match_graph.connected_components
     self.assertEqual(len(components), 2,
@@ -304,6 +304,7 @@ class acal_match_graph(AcalBase, unittest.TestCase):
     self.assertEqual(len(components[1]), 3,
                      "incorrect size of connected component[1]")
 
+    # focus tracks
     match_graph.compute_focus_tracks()
     tracks = match_graph.focus_tracks
     self.assertEqual(len(tracks[0][0]), 4,
@@ -311,8 +312,21 @@ class acal_match_graph(AcalBase, unittest.TestCase):
     self.assertEqual(len(tracks[1][4]), 3,
                      "incorrect size of focus_track[1][4]")
 
+    # additional processing
     match_graph.compute_match_trees()
     match_graph.validate_match_trees_and_set_metric()
+
+    return match_graph
+
+
+  def test_run(self):
+    self._construct_example()
+
+
+  def test_equal_after_run(self):
+    match_graph_A = self._construct_example()
+    match_graph_B = self._construct_example()
+    self.assertEqual(match_graph_A, match_graph_B)
 
 
 if __name__ == '__main__':
