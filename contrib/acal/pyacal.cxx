@@ -8,6 +8,7 @@
 
 #include <acal/acal_f_utils.h>
 #include <acal/acal_match_graph.h>
+#include <acal/acal_match_tree.h>
 #include <acal/acal_match_utils.h>
 
 // io classes for py::pickle
@@ -110,8 +111,10 @@ void wrap_acal(py::module &m)
     .def("has_parent", &acal_match_node::has_parent)
     .def_readonly("cam_id", &acal_match_node::cam_id_)
     .def_readonly("children", &acal_match_node::children_)
+    .def("children_ids", &acal_match_node::children_ids)
     .def_readonly("self_to_child_matches", &acal_match_node::self_to_child_matches_)
     .def("parent", overload_cast_<>()(&acal_match_node::parent, py::const_))
+    .def("parent_id", &acal_match_node::parent_id)
     .def(py::self == py::self)
     ;
 
@@ -123,6 +126,8 @@ void wrap_acal(py::module &m)
     .def_readonly("min_n_tracks", &acal_match_tree::min_n_tracks_)
     .def_readonly("root", &acal_match_tree::root_)
     .def_property_readonly("root_id", [] (const acal_match_tree& self) { return self.root_->cam_id_; } )
+    .def("add_child_node", &acal_match_tree::add_child_node)
+    .def("cam_ids", &acal_match_tree::cam_ids)
     .def("save_tree_dot_format", &acal_match_tree::save_tree_dot_format,
          "save a match tree to a dot file",
          py::arg("path"))
@@ -190,7 +195,6 @@ void wrap_acal(py::module &m)
     .def("save_graph_dot_format", &acal_match_graph::save_graph_dot_format,
          "save a match graph to a dot file", py::arg("path"))
     .def(py::self == py::self)
-
     ;
 
 } // wrap_acal

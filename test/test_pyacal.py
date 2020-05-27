@@ -166,6 +166,108 @@ class acal_match_tree(AcalBase, unittest.TestCase):
     }
 
 
+  def _construct_example(self):
+    '''
+    Example tree
+    '''
+
+    def _make_match_pair(id0, x0, y0, id1, x1, y1):
+      return acal.match_pair(acal.corr(id0, vgl.point_2d(x0, y0)),
+                             acal.corr(id1, vgl.point_2d(x1, y1)))
+
+    # 12 -> 21 match pairs
+    pairs_b = [
+        ( 818, 188.987, 227.430,  1617, 278.163, 315.765),
+        ( 983, 109.553, 284.380,  1834, 150.748, 361.344),
+        (1019, 334.196, 286.747,  2022, 418.509, 393.688),
+        (1073, 327.695, 300.218,  2163, 420.439, 419.478),
+        (1075, 323.612, 301.511,  2159, 415.352, 420.685),
+        (2395, 224.962, 100.704,   541, 282.362, 108.280),
+    ]
+    pairs_b = [_make_match_pair(*item) for item in pairs_b]
+
+    # 21 -> 22 match pairs
+    pairs_a = [
+        (1988, 38.454, 388.516,  1378, 45.002, 400.503),
+        (2047, 24.258, 406.217,  1468, 30.762, 419.905),
+        (2159, 15.352, 420.685,  1427, 60.936, 405.096),
+        (2163, 20.439, 419.478,  1429, 66.727, 403.056),
+        (2207, 4.9441, 445.987,  1629, 3.7094, 476.475),
+        (2308, 3.7507, 450.587,  1696, 2.5715, 481.109),
+    ]
+    pairs_a = [_make_match_pair(*item) for item in pairs_a]
+
+    # tree structure (parent, child, pairs)
+    root_id = 12
+    tree_structure = [
+        ( 12,  21, pairs_b),
+        ( 21,  22, pairs_a),
+        ( 12, 210, pairs_b),
+        ( 21, 220, pairs_a),
+        (210, 221, pairs_a),
+        ( 21, 222, pairs_a),
+    ]
+
+    # create tree
+    tree = acal.match_tree(root_id)
+
+    # test root object
+    root = tree.root
+    self.assertEqual(root.cam_id, root_id,
+                     "Empty tree, root node, incorrect id")
+    self.assertEqual(root.is_root(), True,
+                     "Empty tree, root node, incorrect is_root")
+    self.assertEqual(root.is_leaf(), True,
+                     "Empty tree, root node, incorrect is_leaf")
+
+    # add single child
+    child_data = tree_structure[0]
+    tree.add_child_node(*child_data)
+
+    self.assertEqual(len(root), 1,
+                     "Single child, root node, incorrect size")
+    self.assertEqual(root.is_root(), True,
+                     "Single child, root node, incorrect is_root")
+    self.assertEqual(root.is_leaf(), False,
+                     "Single child, root node, incorrect is_leaf")
+
+    child = root.children[0]
+    self.assertEqual(child.parent_id(), child_data[0],
+                     "Single child, child node, incorrect parent id")
+    self.assertEqual(child.cam_id, child_data[1],
+                     "Single child, child node, incorrect id")
+    self.assertEqual(child.is_root(), False,
+                     "Single child, child node, incorrect is_root")
+    self.assertEqual(child.is_leaf(), True,
+                     "Single child, child node, incorrect is_leaf")
+
+    # add more children
+    for item in tree_structure[1:]:
+      tree.add_child_node(*item)
+
+    root_children_ids = [item[1] for item in tree_structure
+                         if item[0] == root_id]
+    self.assertEqual(root.children_ids(), root_children_ids,
+                     "Full tree, root node, incorrect children_ids")
+
+    cam_ids = [i for item in tree_structure for i in item[0:2]]
+    cam_ids = sorted(list(set(cam_ids)))
+    self.assertEqual(tree.cam_ids(), cam_ids,
+                     "Full tree, incorrect cam_ids")
+
+    return tree
+
+
+  def test_run(self):
+    self._construct_example()
+
+
+  def test_equal_after_run(self):
+    tree_A = self._construct_example()
+    tree_B = self._construct_example()
+    self.assertEqual(tree_A, tree_B)
+
+
 class acal_match_vertex(AcalBase, unittest.TestCase):
 
   def __init__(self, *args, **kwargs):
