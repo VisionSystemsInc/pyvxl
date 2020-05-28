@@ -119,8 +119,8 @@ void wrap_acal(py::module &m)
     .def("parent_id", &acal_match_node::parent_id)
     .def(py::self == py::self)
     .def_property("parent",
-                  overload_cast_<>()(&acal_match_node::parent, py::const_)
-                  overload_cast_<std::shared_ptr<acal_match_node> >()(&acal_match_node::parent)
+                  overload_cast_<>()(&acal_match_node::parent, py::const_),
+                  overload_cast_<std::shared_ptr<acal_match_node> >()(&acal_match_node::parent))
                   /* (std::shared_ptr<acal_match_node> (acal_match_node::*)() const) &acal_match_node::parent, */
                   /* (void (acal_match_node::*)(std::shared_ptr<acal_match_node>)) &acal_match_node::parent) */
     ;

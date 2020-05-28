@@ -157,7 +157,7 @@ class acal_match_tree(AcalBase, unittest.TestCase):
     super().__init__(*args, **kwargs)
     self.cls = acal.match_tree
     self.default_data = {
-      'root_id' : 0,
+      'root_id': 0,
       'min_n_tracks': 1,
     }
     self.init_data = {
