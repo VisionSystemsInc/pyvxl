@@ -1,6 +1,8 @@
 #include "pyacal.h"
 #include "../../pyvxl_util.h"
 
+#include <memory>
+
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -14,6 +16,7 @@
 // io classes for py::pickle
 #include <acal/io/acal_io_f_utils.h>
 #include <acal/io/acal_io_match_graph.h>
+#include <acal/io/acal_io_match_tree.h>
 #include <acal/io/acal_io_match_utils.h>
 
 namespace py = pybind11;
@@ -113,9 +116,13 @@ void wrap_acal(py::module &m)
     .def_readonly("children", &acal_match_node::children_)
     .def("children_ids", &acal_match_node::children_ids)
     .def_readonly("self_to_child_matches", &acal_match_node::self_to_child_matches_)
-    .def("parent", overload_cast_<>()(&acal_match_node::parent, py::const_))
     .def("parent_id", &acal_match_node::parent_id)
     .def(py::self == py::self)
+    .def_property("parent",
+                  overload_cast_<>()(&acal_match_node::parent, py::const_)
+                  overload_cast_<std::shared_ptr<acal_match_node> >()(&acal_match_node::parent)
+                  /* (std::shared_ptr<acal_match_node> (acal_match_node::*)() const) &acal_match_node::parent, */
+                  /* (void (acal_match_node::*)(std::shared_ptr<acal_match_node>)) &acal_match_node::parent) */
     ;
 
   // acal_match_tree::acal_match_tree
@@ -132,6 +139,8 @@ void wrap_acal(py::module &m)
          "save a match tree to a dot file",
          py::arg("path"))
     .def(py::self == py::self)
+    .def(py::pickle(&vslPickleGetState<acal_match_tree>,
+                    &vslPickleSetState<acal_match_tree>))
     ;
 
   // acal_match_graph::match_vertex
@@ -146,8 +155,10 @@ void wrap_acal(py::module &m)
 
   // acal_match_graph::match_edge
   py::class_<match_edge, std::shared_ptr<match_edge> >(m, "match_edge")
-    .def(py::init<std::shared_ptr<match_vertex>, std::shared_ptr<match_vertex>,
-                  std::vector<acal_match_pair> const&, size_t>(),
+    .def(py::init<std::shared_ptr<match_vertex>,
+                  std::shared_ptr<match_vertex>,
+                  std::vector<acal_match_pair> const&,
+                  size_t>(),
          py::arg("v0"), py::arg("v1"), py::arg("matches"), py::arg("id") = 0)
     .def("__str__", streamToString<match_edge>)
     .def_readwrite("id", &match_edge::id_)
@@ -195,6 +206,9 @@ void wrap_acal(py::module &m)
     .def("save_graph_dot_format", &acal_match_graph::save_graph_dot_format,
          "save a match graph to a dot file", py::arg("path"))
     .def(py::self == py::self)
+
+    .def(py::pickle(&vslPickleGetState<acal_match_graph>,
+                    &vslPickleSetState<acal_match_graph>))
     ;
 
 } // wrap_acal

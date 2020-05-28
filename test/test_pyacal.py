@@ -6,7 +6,6 @@ import unittest
 import utils
 
 from vxl import vgl
-from vxl import vnl
 from vxl import vpgl
 from vxl.contrib import acal
 
