@@ -121,8 +121,6 @@ void wrap_acal(py::module &m)
     .def_property("parent",
                   overload_cast_<>()(&acal_match_node::parent, py::const_),
                   overload_cast_<std::shared_ptr<acal_match_node> >()(&acal_match_node::parent))
-                  /* (std::shared_ptr<acal_match_node> (acal_match_node::*)() const) &acal_match_node::parent, */
-                  /* (void (acal_match_node::*)(std::shared_ptr<acal_match_node>)) &acal_match_node::parent) */
     ;
 
   // acal_match_tree::acal_match_tree
@@ -178,17 +176,17 @@ void wrap_acal(py::module &m)
     .def(py::init<>())
     .def(py::init<std::map<size_t, std::map<size_t, std::vector<acal_match_pair> > > const&>())
 
-    // Properties
-    .def_property("params", &acal_match_graph::get_params, &acal_match_graph::set_params)
-    .def_property("image_paths", &acal_match_graph::get_image_paths, &acal_match_graph::set_image_paths)
-    .def_property("acams", &acal_match_graph::all_acams, &acal_match_graph::set_all_acams)
-    .def_property("vertices", &acal_match_graph::vertices, &acal_match_graph::set_vertices)
-    .def_property("edges", &acal_match_graph::edges, &acal_match_graph::set_edges)
-    .def_property("connected_components", &acal_match_graph::get_connected_components, &acal_match_graph::set_connected_components)
-    .def_property("focus_tracks", &acal_match_graph::get_focus_tracks, &acal_match_graph::set_focus_tracks)
-    .def_property("focus_track_metrics", &acal_match_graph::get_focus_track_metrics, &acal_match_graph::set_focus_track_metrics)
-    .def_property("trees", &acal_match_graph::get_match_trees, &acal_match_graph::set_match_trees)
-    .def_property("tree_metrics", &acal_match_graph::get_match_tree_metrics, &acal_match_graph::set_match_tree_metrics)
+    // Members
+    .def_readwrite("params", &acal_match_graph::params_)
+    .def_readwrite("image_paths", &acal_match_graph::image_paths_)
+    .def_readwrite("acams", &acal_match_graph::all_acams_)
+    .def_readwrite("vertices", &acal_match_graph::match_vertices_)
+    .def_readwrite("edges", &acal_match_graph::match_edges_)
+    .def_readwrite("connected_components", &acal_match_graph::conn_comps_)
+    .def_readwrite("focus_tracks", &acal_match_graph::focus_tracks_)
+    .def_readwrite("focus_track_metrics", &acal_match_graph::focus_track_metric_)
+    .def_readwrite("trees", &acal_match_graph::match_trees_)
+    .def_readwrite("tree_metrics", &acal_match_graph::match_tree_metric_)
 
     // Methods
     .def("load_incidence_matrix", &acal_match_graph::load_incidence_matrix,
