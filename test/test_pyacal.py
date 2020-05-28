@@ -267,6 +267,12 @@ class acal_match_tree(AcalBase, unittest.TestCase):
     self.assertEqual(tree_A, tree_B)
 
 
+  def test_pickle_after_run(self):
+    tree_A = self._construct_example()
+    tree_B = self._construct_example()
+    self.assertEqual(tree_A, tree_B)
+
+
 class acal_match_vertex(AcalBase, unittest.TestCase):
 
   def __init__(self, *args, **kwargs):
@@ -427,6 +433,12 @@ class acal_match_graph(AcalBase, unittest.TestCase):
   def test_equal_after_run(self):
     match_graph_A = self._construct_example()
     match_graph_B = self._construct_example()
+    self.assertEqual(match_graph_A, match_graph_B)
+
+
+  def test_pickle_after_run(self):
+    match_graph_A = self._construct_example()
+    match_graph_B = pickle.loads(pickle.dumps(match_graph_A))
     self.assertEqual(match_graph_A, match_graph_B)
 
 
