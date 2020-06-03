@@ -42,7 +42,7 @@ function(pyvxl_add_module vxl_name)
     install(FILES __init__.py DESTINATION ${install_dir})
 
     # initialize target if necessary
-    if (EXISTS "${target_file_h}")
+    if (EXISTS "${target_file_cxx}")
         message(STATUS "pyvxl found ${target_name}")
 
         # Add pybind11 module
