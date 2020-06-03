@@ -45,10 +45,9 @@
 #include <array>
 #include <cmath>
 
-
 namespace py = pybind11;
 
-namespace pyvxl {
+namespace pyvxl { namespace vpgl {
 
 /* This is a "trampoline" helper class for the virtual vpgl_camera<double>
  * class, which redirects virtual calls back to Python */
@@ -893,11 +892,11 @@ void wrap_vpgl(py::module &m)
         py::arg("uncertainty"), py::arg("lvcs") = vpgl_lvcs());
 
 }
-}
+}}
 
 PYBIND11_MODULE(_vpgl, m)
 {
-  m.doc() =  "Python bindings for the VIL computer vision libraries";
+  m.doc() =  "Python bindings for the VPGL computer vision libraries";
 
-  pyvxl::wrap_vpgl(m);
+  pyvxl::vpgl::wrap_vpgl(m);
 }

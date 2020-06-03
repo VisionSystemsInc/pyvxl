@@ -3,11 +3,11 @@
 
 #include <pybind11/pybind11.h>
 
-namespace pyvxl {
+namespace pyvxl { namespace vpgl {
 
 void wrap_vpgl(pybind11::module &m);
 
-}
+}}
 
 
 #endif
