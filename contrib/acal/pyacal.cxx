@@ -1,6 +1,8 @@
 #include "pyacal.h"
 #include "../../pyvxl_util.h"
 
+#include <memory>
+
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -14,6 +16,7 @@
 // io classes for py::pickle
 #include <acal/io/acal_io_f_utils.h>
 #include <acal/io/acal_io_match_graph.h>
+#include <acal/io/acal_io_match_tree.h>
 #include <acal/io/acal_io_match_utils.h>
 
 namespace py = pybind11;
@@ -113,9 +116,11 @@ void wrap_acal(py::module &m)
     .def_readonly("children", &acal_match_node::children_)
     .def("children_ids", &acal_match_node::children_ids)
     .def_readonly("self_to_child_matches", &acal_match_node::self_to_child_matches_)
-    .def("parent", overload_cast_<>()(&acal_match_node::parent, py::const_))
     .def("parent_id", &acal_match_node::parent_id)
     .def(py::self == py::self)
+    .def_property("parent",
+                  overload_cast_<>()(&acal_match_node::parent, py::const_),
+                  overload_cast_<std::shared_ptr<acal_match_node> >()(&acal_match_node::parent))
     ;
 
   // acal_match_tree::acal_match_tree
@@ -132,6 +137,8 @@ void wrap_acal(py::module &m)
          "save a match tree to a dot file",
          py::arg("path"))
     .def(py::self == py::self)
+    .def(py::pickle(&vslPickleGetState<acal_match_tree>,
+                    &vslPickleSetState<acal_match_tree>))
     ;
 
   // acal_match_graph::match_vertex
@@ -146,8 +153,10 @@ void wrap_acal(py::module &m)
 
   // acal_match_graph::match_edge
   py::class_<match_edge, std::shared_ptr<match_edge> >(m, "match_edge")
-    .def(py::init<std::shared_ptr<match_vertex>, std::shared_ptr<match_vertex>,
-                  std::vector<acal_match_pair> const&, size_t>(),
+    .def(py::init<std::shared_ptr<match_vertex>,
+                  std::shared_ptr<match_vertex>,
+                  std::vector<acal_match_pair> const&,
+                  size_t>(),
          py::arg("v0"), py::arg("v1"), py::arg("matches"), py::arg("id") = 0)
     .def("__str__", streamToString<match_edge>)
     .def_readwrite("id", &match_edge::id_)
@@ -167,17 +176,17 @@ void wrap_acal(py::module &m)
     .def(py::init<>())
     .def(py::init<std::map<size_t, std::map<size_t, std::vector<acal_match_pair> > > const&>())
 
-    // Properties
-    .def_property("params", &acal_match_graph::get_params, &acal_match_graph::set_params)
-    .def_property("image_paths", &acal_match_graph::get_image_paths, &acal_match_graph::set_image_paths)
-    .def_property("acams", &acal_match_graph::all_acams, &acal_match_graph::set_all_acams)
-    .def_property("vertices", &acal_match_graph::vertices, &acal_match_graph::set_vertices)
-    .def_property("edges", &acal_match_graph::edges, &acal_match_graph::set_edges)
-    .def_property("connected_components", &acal_match_graph::get_connected_components, &acal_match_graph::set_connected_components)
-    .def_property("focus_tracks", &acal_match_graph::get_focus_tracks, &acal_match_graph::set_focus_tracks)
-    .def_property("focus_track_metrics", &acal_match_graph::get_focus_track_metrics, &acal_match_graph::set_focus_track_metrics)
-    .def_property("trees", &acal_match_graph::get_match_trees, &acal_match_graph::set_match_trees)
-    .def_property("tree_metrics", &acal_match_graph::get_match_tree_metrics, &acal_match_graph::set_match_tree_metrics)
+    // Members
+    .def_readwrite("params", &acal_match_graph::params_)
+    .def_readwrite("image_paths", &acal_match_graph::image_paths_)
+    .def_readwrite("acams", &acal_match_graph::all_acams_)
+    .def_readwrite("vertices", &acal_match_graph::match_vertices_)
+    .def_readwrite("edges", &acal_match_graph::match_edges_)
+    .def_readwrite("connected_components", &acal_match_graph::conn_comps_)
+    .def_readwrite("focus_tracks", &acal_match_graph::focus_tracks_)
+    .def_readwrite("focus_track_metrics", &acal_match_graph::focus_track_metric_)
+    .def_readwrite("trees", &acal_match_graph::match_trees_)
+    .def_readwrite("tree_metrics", &acal_match_graph::match_tree_metric_)
 
     // Methods
     .def("load_incidence_matrix", &acal_match_graph::load_incidence_matrix,
@@ -195,6 +204,9 @@ void wrap_acal(py::module &m)
     .def("save_graph_dot_format", &acal_match_graph::save_graph_dot_format,
          "save a match graph to a dot file", py::arg("path"))
     .def(py::self == py::self)
+
+    .def(py::pickle(&vslPickleGetState<acal_match_graph>,
+                    &vslPickleSetState<acal_match_graph>))
     ;
 
 } // wrap_acal

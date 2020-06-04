@@ -6,7 +6,6 @@ import unittest
 import utils
 
 from vxl import vgl
-from vxl import vnl
 from vxl import vpgl
 from vxl.contrib import acal
 
@@ -158,7 +157,7 @@ class acal_match_tree(AcalBase, unittest.TestCase):
     super().__init__(*args, **kwargs)
     self.cls = acal.match_tree
     self.default_data = {
-      'root_id' : 0,
+      'root_id': 0,
       'min_n_tracks': 1,
     }
     self.init_data = {
@@ -263,6 +262,12 @@ class acal_match_tree(AcalBase, unittest.TestCase):
 
 
   def test_equal_after_run(self):
+    tree_A = self._construct_example()
+    tree_B = self._construct_example()
+    self.assertEqual(tree_A, tree_B)
+
+
+  def test_pickle_after_run(self):
     tree_A = self._construct_example()
     tree_B = self._construct_example()
     self.assertEqual(tree_A, tree_B)
@@ -428,6 +433,12 @@ class acal_match_graph(AcalBase, unittest.TestCase):
   def test_equal_after_run(self):
     match_graph_A = self._construct_example()
     match_graph_B = self._construct_example()
+    self.assertEqual(match_graph_A, match_graph_B)
+
+
+  def test_pickle_after_run(self):
+    match_graph_A = self._construct_example()
+    match_graph_B = pickle.loads(pickle.dumps(match_graph_A))
     self.assertEqual(match_graph_A, match_graph_B)
 
 
