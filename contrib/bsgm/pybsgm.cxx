@@ -13,12 +13,6 @@ namespace py = pybind11;
 
 namespace pyvxl { namespace bsgm {
 
-// simplify overload casting (C++11 version)
-// https://pybind11.readthedocs.io/en/stable/classes.html#overloaded-methods
-template <typename... Args>
-using overload_cast_ = py::detail::overload_cast_impl<Args...>;
-
-
 // wrapping for bsgm_prob_pairwise_dsm
 template<class CAM_T>
 void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
