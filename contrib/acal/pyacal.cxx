@@ -23,12 +23,6 @@ namespace py = pybind11;
 
 namespace pyvxl { namespace acal {
 
-// simplify overload casting (C++11 version)
-// https://pybind11.readthedocs.io/en/stable/classes.html#overloaded-methods
-template <typename... Args>
-using overload_cast_ = py::detail::overload_cast_impl<Args...>;
-
-
 void wrap_acal(py::module &m)
 {
 
