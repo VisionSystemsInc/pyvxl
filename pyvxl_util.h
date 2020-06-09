@@ -6,6 +6,14 @@
 #include <sstream>
 #include <vsl/vsl_binary_io.h>
 
+namespace pyvxl {
+
+// simplify overload casting (C++11 version)
+// https://pybind11.readthedocs.io/en/stable/classes.html#overloaded-methods
+template <typename... Args>
+using overload_cast_ = pybind11::detail::overload_cast_impl<Args...>;
+
+
 // Return a string based on output of the object's stream operator
 template<typename T>
 std::string streamToString(T const& t){
@@ -137,5 +145,8 @@ T init_struct_from_kwargs(pybind11::kwargs kwargs)
   set_struct_from_kwargs<T>(self, kwargs);
   return self;
 }
+
+
+} // end namespace pyvxl
 
 #endif
