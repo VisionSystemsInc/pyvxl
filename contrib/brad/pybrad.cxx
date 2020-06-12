@@ -50,6 +50,40 @@ vil_image_view<float> estimate_reflectance(vil_image_view<float> const& radiance
 
 void wrap_brad(py::module &m)
 {
+
+  // brad_calibration
+  m.def("radiometric_calibration_params", &brad_radiometric_calibration_params,
+        py::arg("mdata"));
+
+  m.def("radiometric_calibration", &brad_radiometric_calibration,
+        py::call_guard<py::gil_scoped_release>(),
+        py::arg("digital_number"),
+        py::arg("gain") = py::list(),
+        py::arg("offset") = py::list());
+
+  // brad_image_atmospherics_est
+  m.def("visible_band_ids", &brad_visible_band_ids,
+        py::arg("mdata"));
+
+  m.def("airlight", &brad_airlight,
+        py::call_guard<py::gil_scoped_release>(),
+        py::arg("toa_reflectance"),
+        py::arg("vis_band_ids") = py::list(),
+        py::arg("frac") = 0.001);
+
+  m.def("toa_reflectance_mean", &brad_toa_reflectance_mean,
+        py::call_guard<py::gil_scoped_release>(),
+        py::arg("toa_reflectance"),
+        py::arg("vis_band_ids") = py::list());
+
+  m.def("surface_reflectance", &brad_surface_reflectance,
+        py::call_guard<py::gil_scoped_release>(),
+        py::arg("toa_reflectance"),
+        py::arg("toa_reflectance_mean"),
+        py::arg("airlight") = py::list(),
+        py::arg("surface_reflectance_mean") = 0.3);
+
+
   m.def("estimate_reflectance", &estimate_reflectance,
         py::call_guard<py::gil_scoped_release>(),
         py::arg("radiance"), py::arg("mdata"), py::arg("mean_reflectance"),
