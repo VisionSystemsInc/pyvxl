@@ -269,9 +269,105 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
          }
          ifs >> ptset;
        });
+}
 
+template<typename T>
+void wrap_box_2d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_box_2d<T> >(m, class_name.c_str())
 
+    .def(py::init())
+    // .def(py::init<double [], double []>())
+    .def(py::init<vgl_point_2d<T>, vgl_point_2d<T> >())
+    .def(py::init<T,T,T,T>(),
+        py::arg("min_x"),py::arg("max_x"),py::arg("min_y"),py::arg("max_y"))
+    .def("__repr__", streamToString<vgl_box_2d<T> >)
 
+    .def_property("min_x", &vgl_box_2d<T>::min_x, &vgl_box_2d<T>::set_min_x)
+    .def_property("min_y", &vgl_box_2d<T>::min_y, &vgl_box_2d<T>::set_min_y)
+    .def_property("min_point", &vgl_box_2d<T>::min_point, &vgl_box_2d<T>::set_min_point)
+    .def("set_min_position", &vgl_box_2d<T>::setmin_position)
+
+    .def_property("max_x", &vgl_box_2d<T>::max_x, &vgl_box_2d<T>::set_max_x)
+    .def_property("max_y", &vgl_box_2d<T>::max_y, &vgl_box_2d<T>::set_max_y)
+    .def_property("max_point", &vgl_box_2d<T>::max_point, &vgl_box_2d<T>::set_max_point)
+    .def("set_max_position", &vgl_box_2d<T>::setmax_position)
+
+    .def_property("centroid_x", &vgl_box_2d<T>::centroid_x, &vgl_box_2d<T>::set_centroid_x)
+    .def_property("centroid_y", &vgl_box_2d<T>::centroid_y, &vgl_box_2d<T>::set_centroid_y)
+    .def_property("centroid", &vgl_box_2d<T>::centroid,
+        (void (vgl_box_2d<T>::*)(vgl_point_2d<T> const&)) &vgl_box_2d<T>::set_centroid)
+    .def("set_centroid_position", (void (vgl_box_2d<T>::*)(T const [])) &vgl_box_2d<T>::set_centroid)
+
+    .def_property("width", &vgl_box_2d<T>::width, &vgl_box_2d<T>::set_width)
+    .def_property("height", &vgl_box_2d<T>::height, &vgl_box_2d<T>::set_height)
+
+    .def_property_readonly("volume", &vgl_box_2d<T>::volume)
+    .def_property_readonly("is_empty", &vgl_box_2d<T>::is_empty)
+
+    .def("add", (void (vgl_box_2d<T>::*)(vgl_point_2d<T> const&)) &vgl_box_2d<T>::add)
+    .def("add", (void (vgl_box_2d<T>::*)(vgl_box_2d<T> const&)) &vgl_box_2d<T>::add)
+
+    // .def_readonly("contains", (bool (vgl_box_2d<T>::*)(vgl_point_2d<T> const&) const) &vgl_box_2d<T>::contains)
+    // .def_readonly("contains", (bool (vgl_box_2d<T>::*)(vgl_box_2d<T> const&) const) &vgl_box_2d<T>::contains)
+    // .def_readonly("contains", (bool (vgl_box_2d<T>::*)(T const&, T const&) const) &vgl_box_2d<T>::contains)
+
+    .def("expand_about_centroid", &vgl_box_2d<T>::expand_about_centroid)
+    .def("scale_about_centroid", &vgl_box_2d<T>::scale_about_centroid)
+    .def("scale_about_origin", &vgl_box_2d<T>::scale_about_origin)
+    .def("empty", &vgl_box_2d<T>::empty);
+}
+
+template<typename T>
+void wrap_box_3d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_box_3d<T> >(m, class_name.c_str())
+
+    .def(py::init())
+    // .def(py::init<T [], T []>())
+    .def(py::init<vgl_point_3d<T>, vgl_point_3d<T> >())
+    .def(py::init<T,T,T,T,T,T>(),
+        py::arg("min_x"),py::arg("min_y"),py::arg("min_z"),
+        py::arg("max_x"),py::arg("max_y"),py::arg("max_z"))
+    .def("__repr__", streamToString<vgl_box_3d<T> >)
+
+    .def_property("min_x", &vgl_box_3d<T>::min_x, &vgl_box_3d<T>::set_min_x)
+    .def_property("min_y", &vgl_box_3d<T>::min_y, &vgl_box_3d<T>::set_min_y)
+    .def_property("min_z", &vgl_box_3d<T>::min_z, &vgl_box_3d<T>::set_min_z)
+    .def_property("min_point", &vgl_box_3d<T>::min_point, &vgl_box_3d<T>::set_min_point)
+    .def("set_min_position", &vgl_box_3d<T>::set_min_position)
+
+    .def_property("max_x", &vgl_box_3d<T>::max_x, &vgl_box_3d<T>::set_max_x)
+    .def_property("max_y", &vgl_box_3d<T>::max_y, &vgl_box_3d<T>::set_max_y)
+    .def_property("max_z", &vgl_box_3d<T>::max_z, &vgl_box_3d<T>::set_max_z)
+    .def_property("max_point", &vgl_box_3d<T>::max_point, &vgl_box_3d<T>::set_max_point)
+    .def("set_max_position", &vgl_box_3d<T>::set_max_position)
+
+    .def_property("centroid_x", &vgl_box_3d<T>::centroid_x, &vgl_box_3d<T>::set_centroid_x)
+    .def_property("centroid_y", &vgl_box_3d<T>::centroid_y, &vgl_box_3d<T>::set_centroid_y)
+    .def_property("centroid_z", &vgl_box_3d<T>::centroid_z, &vgl_box_3d<T>::set_centroid_z)
+    .def_property("centroid", &vgl_box_3d<T>::centroid,
+        (void (vgl_box_3d<T>::*)(vgl_point_3d<T> const&)) &vgl_box_3d<T>::set_centroid)
+    .def("set_centroid_position", (void (vgl_box_3d<T>::*)(T const [])) &vgl_box_3d<T>::set_centroid)
+
+    .def_property("width", &vgl_box_3d<T>::width, &vgl_box_3d<T>::set_width)
+    .def_property("height", &vgl_box_3d<T>::height, &vgl_box_3d<T>::set_height)
+
+    .def_property_readonly("volume", &vgl_box_3d<T>::volume)
+    .def_property_readonly("vertices", &vgl_box_3d<T>::vertices)
+    .def_property_readonly("is_empty", &vgl_box_3d<T>::is_empty)
+
+    .def("add", (void (vgl_box_3d<T>::*)(vgl_point_3d<T> const&)) &vgl_box_3d<T>::add)
+    .def("add", (void (vgl_box_3d<T>::*)(vgl_box_3d<T> const&)) &vgl_box_3d<T>::add)
+
+    // .def_readonly("contains", (bool (vgl_box_3d<T>::*)(vgl_point_3d<T> const&) const) &vgl_box_3d<T>::contains)
+    // .def_readonly("contains", (bool (vgl_box_3d<T>::*)(vgl_box_3d<T> const&) const) &vgl_box_3d<T>::contains)
+    // .def_readonly("contains", (bool (vgl_box_3d<T>::*)(T const&, T const&, T const&) const) &vgl_box_3d<T>::contains)
+
+    .def("expand_about_centroid", &vgl_box_3d<T>::expand_about_centroid)
+    .def("scale_about_centroid", &vgl_box_3d<T>::scale_about_centroid)
+    .def("scale_about_origin", &vgl_box_3d<T>::scale_about_origin)
+    .def("empty", &vgl_box_3d<T>::empty);
 }
 
 void wrap_vgl(py::module &m)
@@ -290,6 +386,12 @@ void wrap_vgl(py::module &m)
 
   wrap_vgl_pointset_3d<double>(m,"pointset_3d");
   wrap_vgl_pointset_3d<float>(m,"pointset_3d_float");
+
+  wrap_box_2d<double>(m,"box_2d");
+  wrap_box_2d<float>(m,"box_2d_float");
+
+  wrap_box_3d<double>(m,"box_3d");
+  wrap_box_3d<float>(m,"box_3d_float");
 
   py::class_<vgl_ray_3d<double> >(m, "ray_3d")
     .def(py::init<vgl_point_3d<double>, vgl_vector_3d<double> >())
@@ -375,99 +477,6 @@ void wrap_vgl(py::module &m)
   py::class_<vgl_fit_oriented_box_2d<double> >(m, "fit_oriented_box_2d")
     .def(py::init<vgl_polygon<double> >())
     .def("fitted_box", oriented_fit_box);
-
-  py::class_<vgl_box_2d<double> >(m, "box_2d")
-
-    .def(py::init())
-    // .def(py::init<double [], double []>())
-    .def(py::init<vgl_point_2d<double>, vgl_point_2d<double> >())
-    .def(py::init<double,double,double,double>(),
-        py::arg("min_x"),py::arg("max_x"),py::arg("min_y"),py::arg("max_y"))
-    .def("__repr__", streamToString<vgl_box_2d<double> >)
-
-    .def_property("min_x", &vgl_box_2d<double>::min_x, &vgl_box_2d<double>::set_min_x)
-    .def_property("min_y", &vgl_box_2d<double>::min_y, &vgl_box_2d<double>::set_min_y)
-    .def_property("min_point", &vgl_box_2d<double>::min_point, &vgl_box_2d<double>::set_min_point)
-    .def("set_min_position", &vgl_box_2d<double>::setmin_position)
-
-    .def_property("max_x", &vgl_box_2d<double>::max_x, &vgl_box_2d<double>::set_max_x)
-    .def_property("max_y", &vgl_box_2d<double>::max_y, &vgl_box_2d<double>::set_max_y)
-    .def_property("max_point", &vgl_box_2d<double>::max_point, &vgl_box_2d<double>::set_max_point)
-    .def("set_max_position", &vgl_box_2d<double>::setmax_position)
-
-    .def_property("centroid_x", &vgl_box_2d<double>::centroid_x, &vgl_box_2d<double>::set_centroid_x)
-    .def_property("centroid_y", &vgl_box_2d<double>::centroid_y, &vgl_box_2d<double>::set_centroid_y)
-    .def_property("centroid", &vgl_box_2d<double>::centroid,
-        (void (vgl_box_2d<double>::*)(vgl_point_2d<double> const&)) &vgl_box_2d<double>::set_centroid)
-    .def("set_centroid_position", (void (vgl_box_2d<double>::*)(double const [])) &vgl_box_2d<double>::set_centroid)
-
-    .def_property("width", &vgl_box_2d<double>::width, &vgl_box_2d<double>::set_width)
-    .def_property("height", &vgl_box_2d<double>::height, &vgl_box_2d<double>::set_height)
-
-    .def_property_readonly("volume", &vgl_box_2d<double>::volume)
-    .def_property_readonly("is_empty", &vgl_box_2d<double>::is_empty)
-
-    .def("add", (void (vgl_box_2d<double>::*)(vgl_point_2d<double> const&)) &vgl_box_2d<double>::add)
-    .def("add", (void (vgl_box_2d<double>::*)(vgl_box_2d<double> const&)) &vgl_box_2d<double>::add)
-
-    // .def_readonly("contains", (bool (vgl_box_2d<double>::*)(vgl_point_2d<double> const&) const) &vgl_box_2d<double>::contains)
-    // .def_readonly("contains", (bool (vgl_box_2d<double>::*)(vgl_box_2d<double> const&) const) &vgl_box_2d<double>::contains)
-    // .def_readonly("contains", (bool (vgl_box_2d<double>::*)(double const&, double const&) const) &vgl_box_2d<double>::contains)
-
-    .def("expand_about_centroid", &vgl_box_2d<double>::expand_about_centroid)
-    .def("scale_about_centroid", &vgl_box_2d<double>::scale_about_centroid)
-    .def("scale_about_origin", &vgl_box_2d<double>::scale_about_origin)
-    .def("empty", &vgl_box_2d<double>::empty);
-
-
-
-  py::class_<vgl_box_3d<double> >(m, "box_3d")
-
-    .def(py::init())
-    // .def(py::init<double [], double []>())
-    .def(py::init<vgl_point_3d<double>, vgl_point_3d<double> >())
-    .def(py::init<double,double,double,double,double,double>(),
-        py::arg("min_x"),py::arg("min_y"),py::arg("min_z"),
-        py::arg("max_x"),py::arg("max_y"),py::arg("max_z"))
-    .def("__repr__", streamToString<vgl_box_3d<double> >)
-
-    .def_property("min_x", &vgl_box_3d<double>::min_x, &vgl_box_3d<double>::set_min_x)
-    .def_property("min_y", &vgl_box_3d<double>::min_y, &vgl_box_3d<double>::set_min_y)
-    .def_property("min_z", &vgl_box_3d<double>::min_z, &vgl_box_3d<double>::set_min_z)
-    .def_property("min_point", &vgl_box_3d<double>::min_point, &vgl_box_3d<double>::set_min_point)
-    .def("set_min_position", &vgl_box_3d<double>::set_min_position)
-
-    .def_property("max_x", &vgl_box_3d<double>::max_x, &vgl_box_3d<double>::set_max_x)
-    .def_property("max_y", &vgl_box_3d<double>::max_y, &vgl_box_3d<double>::set_max_y)
-    .def_property("max_z", &vgl_box_3d<double>::max_z, &vgl_box_3d<double>::set_max_z)
-    .def_property("max_point", &vgl_box_3d<double>::max_point, &vgl_box_3d<double>::set_max_point)
-    .def("set_max_position", &vgl_box_3d<double>::set_max_position)
-
-    .def_property("centroid_x", &vgl_box_3d<double>::centroid_x, &vgl_box_3d<double>::set_centroid_x)
-    .def_property("centroid_y", &vgl_box_3d<double>::centroid_y, &vgl_box_3d<double>::set_centroid_y)
-    .def_property("centroid_z", &vgl_box_3d<double>::centroid_z, &vgl_box_3d<double>::set_centroid_z)
-    .def_property("centroid", &vgl_box_3d<double>::centroid,
-        (void (vgl_box_3d<double>::*)(vgl_point_3d<double> const&)) &vgl_box_3d<double>::set_centroid)
-    .def("set_centroid_position", (void (vgl_box_3d<double>::*)(double const [])) &vgl_box_3d<double>::set_centroid)
-
-    .def_property("width", &vgl_box_3d<double>::width, &vgl_box_3d<double>::set_width)
-    .def_property("height", &vgl_box_3d<double>::height, &vgl_box_3d<double>::set_height)
-
-    .def_property_readonly("volume", &vgl_box_3d<double>::volume)
-    .def_property_readonly("vertices", &vgl_box_3d<double>::vertices)
-    .def_property_readonly("is_empty", &vgl_box_3d<double>::is_empty)
-
-    .def("add", (void (vgl_box_3d<double>::*)(vgl_point_3d<double> const&)) &vgl_box_3d<double>::add)
-    .def("add", (void (vgl_box_3d<double>::*)(vgl_box_3d<double> const&)) &vgl_box_3d<double>::add)
-
-    // .def_readonly("contains", (bool (vgl_box_3d<double>::*)(vgl_point_3d<double> const&) const) &vgl_box_3d<double>::contains)
-    // .def_readonly("contains", (bool (vgl_box_3d<double>::*)(vgl_box_3d<double> const&) const) &vgl_box_3d<double>::contains)
-    // .def_readonly("contains", (bool (vgl_box_3d<double>::*)(double const&, double const&, double const&) const) &vgl_box_3d<double>::contains)
-
-    .def("expand_about_centroid", &vgl_box_3d<double>::expand_about_centroid)
-    .def("scale_about_centroid", &vgl_box_3d<double>::scale_about_centroid)
-    .def("scale_about_origin", &vgl_box_3d<double>::scale_about_origin)
-    .def("empty", &vgl_box_3d<double>::empty);
 
 
   m.def("intersection", [](vgl_ray_3d<double> const& r, vgl_plane_3d<double> const& p) {
