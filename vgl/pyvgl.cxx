@@ -1,8 +1,10 @@
 #include "pyvgl.h"
 #include <vgl/vgl_vector_2d.h>
 #include <vgl/vgl_point_2d.h>
+#include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_point_3d.h>
+#include <vgl/vgl_homg_point_3d.h>
 #include <vgl/vgl_ray_3d.h>
 #include <vgl/vgl_pointset_3d.h>
 #include <vgl/vgl_plane_3d.h>
@@ -21,6 +23,14 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+
+// io classes for py::pickle
+#include <vgl/io/vgl_io_point_2d.h>
+#include <vgl/io/vgl_io_homg_point_2d.h>
+#include <vgl/io/vgl_io_vector_2d.h>
+#include <vgl/io/vgl_io_point_3d.h>
+#include <vgl/io/vgl_io_homg_point_3d.h>
+#include <vgl/io/vgl_io_vector_3d.h>
 
 #include "../pyvxl_util.h"
 
@@ -61,6 +71,31 @@ double getitem_3d(T const& a, long i)
 }
 
 template<class T>
+double getitem_3d_homg(T const& a, long i)
+{
+  // wrap around
+  if (i < 0) {
+    i += 4;
+  }
+  if (i == 0) {
+    return a.x();
+  }
+  else if (i == 1) {
+    return a.y();
+  }
+  else if (i == 2) {
+    return a.z();
+  }
+  else if (i == 3) {
+    return a.w();
+  }
+  else {
+    throw py::index_error("index out of range");
+  }
+  return 0;  // to avoid compiler warning
+}
+
+template<class T>
 double getitem_2d(T const& a, long i)
 {
   // wrap around
@@ -77,6 +112,28 @@ double getitem_2d(T const& a, long i)
     throw py::index_error("index out of range");
   }
   return 0; // to avoid compiler warning
+}
+
+template<class T>
+double getitem_2d_homg(T const& a, long i)
+{
+  // wrap around
+  if (i < 0) {
+    i += 3;
+  }
+  if (i == 0) {
+    return a.x();
+  }
+  else if (i == 1) {
+    return a.y();
+  }
+  else if (i == 2) {
+    return a.w();
+  }
+  else {
+    throw py::index_error("index out of range");
+  }
+  return 0;  // to avoid compiler warning
 }
 
 template <class T, class BUFF_T>
@@ -143,6 +200,43 @@ typename vgl_polygon<T>::sheet_t getitem_sheet(vgl_polygon<T> const& p, long i){
   return p[i];
 }
 
+// Convert polygon to a list of sheets, where each sheet is a list of points, and each
+// point is a list of T elements, instead of a vgl_point_2d vxl object -- this will
+// auto-convert to python lists on the python side
+template <typename T>
+std::vector<std::vector<std::vector<T>>> vgl_polygon_as_array(vgl_polygon<T> const& p)
+{
+  // return an array of lists of [x,y] points
+  std::vector<std::vector<std::vector<T>>> array_of_sheets;
+
+  for (int i=0; i < p.num_sheets(); ++i) {
+
+    // the vxl source sheet
+    typename vgl_polygon<T>::sheet_t sheet = p[i];
+
+    // create our target sheet
+    std::vector<std::vector<T>> sheet_array;
+
+    for (vgl_point_2d<T> p : sheet) {
+
+      // create our target point
+      std::vector<T> point_array;
+
+      // Get the x and y values from the vgl_point_2d object
+      point_array.push_back(p.x());
+      point_array.push_back(p.y());
+
+      // Add target point to target sheet
+      sheet_array.push_back(point_array);
+    }
+
+    // Add target sheet to target return array
+    array_of_sheets.push_back(sheet_array);
+  }
+
+  return array_of_sheets;
+}
+
 template<typename T>
 void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
 {
@@ -153,10 +247,33 @@ void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_point_2d<T>){return (size_t)2;})
     .def("__getitem__", getitem_2d<vgl_point_2d<T> >)
     .def("__repr__", streamToString<vgl_point_2d<T> >)
+    .def(py::pickle(&vslPickleGetState<vgl_point_2d<T> >,
+                    &vslPickleSetState<vgl_point_2d<T> >))
     .def_property_readonly("x", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::x)
     .def_property_readonly("y", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::y)
     .def(py::self - py::self)
-    .def(py::self == py::self);
+    .def(py::self == py::self)
+    ;
+}
+
+template<typename T>
+void wrap_vgl_homg_point_2d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_homg_point_2d<T> > (m, class_name.c_str())
+    .def(py::init<>())
+    .def(py::init<T,T,T>(),
+         py::arg("px"), py::arg("py"), py::arg("pw") = 1)
+    .def("__len__", [](vgl_homg_point_2d<T>){return (size_t)3;})
+    .def("__getitem__", getitem_2d_homg<vgl_homg_point_2d<T> >)
+    .def("__repr__", streamToString<vgl_homg_point_2d<T> >)
+    .def(py::pickle(&vslPickleGetState<vgl_homg_point_2d<T> >,
+                    &vslPickleSetState<vgl_homg_point_2d<T> >))
+    .def_property_readonly("x", (T (vgl_homg_point_2d<T>::*)() const) &vgl_homg_point_2d<T>::x)
+    .def_property_readonly("y", (T (vgl_homg_point_2d<T>::*)() const) &vgl_homg_point_2d<T>::y)
+    .def_property_readonly("w", (T (vgl_homg_point_2d<T>::*)() const) &vgl_homg_point_2d<T>::w)
+    .def(py::self - py::self)
+    .def(py::self == py::self)
+    ;
 }
 
 template<typename T>
@@ -169,6 +286,8 @@ void wrap_vgl_vector_2d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_vector_2d<T>){return (size_t)2;})
     .def("__getitem__",getitem_2d<vgl_vector_2d<T> >)
     .def("__repr__", streamToString<vgl_vector_2d<T> >)
+    .def(py::pickle(&vslPickleGetState<vgl_vector_2d<T> >,
+                    &vslPickleSetState<vgl_vector_2d<T> >))
     .def_property_readonly("x", &vgl_vector_2d<T>::x)
     .def_property_readonly("y", &vgl_vector_2d<T>::y)
     .def("length", &vgl_vector_2d<T>::length)
@@ -178,7 +297,8 @@ void wrap_vgl_vector_2d(py::module &m, std::string const& class_name)
     .def("__neg__", [](vgl_vector_2d<T> const &v){return -v;})
     .def(py::self / T())
     .def(py::self * T())
-    .def(T() * py::self);
+    .def(T() * py::self)
+    ;
 }
 
 template<typename T>
@@ -191,11 +311,35 @@ void wrap_vgl_point_3d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_point_3d<T>){return (size_t)3;})
     .def("__getitem__", getitem_3d<vgl_point_3d<T> >)
     .def("__repr__", streamToString<vgl_point_3d<T> >)
+    .def(py::pickle(&vslPickleGetState<vgl_point_3d<T> >,
+                    &vslPickleSetState<vgl_point_3d<T> >))
     .def_property_readonly("x", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::x)
     .def_property_readonly("y", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::y)
     .def_property_readonly("z", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::z)
     .def(py::self - py::self)
-    .def(py::self == py::self);
+    .def(py::self == py::self)
+    ;
+}
+
+template<typename T>
+void wrap_vgl_homg_point_3d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_homg_point_3d<T> > (m, class_name.c_str())
+    .def(py::init<>())
+    .def(py::init<T,T,T,T>(),
+         py::arg("px"), py::arg("py"), py::arg("pz"), py::arg("pw") = 1)
+    .def("__len__", [](vgl_homg_point_3d<T>){return (size_t)4;})
+    .def("__getitem__", getitem_3d_homg<vgl_homg_point_3d<T> >)
+    .def("__repr__", streamToString<vgl_homg_point_3d<T> >)
+    .def(py::pickle(&vslPickleGetState<vgl_homg_point_3d<T> >,
+                    &vslPickleSetState<vgl_homg_point_3d<T> >))
+    .def_property_readonly("x", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::x)
+    .def_property_readonly("y", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::y)
+    .def_property_readonly("z", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::z)
+    .def_property_readonly("w", (T (vgl_homg_point_3d<T>::*)() const) &vgl_homg_point_3d<T>::w)
+    .def(py::self - py::self)
+    .def(py::self == py::self)
+    ;
 }
 
 template<typename T>
@@ -209,6 +353,8 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     .def("__len__", [](vgl_vector_3d<T>){return (size_t)3;})
     .def("__getitem__", getitem_3d<vgl_vector_3d<T> >)
     .def("__repr__", streamToString<vgl_vector_3d<T> >)
+    .def(py::pickle(&vslPickleGetState<vgl_vector_3d<T> >,
+                    &vslPickleSetState<vgl_vector_3d<T> >))
     .def_property_readonly("x", &vgl_vector_3d<T>::x)
     .def_property_readonly("y", &vgl_vector_3d<T>::y)
     .def_property_readonly("z", &vgl_vector_3d<T>::z)
@@ -220,7 +366,8 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     .def("__neg__", [](vgl_vector_3d<T> const &v){return -v;})
     .def(py::self / T())
     .def(py::self * T())
-    .def(T() * py::self);
+    .def(T() * py::self)
+    ;
 }
 
 template<typename T>
@@ -268,7 +415,8 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
            throw std::runtime_error("Bad filename");
          }
          ifs >> ptset;
-       });
+       })
+    ;
 }
 
 template<typename T>
@@ -315,7 +463,8 @@ void wrap_box_2d(py::module &m, std::string const& class_name)
     .def("expand_about_centroid", &vgl_box_2d<T>::expand_about_centroid)
     .def("scale_about_centroid", &vgl_box_2d<T>::scale_about_centroid)
     .def("scale_about_origin", &vgl_box_2d<T>::scale_about_origin)
-    .def("empty", &vgl_box_2d<T>::empty);
+    .def("empty", &vgl_box_2d<T>::empty)
+    ;
 }
 
 template<typename T>
@@ -367,25 +516,32 @@ void wrap_box_3d(py::module &m, std::string const& class_name)
     .def("expand_about_centroid", &vgl_box_3d<T>::expand_about_centroid)
     .def("scale_about_centroid", &vgl_box_3d<T>::scale_about_centroid)
     .def("scale_about_origin", &vgl_box_3d<T>::scale_about_origin)
-    .def("empty", &vgl_box_3d<T>::empty);
+    .def("empty", &vgl_box_3d<T>::empty)
+    ;
 }
 
 void wrap_vgl(py::module &m)
 {
-  wrap_vgl_point_2d<double>(m,"point_2d");
-  wrap_vgl_point_2d<float>(m,"point_2d_float");
+  wrap_vgl_point_2d<double>(m, "point_2d");
+  wrap_vgl_point_2d<float>(m, "point_2d_float");
 
-  wrap_vgl_vector_2d<double>(m,"vector_2d");
-  wrap_vgl_vector_2d<float>(m,"vector_2d_float");
+  wrap_vgl_homg_point_2d<double>(m, "homg_point_2d");
+  wrap_vgl_homg_point_2d<float>(m, "homg_point_2d_float");
 
-  wrap_vgl_point_3d<double>(m,"point_3d");
-  wrap_vgl_point_3d<float>(m,"point_3d_float");
+  wrap_vgl_vector_2d<double>(m, "vector_2d");
+  wrap_vgl_vector_2d<float>(m, "vector_2d_float");
 
-  wrap_vgl_vector_3d<double>(m,"vector_3d");
-  wrap_vgl_vector_3d<float>(m,"vector_3d_float");
+  wrap_vgl_point_3d<double>(m, "point_3d");
+  wrap_vgl_point_3d<float>(m, "point_3d_float");
 
-  wrap_vgl_pointset_3d<double>(m,"pointset_3d");
-  wrap_vgl_pointset_3d<float>(m,"pointset_3d_float");
+  wrap_vgl_homg_point_3d<double>(m, "homg_point_3d");
+  wrap_vgl_homg_point_3d<float>(m, "homg_point_3d_float");
+
+  wrap_vgl_vector_3d<double>(m, "vector_3d");
+  wrap_vgl_vector_3d<float>(m, "vector_3d_float");
+
+  wrap_vgl_pointset_3d<double>(m, "pointset_3d");
+  wrap_vgl_pointset_3d<float>(m, "pointset_3d_float");
 
   wrap_box_2d<double>(m,"box_2d");
   wrap_box_2d<float>(m,"box_2d_float");
@@ -437,6 +593,7 @@ void wrap_vgl(py::module &m)
     .def(py::init<typename vgl_polygon<double>::sheet_t>())
     .def(py::init<std::vector<typename vgl_polygon<double>::sheet_t> >())
     .def("contains", (bool (vgl_polygon<double>::*)(vgl_point_2d<double> const&) const) &vgl_polygon<double>::contains)
+    .def("as_array", &vgl_polygon_as_array<double>)
     .def("__len__", &vgl_polygon<double>::num_sheets)
     .def("__getitem__", getitem_sheet<double>)
     .def("__repr__", [](vgl_polygon<double> const& p){
@@ -477,7 +634,6 @@ void wrap_vgl(py::module &m)
   py::class_<vgl_fit_oriented_box_2d<double> >(m, "fit_oriented_box_2d")
     .def(py::init<vgl_polygon<double> >())
     .def("fitted_box", oriented_fit_box);
-
 
   m.def("intersection", [](vgl_ray_3d<double> const& r, vgl_plane_3d<double> const& p) {
         vgl_point_3d<double> pt;

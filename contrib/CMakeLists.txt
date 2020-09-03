@@ -1,34 +1,48 @@
-cmake_minimum_required(VERSION 3.5.1)
+# contrib modules are entirely optional, controlled by boolean cache
+# guards of the form PYVXL_CONTRIB_MAKE_*
+#
+# PYVXL_CONTRIB_MAKE_ALL sets the default across all contrib directories
+#
+# Users may also specify per-module inclusion, for example:
+#   PYVXL_CONTRIB_MAKE_BPGL controls BPGL inclusion
+#   PYVXL_CONTRIB_MAKE_SDET controls SDET inclusion
+#   etc.
+#
+# For developers, this CMakeLists.txt file will auto-discover any available
+# contrib modules, initialze a PYVXL_CONTRIB_MAKE_* guard if one does not
+# exist, and add the contrib subdirectory if necessary.
+#
 project("pyvxl-contrib")
 
-# BUILD ALL GUARD
-set(PYVXL_CONTRIB_MAKE_ALL FALSE CACHE BOOL "Build every optional vxl contrib module which we have python wrappers for")
+# build all guard
+set(PYVXL_CONTRIB_MAKE_ALL FALSE CACHE BOOL "Build every optional pyvxl contrib module")
 
-# INDIVIDUAL GUARDS, inherit from ALL GUARD
-set(PYVXL_CONTRIB_MAKE_BPGL ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BPGL build")
-set(PYVXL_CONTRIB_MAKE_BRAD ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on BRAD build")
+# list of contrib components
+set(contrib_components acal bpgl brad brip bsgm bvxm sdet)
 
-# Overwrite existing __init__ file
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/contrib/__init__.py \"\")")
+# has base contrib module already been added?
+set(contrib_added FALSE)
 
-if (PYVXL_CONTRIB_MAKE_BPGL)
-  # Create the bpgl install directory since it doesn't exist yet
-  install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib/bpgl)
+# add contrib components
+foreach(component ${contrib_components})
 
-  # auto generate __init__ file
-  install(CODE "file(APPEND ${PYTHON_SITE}/vxl/contrib/__init__.py \"\nfrom . import bpgl\")")
+  # cache variable for boolean guard
+  string(TOUPPER "${component}" component_upper)
+  set(guard_name "PYVXL_CONTRIB_MAKE_${component_upper}")
+  set(${guard_name} ${PYVXL_CONTRIB_MAKE_ALL} CACHE BOOL "Turn on ${component_upper} build")
 
-  # Recurse
-  add_subdirectory("bpgl" "bpgl-build")
-endif()
+  # add component if requested
+  if(${${guard_name}})
 
-if (PYVXL_CONTRIB_MAKE_BRAD)
-  # Create the brad install directory since it doesn't exist yet
-  install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib/brad)
+    # add base contrib directory
+    if(NOT contrib_added)
+      pyvxl_add_module(contrib)
+      set(contrib_added TRUE)
+    endif()
 
-  # auto generate __init__ file
-  install(CODE "file(APPEND ${PYTHON_SITE}/vxl/contrib/__init__.py \"\nfrom . import brad\")")
+    # add component subdirectory
+    add_subdirectory("${component}" "${component}-build")
 
-  # Recurse
-  add_subdirectory("brad" "brad-build")
-endif()
+  endif()
+
+endforeach()

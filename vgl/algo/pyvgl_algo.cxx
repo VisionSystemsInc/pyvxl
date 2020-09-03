@@ -35,6 +35,8 @@ void wrap_vgl_algo(py::module &m)
     .def(py::init<>())
     .def(py::init<vnl_vector_fixed<double,4> >())
     .def(py::init<vnl_matrix_fixed<double,3,3> >())
+    .def(py::init<vnl_vector_fixed<double,3> >())
+    .def(py::init<vnl_vector_fixed<double,3>,vnl_vector_fixed<double,3> >())
     .def("as_matrix", &vgl_rotation_3d<double>::as_matrix)
     .def("as_quaternion", &vgl_rotation_3d<double>::as_quaternion)
     .def("inverse", &vgl_rotation_3d<double>::inverse)
@@ -42,7 +44,9 @@ void wrap_vgl_algo(py::module &m)
     .def("__repr__", streamToString<vgl_rotation_3d<double> >)
     .def(py::self * vgl_vector_3d<double>())
     .def(py::self * vgl_point_3d<double>())
-    .def(py::self * py::self);
+    .def(py::self * py::self)
+    .def(py::self == py::self)
+    ;
 
 }
 }}}

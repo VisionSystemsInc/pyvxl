@@ -1,7 +1,68 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.10.2) # same as vxl
 project("pyvxl")
 
-# If building PyVXL directly, build VXL
+# pyvxl project source directory
+set(PYVXL_PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
+
+# print pyvxl debug messages during cmake
+set(PYVXL_DEBUG_MESSAGES "OFF" CACHE BOOL "Print pyvxl debug messages")
+
+# function: add pyvxl module
+function(pyvxl_add_module vxl_name)
+
+    # target variables
+    set(target_name "py${vxl_name}")
+    set(output_name "_${vxl_name}")
+
+    # target files
+    set(target_file_h "${CMAKE_CURRENT_SOURCE_DIR}/${target_name}.h")
+    set(target_file_cxx "${CMAKE_CURRENT_SOURCE_DIR}/${target_name}.cxx")
+    set(target_files ${target_file_h} ${target_file_cxx})
+
+    # install directory
+    string(REPLACE
+           "${PYVXL_PROJECT_SOURCE_DIR}" # string to be replaced
+           "${PYTHON_SITE}/vxl"          # replace with this
+           install_dir                   # output
+           "${CMAKE_CURRENT_SOURCE_DIR}" # input
+           )
+
+    # debug messages (currently disabled)
+    if (PYVXL_DEBUG_MESSAGES)
+        message(STATUS "PYVXL_ADD_MODULE:")
+        message(STATUS "  vxl_name     = ${vxl_name}")
+        message(STATUS "  target_name  = ${target_name}")
+        message(STATUS "  output_name  = ${output_name}")
+        message(STATUS "  target_files = ${target_files}")
+        message(STATUS "  install_dir  = ${install_dir}")
+    endif()
+
+    # install directory setup
+    install(DIRECTORY DESTINATION ${install_dir})
+    install(FILES __init__.py DESTINATION ${install_dir})
+
+    # initialize target if necessary
+    if (EXISTS "${target_file_cxx}")
+        message(STATUS "pyvxl found ${target_name}")
+
+        # Add pybind11 module
+        pybind11_add_module(${target_name} ${target_files})
+
+        # Link to vxl library
+        target_link_libraries(${target_name} PRIVATE ${vxl_name})
+
+        # Set output_name of target
+        set_target_properties(${target_name} PROPERTIES OUTPUT_NAME ${output_name})
+
+        # target installation
+        install(TARGETS ${target_name} DESTINATION ${install_dir})
+
+    endif()
+
+endfunction()
+
+
+# If building PyVXL directly, build VXL and pybind11
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(PYVXL_TOP_LEVEL TRUE)
     # pyvxl built as top-level project
@@ -19,8 +80,11 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 
     # NOTE: If you want to wrap contrib/brl, you'll need to build it in vxl.
     # This currently requires setting the following CMake options:
-    # VXL_BUILD_CORE_VIDEO=ON, VXL_BUILD_CONTRIB=ON, VXL_BUILD_BRL=ON
+    # set(VXL_BUILD_CONTRIB "TRUE" CACHE BOOL "BUILD CONTRIB")
+    # set(VXL_BUILD_CORE_VIDEO "TRUE" CACHE BOOL "BUILD CORE VIDEO")
+    # set(VXL_BUILD_BRL "TRUE" CACHE BOOL "BUILD BRL")
 
+    # Build VXL
     add_subdirectory(${VXL_DIR} ${VXL_BINARY_DIR} EXCLUDE_FROM_ALL)
 
     # include vxl headers
@@ -33,6 +97,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include_directories(${VXL_DIR}/contrib/brl/bbas)
     include_directories(${VXL_DIR}/contrib/gel)
 
+    # Build Pybind11
     set(PYBIND11_DIR "PYBIND11_NOTFOUND" CACHE PATH "Location of Pybind11 source directory")
     message(STATUS "PYBIND11_DIR = ${PYBIND11_DIR}")
     if (NOT IS_DIRECTORY ${PYBIND11_DIR})
@@ -43,6 +108,8 @@ endif()
 
 include_directories(${PYTHON_INCLUDE_PATH})
 
+include_directories(${PROJECT_SOURCE_DIR})
+
 # Find the python install directory
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
@@ -52,26 +119,14 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
 
-# Create the install directories in case they aren't installed to, so auto-loading doesn't break
-install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vgl)
-install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vil)
-install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vnl)
-install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/vpgl)
-install(DIRECTORY DESTINATION ${PYTHON_SITE}/vxl/contrib)
+# add main module
+pyvxl_add_module(vxl)
 
-# generate __init__ file to auto-load modules by default
-install(CODE "file(WRITE ${PYTHON_SITE}/vxl/__init__.py \"\
-from . import vgl\n\
-from . import vil\n\
-from . import vnl\n\
-from . import vpgl\n\
-from . import contrib\n\
-\")")
+# add core components
+set(core_components vgl vil vnl vpgl)
+foreach(component ${core_components})
+    add_subdirectory("${component}" "pyvxl_build/${component}-build")
+endforeach()
 
-# Recurse
-add_subdirectory("vgl" "vgl-build")
-add_subdirectory("vil" "vil-build")
-add_subdirectory("vnl" "vnl-build")
-add_subdirectory("vpgl" "vpgl-build")
-add_subdirectory("contrib" "contrib-build")
-
+# add contrib components
+add_subdirectory("contrib" "pyvxl_build/contrib-build")

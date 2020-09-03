@@ -1,3 +1,4 @@
+import pickle
 import unittest
 
 try:
@@ -78,6 +79,14 @@ class VglBase(object):
     else:
       v = self.cls(1.15, -17, 42.35)
       u = self.cls(1.15, -17, 42.35)
+    self.assertEqual(v, u)
+
+  def test_pickle(self):
+    if self.length == 2:
+      v = self.cls(1.15, -17)
+    else:
+      v = self.cls(1.15, -17, 42.35)
+    u = pickle.loads(pickle.dumps(v))
     self.assertEqual(v, u)
 
   @unittest.skipUnless(np, "Numpy not found")
