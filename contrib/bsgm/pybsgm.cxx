@@ -14,11 +14,12 @@ namespace py = pybind11;
 namespace pyvxl { namespace bsgm {
 
 // wrapping for bsgm_prob_pairwise_dsm
-template<class CAM_T>
+// templated over both camera type and image pixel type
+template<class CAM_T, class PIX_T>
 void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
 {
-  using BSGM_T = bsgm_prob_pairwise_dsm<CAM_T>;
-  using IMAGE_T = vil_image_view<unsigned char>;
+  using BSGM_T = bsgm_prob_pairwise_dsm<CAM_T, PIX_T>;
+  using IMAGE_T = vil_image_view<PIX_T>;
 
   py::class_<BSGM_T> (m, class_name.c_str())
     .def(py::init<>())
@@ -233,8 +234,10 @@ void wrap_bsgm(py::module &m)
     ;
 
   // bsgm_prob_pairwise_dsm
-  wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double> >(m, "prob_pairwise_dsm_affine");
-  wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double> >(m, "prob_pairwise_dsm_perspective");
+  wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double>, unsigned char >(m, "prob_pairwise_dsm_affine_byte");
+  wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double>, unsigned short >(m, "prob_pairwise_dsm_affine_short");
+  wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double>, unsigned char>(m, "prob_pairwise_dsm_perspective_byte");
+  wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double>, unsigned short>(m, "prob_pairwise_dsm_perspective_short");
 
 } // wrap_bsgm
 
