@@ -596,6 +596,12 @@ void wrap_vgl(py::module &m)
     .def("as_array", &vgl_polygon_as_array<double>)
     .def("__len__", &vgl_polygon<double>::num_sheets)
     .def("__getitem__", getitem_sheet<double>)
+    .def("push_back_xy",
+        overload_cast_<double, double>()(&vgl_polygon<double>::push_back))
+    .def("push_back_point",
+        overload_cast_<vgl_point_2d<double> const&>()(&vgl_polygon<double>::push_back))
+    .def("push_back_sheet",
+        overload_cast_<std::vector<vgl_point_2d<double> > const&>()(&vgl_polygon<double>::push_back))
     .def("__repr__", [](vgl_polygon<double> const& p){
         std::ostringstream buffer;
         buffer << "<vgl_polygon num_sheets=" << p.num_sheets() << ">";
