@@ -31,6 +31,7 @@
 #include <vgl/io/vgl_io_point_3d.h>
 #include <vgl/io/vgl_io_homg_point_3d.h>
 #include <vgl/io/vgl_io_vector_3d.h>
+#include <vgl/io/vgl_io_polygon.h>
 
 #include "../pyvxl_util.h"
 
@@ -602,6 +603,8 @@ void wrap_vgl(py::module &m)
         overload_cast_<vgl_point_2d<double> const&>()(&vgl_polygon<double>::push_back))
     .def("push_back_sheet",
         overload_cast_<std::vector<vgl_point_2d<double> > const&>()(&vgl_polygon<double>::push_back))
+    .def(py::pickle(&vslPickleGetState<vgl_polygon<double>>,
+                    &vslPickleSetState<vgl_polygon<double>>))
     .def("__repr__", [](vgl_polygon<double> const& p){
         std::ostringstream buffer;
         buffer << "<vgl_polygon num_sheets=" << p.num_sheets() << ">";
