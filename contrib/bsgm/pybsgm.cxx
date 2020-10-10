@@ -234,8 +234,10 @@ void wrap_bsgm(py::module &m)
     ;
 
   // bsgm_prob_pairwise_dsm
+  wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double>, unsigned char >(m, "prob_pairwise_dsm_affine");//legacy default is byte
   wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double>, unsigned char >(m, "prob_pairwise_dsm_affine_byte");
   wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double>, unsigned short >(m, "prob_pairwise_dsm_affine_short");
+  wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double>, unsigned char>(m, "prob_pairwise_dsm_perspective");//legacy default is byte
   wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double>, unsigned char>(m, "prob_pairwise_dsm_perspective_byte");
   wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double>, unsigned short>(m, "prob_pairwise_dsm_perspective_short");
 
