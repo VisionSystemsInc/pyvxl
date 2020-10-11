@@ -32,6 +32,9 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
         (&BSGM_T::set_images_and_cams),
         "set images and cameras")
 
+    .def("set_dynamic_range_table", &BSGM_T::set_dynamic_range_table, py::arg("bits_per_pix_factors"),
+         "the amount to scale appearance quantities with respect to effective bits per pixel")
+    
     .def_property("params",
         overload_cast_<>()(&BSGM_T::params, py::const_),
         overload_cast_<pairwise_params const&>()(&BSGM_T::params),
@@ -231,6 +234,8 @@ void wrap_bsgm(py::module &m)
                    "pointset->heightmap gridding distance of (neighbor_dist_factor * ground_sample_distance)")
     .def_readwrite("coarse_dsm_disparity_estimate", &pairwise_params::coarse_dsm_disparity_estimate_,
                    "use the reduced resolution dsm to estimate min disparity")
+    .def_readwrite("effective_bits_per_pixel", &pairwise_params::effective_bits_per_pixel_,
+                   "The actual intensity dynamic range, e.g. 11 bits")
     ;
 
   // bsgm_prob_pairwise_dsm
