@@ -14,11 +14,12 @@ namespace py = pybind11;
 namespace pyvxl { namespace bsgm {
 
 // wrapping for bsgm_prob_pairwise_dsm
-template<class CAM_T>
+// templated over both camera type and image pixel type
+template<class CAM_T, class PIX_T>
 void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
 {
-  using BSGM_T = bsgm_prob_pairwise_dsm<CAM_T>;
-  using IMAGE_T = vil_image_view<unsigned char>;
+  using BSGM_T = bsgm_prob_pairwise_dsm<CAM_T, PIX_T>;
+  using IMAGE_T = vil_image_view<PIX_T>;
 
   py::class_<BSGM_T> (m, class_name.c_str())
     .def(py::init<>())
@@ -31,6 +32,9 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
         (&BSGM_T::set_images_and_cams),
         "set images and cameras")
 
+    .def("set_dynamic_range_table", &BSGM_T::set_dynamic_range_table, py::arg("bits_per_pix_factors"),
+         "the amount to scale appearance quantities with respect to effective bits per pixel")
+    
     .def_property("params",
         overload_cast_<>()(&BSGM_T::params, py::const_),
         overload_cast_<pairwise_params const&>()(&BSGM_T::params),
@@ -230,11 +234,15 @@ void wrap_bsgm(py::module &m)
                    "pointset->heightmap gridding distance of (neighbor_dist_factor * ground_sample_distance)")
     .def_readwrite("coarse_dsm_disparity_estimate", &pairwise_params::coarse_dsm_disparity_estimate_,
                    "use the reduced resolution dsm to estimate min disparity")
+    .def_readwrite("effective_bits_per_pixel", &pairwise_params::effective_bits_per_pixel_,
+                   "The actual intensity dynamic range, e.g. 11 bits")
     ;
 
   // bsgm_prob_pairwise_dsm
-  wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double> >(m, "prob_pairwise_dsm_affine");
-  wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double> >(m, "prob_pairwise_dsm_perspective");
+  wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double>, unsigned char >(m, "prob_pairwise_dsm_affine");//legacy default is byte
+  wrap_bsgm_prob_pairwise_dsm<vpgl_affine_camera<double>, unsigned short >(m, "prob_pairwise_dsm_affine_short");
+  wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double>, unsigned char>(m, "prob_pairwise_dsm_perspective");//legacy default is byte
+  wrap_bsgm_prob_pairwise_dsm<vpgl_perspective_camera<double>, unsigned short>(m, "prob_pairwise_dsm_perspective_short");
 
 } // wrap_bsgm
 
