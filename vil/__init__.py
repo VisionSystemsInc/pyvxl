@@ -1,6 +1,3 @@
-from ._vil import *
-
-
 def load(filename, vil_type):
 
   # Relative imports, don't pollute vxl.vil import space
