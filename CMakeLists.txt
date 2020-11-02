@@ -123,7 +123,7 @@ set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directo
 pyvxl_add_module(vxl)
 
 # add core components
-set(core_components vgl vil vnl vpgl)
+set(core_components vbl vgl vil vnl vpgl)
 foreach(component ${core_components})
     add_subdirectory("${component}" "pyvxl_build/${component}-build")
 endforeach()
