@@ -381,6 +381,176 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
     .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<T> >())
     .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<vgl_vector_3d<T> >,
         std::vector<T> >())
+    .def(py::init([](py::buffer b) {
+      py::buffer_info info = b.request();
+
+      if (info.format != py::format_descriptor<T>::format()) {
+        throw std::runtime_error("Incompatible scalar type");
+      }
+      if (info.ndim != 2) {
+        throw std::runtime_error("Expecting a 2-dimensional vector");
+      }
+
+      const size_t num_rows = info.shape[0];
+      const size_t num_cols = info.shape[1];
+      const size_t row_stride = info.strides[0] / sizeof(T);
+      const size_t col_stride = info.strides[1] / sizeof(T);
+
+      if (num_cols == 3) {  // x y z
+        std::vector<vgl_point_3d<T> > points(num_rows);
+        T* data_ptr = static_cast<T*>(info.ptr);
+        T* row_ptr;
+        for (size_t i=0; i < num_rows; ++i) {
+          row_ptr = data_ptr + (i * row_stride);
+          points[i] = vgl_point_3d<T>(*(row_ptr),
+                                      *(row_ptr + col_stride),
+                                      *(row_ptr + (2 * col_stride)));
+        }
+        return vgl_pointset_3d<T>(points);
+      }
+      else if (num_cols == 4) {  // x y z s
+        std::vector<vgl_point_3d<T> > points(num_rows);
+        std::vector<T> scalars(num_rows);
+        T* data_ptr = static_cast<T*>(info.ptr);
+        T* row_ptr;
+        for (size_t i=0; i < num_rows; ++i) {
+          row_ptr = data_ptr + (i * row_stride);
+          points[i] = vgl_point_3d<T>(*(row_ptr),
+                                      *(row_ptr + col_stride),
+                                      *(row_ptr + (2 * col_stride)));
+          scalars[i] = *(row_ptr + (3 * col_stride))
+        }
+        return vgl_pointset_3d<T>(points, scalars);
+      }
+      else if (num_cols == 6) {  // x y z n0 n1 n2
+        std::vector<vgl_point_3d<T> > points(num_rows);
+        std::vector<vgl_vector_3d<T> > normals(num_rows);
+        T* data_ptr = static_cast<T*>(info.ptr);
+        T* row_ptr;
+        for (size_t i=0; i < num_rows; ++i) {
+          row_ptr = data_ptr + (i * row_stride);
+          points[i] = vgl_point_3d<T>(*(row_ptr),
+                                      *(row_ptr + col_stride),
+                                      *(row_ptr + (2 * col_stride)));
+          normals[i] = vgl_vector_3d<T>(*(row_ptr + (3 * col_stride)),
+                                        *(row_ptr + (4 * col_stride)),
+                                        *(row_ptr + (5 * col_stride)));
+        }
+        return vgl_pointset_3d<T>(points, normals);
+      }
+      else if (num_cols == 7) {  // x y z n0 n1 n2 s
+        std::vector<vgl_point_3d<T> > points(num_rows);
+        std::vector<vgl_vector_3d<T> > normals(num_rows);
+        std::vector<T> scalars(num_rows);
+        T* data_ptr = static_cast<T*>(info.ptr);
+        T* row_ptr;
+        for (size_t i=0; i < num_rows; ++i) {
+          row_ptr = data_ptr + (i * row_stride);
+          points[i] = vgl_point_3d<T>(*(row_ptr),
+                                      *(row_ptr + col_stride),
+                                      *(row_ptr + (2 * col_stride)));
+          normals[i] = vgl_vector_3d<T>(*(row_ptr + (3 * col_stride)),
+                                        *(row_ptr + (4 * col_stride)),
+                                        *(row_ptr + (5 * col_stride)));
+          scalars[i] = *(row_ptr + (6 * col_stride))
+        }
+        return vgl_pointset_3d<T>(points, normals, scalars);
+      }
+      else {
+        std::ostringstream buffer;
+        buffer << "Expecting 3, 4, 6, or 7 columns. Received " << num_cols << ".";
+        throw std::runtime_error(buffer.str());
+      }
+    }))
+    .def("as_numpy", [](vgl_pointset_3d<T> &ptset) {
+    /* .def_buffer([](vgl_pointset_3d<T> &ptset) -> py::buffer_info { */
+      // I can't figure out how to make def_buffer work here. The problem is
+      // that pointsets have up to 3 internal buffers of non-POD type (points,
+      // normals, scalars). So for representation in a single numpy array, a
+      // new buffer has to be created. I do that below, but I don't know how
+      // to handle de-allocation with def_buffer. So for now, users will have
+      // to explicitly call ptset.as_numpy() rather than np.array(ptset).
+
+      // shape of buffer based on what's in the pointset
+      size_t num_rows = ptset.size();
+      size_t num_cols = ptset.size() * 3;
+      if (ptset.has_normals())
+        num_cols *= 2;
+      if (ptset.has_scalars())
+        num_cols += ptset.size();
+
+      // allocate new memory buffer
+      T* buffer = new T[num_rows * num_cols];
+
+      // copy data into buffer
+      if (num_cols == 3) {  // x y z
+        T* row_ptr;
+        for (size_t row=0; row < num_rows; row++) {
+          row_ptr = buffer + (row * num_cols);
+          const vgl_point_3d<T>& point = ptset.p(row);
+          *(row_ptr) = point.x();
+          *(row_ptr + 1) = point.y();
+          *(row_ptr + 2) = point.z();
+        }
+      }
+      else if (num_cols == 4) {  // x y z s
+        T* row_ptr;
+        for (size_t row=0; row < num_rows; row++) {
+          row_ptr = buffer + (row * num_cols);
+          const vgl_point_3d<T>& point = ptset.p(row);
+          *(row_ptr) = point.x();
+          *(row_ptr + 1) = point.y();
+          *(row_ptr + 2) = point.z();
+          *(row_ptr + 3) = point.sc(row);
+        }
+      }
+      else if (num_cols == 6) {  // x y z n0 n1 n2
+        T* row_ptr;
+        for (size_t row=0; row < num_rows; row++) {
+          row_ptr = buffer + (row * num_cols);
+          const vgl_point_3d<T>& point = ptset.p(row);
+          const vgl_vector_3d<T>& normal = ptset.n(row);
+          *(row_ptr) = point.x();
+          *(row_ptr + 1) = point.y();
+          *(row_ptr + 2) = point.z();
+          *(row_ptr + 3) = normal.x();
+          *(row_ptr + 4) = normal.y();
+          *(row_ptr + 5) = normal.z();
+        }
+      }
+      else if (num_cols == 7) {  // x y z n0 n1 n2 s
+        T* row_ptr;
+        for (size_t row=0; row < num_rows; row++) {
+          row_ptr = buffer + (row * num_cols);
+          const vgl_point_3d<T>& point = ptset.p(row);
+          const vgl_vector_3d<T>& normal = ptset.n(row);
+          *(row_ptr) = point.x();
+          *(row_ptr + 1) = point.y();
+          *(row_ptr + 2) = point.z();
+          *(row_ptr + 3) = normal.x();
+          *(row_ptr + 4) = normal.y();
+          *(row_ptr + 5) = normal.z();
+          *(row_ptr + 6) = point.sc(row);
+        }
+      }
+      else {
+        throw std::runtime_error("This is not possible.");
+      }
+
+      // create a python object that will de-allocate the buffer
+      // when destroyed
+      py::capsule free_when_done(buffer, [](void *f) {
+        T* buf = reinterpret_cast<T*>(f);
+        delete[] buf;
+      });
+
+      // construct numpy array
+      return py::array_t<T>(
+        { num_rows, num_cols },  /* Buffer dimensions */
+        { sizeof(T) * num_cols, sizeof(T) }  /* Strides (in bytes) for each index */
+        buffer,  /* Pointer to buffer */
+        free_when_done);  // numpy array references this parent
+    })
     .def("__len__", &vgl_pointset_3d<T>::size)
     .def("__repr__", [](vgl_pointset_3d<T> const& ptset){
         std::ostringstream buffer;
