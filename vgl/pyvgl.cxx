@@ -418,7 +418,7 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
           points[i] = vgl_point_3d<T>(*(row_ptr),
                                       *(row_ptr + col_stride),
                                       *(row_ptr + (2 * col_stride)));
-          scalars[i] = *(row_ptr + (3 * col_stride))
+          scalars[i] = *(row_ptr + (3 * col_stride));
         }
         return vgl_pointset_3d<T>(points, scalars);
       }
@@ -452,7 +452,7 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
           normals[i] = vgl_vector_3d<T>(*(row_ptr + (3 * col_stride)),
                                         *(row_ptr + (4 * col_stride)),
                                         *(row_ptr + (5 * col_stride)));
-          scalars[i] = *(row_ptr + (6 * col_stride))
+          scalars[i] = *(row_ptr + (6 * col_stride));
         }
         return vgl_pointset_3d<T>(points, normals, scalars);
       }
@@ -473,7 +473,7 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
 
       // shape of buffer based on what's in the pointset
       size_t num_rows = ptset.size();
-      size_t num_cols = ptset.size() * 3;
+      size_t num_cols = 3;
       if (ptset.has_normals())
         num_cols *= 2;
       if (ptset.has_scalars())
@@ -501,7 +501,7 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
           *(row_ptr) = point.x();
           *(row_ptr + 1) = point.y();
           *(row_ptr + 2) = point.z();
-          *(row_ptr + 3) = point.sc(row);
+          *(row_ptr + 3) = ptset.sc(row);
         }
       }
       else if (num_cols == 6) {  // x y z n0 n1 n2
@@ -530,7 +530,7 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
           *(row_ptr + 3) = normal.x();
           *(row_ptr + 4) = normal.y();
           *(row_ptr + 5) = normal.z();
-          *(row_ptr + 6) = point.sc(row);
+          *(row_ptr + 6) = ptset.sc(row);
         }
       }
       else {
@@ -547,7 +547,7 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
       // construct numpy array
       return py::array_t<T>(
         { num_rows, num_cols },  /* Buffer dimensions */
-        { sizeof(T) * num_cols, sizeof(T) }  /* Strides (in bytes) for each index */
+        { sizeof(T) * num_cols, sizeof(T) },  /* Strides (in bytes) for each index */
         buffer,  /* Pointer to buffer */
         free_when_done);  // numpy array references this parent
     })
