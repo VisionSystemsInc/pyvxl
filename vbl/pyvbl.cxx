@@ -128,7 +128,7 @@ void wrap_vbl_array_2d(py::module &m, std::string const& class_name)
         { sizeof(T) * a.cols(), sizeof(T) } /* Strides (in bytes) for each index */
       );
     })
-    .def("__len__", &vbl_array_2d<T>::size)
+    .def("__len__", &vbl_array_2d<T>::rows)
     .def("__getitem__", [](const vbl_array_2d<T> &a, std::tuple<size_t, size_t> index) {
       size_t i = std::get<0>(index);
       size_t j = std::get<1>(index);
