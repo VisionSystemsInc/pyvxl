@@ -26,6 +26,7 @@
 
 // io classes for py::pickle
 #include <vgl/io/vgl_io_point_2d.h>
+#include <vgl/io/vgl_io_pointset_3d.h>
 #include <vgl/io/vgl_io_homg_point_2d.h>
 #include <vgl/io/vgl_io_vector_2d.h>
 #include <vgl/io/vgl_io_point_3d.h>
@@ -562,6 +563,8 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
         buffer << ">";
         return buffer.str();
       })
+    .def(py::pickle(&vslPickleGetState<vgl_pointset_3d<T> >,
+                    &vslPickleSetState<vgl_pointset_3d<T> >))
     .def_property_readonly("has_normals", &vgl_pointset_3d<T>::has_normals)
     .def_property_readonly("has_scalars", &vgl_pointset_3d<T>::has_scalars)
     .def("add_point", &vgl_pointset_3d<T>::add_point)
