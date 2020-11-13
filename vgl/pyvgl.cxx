@@ -383,7 +383,7 @@ std::vector<vgl_point_3d<T> > read_points_from_buffer(py::buffer b) {
     throw std::runtime_error("Incompatible scalar type");
   }
   if (info.ndim != 2) {
-    throw std::runtime_error("Expecting a 2-dimensional vector");
+    throw std::runtime_error("Expecting a 2-dimensional points buffer");
   }
 
   const size_t num_rows = info.shape[0];
@@ -405,7 +405,7 @@ std::vector<vgl_point_3d<T> > read_points_from_buffer(py::buffer b) {
   }
   else {
     std::ostringstream buffer;
-    buffer << "Expecting 3 columns. Received " << num_cols << ".";
+    buffer << "Expecting points buffer wtih 3 columns. Received " << num_cols << ".";
     throw std::runtime_error(buffer.str());
   }
 }
@@ -421,7 +421,7 @@ std::vector<vgl_vector_3d<T> > read_normals_from_buffer(py::buffer b) {
     throw std::runtime_error("Incompatible scalar type");
   }
   if (info.ndim != 2) {
-    throw std::runtime_error("Expecting a 2-dimensional vector");
+    throw std::runtime_error("Expecting a 2-dimensional normals buffer");
   }
 
   const size_t num_rows = info.shape[0];
@@ -443,7 +443,7 @@ std::vector<vgl_vector_3d<T> > read_normals_from_buffer(py::buffer b) {
   }
   else {
     std::ostringstream buffer;
-    buffer << "Expecting 3 columns. Received " << num_cols << ".";
+    buffer << "Expecting normals buffer with 3 columns. Received " << num_cols << ".";
     throw std::runtime_error(buffer.str());
   }
 }
@@ -460,11 +460,11 @@ std::vector<T> read_scalars_from_buffer(py::buffer b) {
   }
   if (info.ndim == 2 && info.shape[1] != 1) {
     std::ostringstream buffer;
-    buffer << "Expecting 1 column. Received " << info.shape[1] << ".";
+    buffer << "Expecting scalars buffer with 1 column. Received " << info.shape[1] << ".";
     throw std::runtime_error(buffer.str());
   }
-  else if (info.ndim != 1) {
-    throw std::runtime_error("Expecting a 1 or 2 dimensional buffer.");
+  else if (info.ndim != 1 && info.ndim != 2) {
+    throw std::runtime_error("Expecting a 1 or 2 dimensional scalars buffer.");
   }
 
   const size_t num_rows = info.shape[0];
@@ -499,17 +499,26 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
       std::vector<vgl_point_3d<T> > points = read_points_from_buffer<T>(b1);
 
       py::buffer_info b2_info = b2.request();
-      if (b2_info.ndim == 1) {
+      if (b2_info.ndim == 1) {  // (N,) scalars buffer
         std::vector<T> scalars = read_scalars_from_buffer<T>(b2);
         return vgl_pointset_3d<T>(points, scalars);
       }
       else if (b2_info.ndim == 2) {
-        std::vector<vgl_vector_3d<T> > normals = read_normals_from_buffer<T>(b2);
-        return vgl_pointset_3d<T>(points, normals);
+        if (b2_info.shape[1] == 1) {  // (N,1) scalars buffer
+          std::vector<T> scalars = read_scalars_from_buffer<T>(b2);
+          return vgl_pointset_3d<T>(points, scalars);
+        }
+        else {  // (N,3) normals buffer
+          std::vector<vgl_vector_3d<T> > normals = read_normals_from_buffer<T>(b2);
+          return vgl_pointset_3d<T>(points, normals);
+        }
       }
       else {
-        throw std::runtime_error("Expecting a 1 or 2 dimensional buffer.");
+        throw std::runtime_error("Expecting a 1 or 2 dimensional second buffer.");
       }
+
+      // to make the compiler happy. control flow will never reach this
+      return vgl_pointset_3d<T>();
     }))
     .def(py::init([](py::buffer b1, py::buffer b2, py::buffer b3) {
       std::vector<vgl_point_3d<T> > points = read_points_from_buffer<T>(b1);
