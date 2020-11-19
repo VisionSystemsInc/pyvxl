@@ -34,7 +34,7 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
 
     .def("set_dynamic_range_table", &BSGM_T::set_dynamic_range_table, py::arg("bits_per_pix_factors"),
          "the amount to scale appearance quantities with respect to effective bits per pixel")
-    
+
     .def_property("params",
         overload_cast_<>()(&BSGM_T::params, py::const_),
         overload_cast_<pairwise_params const&>()(&BSGM_T::params),
@@ -218,6 +218,8 @@ void wrap_bsgm(py::module &m)
                    "height map grid spacing, also relates to consistent distance tolerance")
     .def_readwrite("upsample_scale_factor", &pairwise_params::upsample_scale_factor_,
                    "upsample the rectified images by scale factor")
+    .def_readwrite("min_overlap_fraction", &pairwise_params::min_overlap_fraction_,
+                   "minimum fraction of points in the zero disparity plane (w/in scene box) that must project into both images")
     .def_readwrite("std_dev", &pairwise_params::std_dev_,
                    "standard deviation of consistent disparity point distances")
     .def_readwrite("use_z_vs_d_prob", &pairwise_params::use_z_vs_d_prob_,
