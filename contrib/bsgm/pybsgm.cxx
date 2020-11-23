@@ -92,6 +92,8 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          "forward triangulation result")
     .def("tri_3d_rev", &BSGM_T::tri_3d_rev,
          "reverse triangulation result")
+    .def("xyz_prob", &BSGM_T::xyz_prob,
+         "image with xyz and probability")
 
     .def("heightmap_fwd", &BSGM_T::heightmap_fwd,
          "forward heightmap")
