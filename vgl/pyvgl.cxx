@@ -211,7 +211,7 @@ std::vector<std::vector<std::vector<T>>> vgl_polygon_as_array(vgl_polygon<T> con
   // return an array of lists of [x,y] points
   std::vector<std::vector<std::vector<T>>> array_of_sheets;
 
-  for (int i=0; i < p.num_sheets(); ++i) {
+  for (int i = 0; i < p.num_sheets(); ++i) {
 
     // the vxl source sheet
     typename vgl_polygon<T>::sheet_t sheet = p[i];
@@ -395,7 +395,7 @@ std::vector<vgl_point_3d<T> > read_points_from_buffer(py::buffer b) {
     std::vector<vgl_point_3d<T> > points(num_rows);
     T* data_ptr = static_cast<T*>(info.ptr);
     T* row_ptr;
-    for (size_t i=0; i < num_rows; ++i) {
+    for (size_t i = 0; i < num_rows; ++i) {
       row_ptr = data_ptr + (i * row_stride);
       points[i] = vgl_point_3d<T>(*(row_ptr),
                                   *(row_ptr + col_stride),
@@ -433,7 +433,7 @@ std::vector<vgl_vector_3d<T> > read_normals_from_buffer(py::buffer b) {
     std::vector<vgl_vector_3d<T> > normals(num_rows);
     T* data_ptr = static_cast<T*>(info.ptr);
     T* row_ptr;
-    for (size_t i=0; i < num_rows; ++i) {
+    for (size_t i = 0; i < num_rows; ++i) {
       row_ptr = data_ptr + (i * row_stride);
       normals[i] = vgl_vector_3d<T>(*(row_ptr),
                                     *(row_ptr + col_stride),
@@ -473,7 +473,7 @@ std::vector<T> read_scalars_from_buffer(py::buffer b) {
   std::vector<T> scalars(num_rows);
   T* data_ptr = static_cast<T*>(info.ptr);
   T* row_ptr;
-  for (size_t i=0; i < num_rows; ++i) {
+  for (size_t i = 0; i < num_rows; ++i) {
     scalars[i] = *(data_ptr + (i * row_stride));
   }
   return scalars;
@@ -486,15 +486,17 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
 {
     py::class_<vgl_pointset_3d<T> > (m, class_name.c_str())
     .def(py::init())
-    .def(py::init<std::vector<vgl_point_3d<T> > >())
-    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<vgl_vector_3d<T> > >())
-    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<T> >())
+    .def(py::init<std::vector<vgl_point_3d<T> > >(), py::arg("points"))
+    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<vgl_vector_3d<T> > >(),
+         py::arg("points"), py::arg("normals"))
+    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<T> >(),
+         py::arg("points"), py::arg("scalars"))
     .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<vgl_vector_3d<T> >,
-        std::vector<T> >())
+         std::vector<T> >(), py::arg("points"), py::arg("normals"), py::arg("scalars"))
     .def(py::init([](py::buffer b) {
       std::vector<vgl_point_3d<T> > points = read_points_from_buffer<T>(b);
       return vgl_pointset_3d<T>(points);
-    }))
+    }), py::arg("points"))
     .def(py::init([](py::buffer b1, py::buffer b2) {
       std::vector<vgl_point_3d<T> > points = read_points_from_buffer<T>(b1);
 
@@ -519,13 +521,13 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
 
       // to make the compiler happy. control flow will never reach this
       return vgl_pointset_3d<T>();
-    }))
+    }), py::arg("points"), py::arg("normals_or_scalars"))
     .def(py::init([](py::buffer b1, py::buffer b2, py::buffer b3) {
       std::vector<vgl_point_3d<T> > points = read_points_from_buffer<T>(b1);
       std::vector<vgl_vector_3d<T> > normals = read_normals_from_buffer<T>(b2);
       std::vector<T> scalars = read_scalars_from_buffer<T>(b3);
       return vgl_pointset_3d<T>(points, normals, scalars);
-    }))
+    }), py::arg("points"), py::arg("normals"), py::arg("scalars"))
     .def("__len__", &vgl_pointset_3d<T>::size)
     .def("__repr__", [](vgl_pointset_3d<T> const& ptset){
         std::ostringstream buffer;
