@@ -26,6 +26,7 @@
 
 // io classes for py::pickle
 #include <vgl/io/vgl_io_point_2d.h>
+#include <vgl/io/vgl_io_pointset_3d.h>
 #include <vgl/io/vgl_io_homg_point_2d.h>
 #include <vgl/io/vgl_io_vector_2d.h>
 #include <vgl/io/vgl_io_point_3d.h>
@@ -210,7 +211,7 @@ std::vector<std::vector<std::vector<T>>> vgl_polygon_as_array(vgl_polygon<T> con
   // return an array of lists of [x,y] points
   std::vector<std::vector<std::vector<T>>> array_of_sheets;
 
-  for (int i=0; i < p.num_sheets(); ++i) {
+  for (int i = 0; i < p.num_sheets(); ++i) {
 
     // the vxl source sheet
     typename vgl_polygon<T>::sheet_t sheet = p[i];
@@ -371,16 +372,162 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     ;
 }
 
+
+template<typename T>
+std::vector<vgl_point_3d<T> > read_points_from_buffer(py::buffer b) {
+  /* Takes advantage of NRVO */
+
+  py::buffer_info info = b.request();
+
+  if (info.format != py::format_descriptor<T>::format()) {
+    throw std::runtime_error("Incompatible scalar type");
+  }
+  if (info.ndim != 2) {
+    throw std::runtime_error("Expecting a 2-dimensional points buffer");
+  }
+
+  const size_t num_rows = info.shape[0];
+  const size_t num_cols = info.shape[1];
+  const size_t row_stride = info.strides[0] / sizeof(T);
+  const size_t col_stride = info.strides[1] / sizeof(T);
+
+  if (num_cols == 3) {  // x y z
+    std::vector<vgl_point_3d<T> > points(num_rows);
+    T* data_ptr = static_cast<T*>(info.ptr);
+    T* row_ptr;
+    for (size_t i = 0; i < num_rows; ++i) {
+      row_ptr = data_ptr + (i * row_stride);
+      points[i] = vgl_point_3d<T>(*(row_ptr),
+                                  *(row_ptr + col_stride),
+                                  *(row_ptr + (2 * col_stride)));
+    }
+    return points;
+  }
+  else {
+    std::ostringstream buffer;
+    buffer << "Expecting points buffer wtih 3 columns. Received " << num_cols << ".";
+    throw std::runtime_error(buffer.str());
+  }
+}
+
+
+template<typename T>
+std::vector<vgl_vector_3d<T> > read_normals_from_buffer(py::buffer b) {
+  /* Takes advantage of NRVO */
+
+  py::buffer_info info = b.request();
+
+  if (info.format != py::format_descriptor<T>::format()) {
+    throw std::runtime_error("Incompatible scalar type");
+  }
+  if (info.ndim != 2) {
+    throw std::runtime_error("Expecting a 2-dimensional normals buffer");
+  }
+
+  const size_t num_rows = info.shape[0];
+  const size_t num_cols = info.shape[1];
+  const size_t row_stride = info.strides[0] / sizeof(T);
+  const size_t col_stride = info.strides[1] / sizeof(T);
+
+  if (num_cols == 3) {  // n0 n1 n2
+    std::vector<vgl_vector_3d<T> > normals(num_rows);
+    T* data_ptr = static_cast<T*>(info.ptr);
+    T* row_ptr;
+    for (size_t i = 0; i < num_rows; ++i) {
+      row_ptr = data_ptr + (i * row_stride);
+      normals[i] = vgl_vector_3d<T>(*(row_ptr),
+                                    *(row_ptr + col_stride),
+                                    *(row_ptr + (2 * col_stride)));
+    }
+    return normals;
+  }
+  else {
+    std::ostringstream buffer;
+    buffer << "Expecting normals buffer with 3 columns. Received " << num_cols << ".";
+    throw std::runtime_error(buffer.str());
+  }
+}
+
+
+template<typename T>
+std::vector<T> read_scalars_from_buffer(py::buffer b) {
+  /* Takes advantage of NRVO */
+
+  py::buffer_info info = b.request();
+
+  if (info.format != py::format_descriptor<T>::format()) {
+    throw std::runtime_error("Incompatible scalar type");
+  }
+  if (info.ndim == 2 && info.shape[1] != 1) {
+    std::ostringstream buffer;
+    buffer << "Expecting scalars buffer with 1 column. Received " << info.shape[1] << ".";
+    throw std::runtime_error(buffer.str());
+  }
+  else if (info.ndim != 1 && info.ndim != 2) {
+    throw std::runtime_error("Expecting a 1 or 2 dimensional scalars buffer.");
+  }
+
+  const size_t num_rows = info.shape[0];
+  const size_t row_stride = info.strides[0] / sizeof(T);
+
+  std::vector<T> scalars(num_rows);
+  T* data_ptr = static_cast<T*>(info.ptr);
+  T* row_ptr;
+  for (size_t i = 0; i < num_rows; ++i) {
+    scalars[i] = *(data_ptr + (i * row_stride));
+  }
+  return scalars;
+}
+
+
+
 template<typename T>
 void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
 {
     py::class_<vgl_pointset_3d<T> > (m, class_name.c_str())
     .def(py::init())
-    .def(py::init<std::vector<vgl_point_3d<T> > >())
-    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<vgl_vector_3d<T> > >())
-    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<T> >())
+    .def(py::init<std::vector<vgl_point_3d<T> > >(), py::arg("points"))
+    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<vgl_vector_3d<T> > >(),
+         py::arg("points"), py::arg("normals"))
+    .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<T> >(),
+         py::arg("points"), py::arg("scalars"))
     .def(py::init<std::vector<vgl_point_3d<T> >, std::vector<vgl_vector_3d<T> >,
-        std::vector<T> >())
+         std::vector<T> >(), py::arg("points"), py::arg("normals"), py::arg("scalars"))
+    .def(py::init([](py::buffer b) {
+      std::vector<vgl_point_3d<T> > points = read_points_from_buffer<T>(b);
+      return vgl_pointset_3d<T>(points);
+    }), py::arg("points"))
+    .def(py::init([](py::buffer b1, py::buffer b2) {
+      std::vector<vgl_point_3d<T> > points = read_points_from_buffer<T>(b1);
+
+      py::buffer_info b2_info = b2.request();
+      if (b2_info.ndim == 1) {  // (N,) scalars buffer
+        std::vector<T> scalars = read_scalars_from_buffer<T>(b2);
+        return vgl_pointset_3d<T>(points, scalars);
+      }
+      else if (b2_info.ndim == 2) {
+        if (b2_info.shape[1] == 1) {  // (N,1) scalars buffer
+          std::vector<T> scalars = read_scalars_from_buffer<T>(b2);
+          return vgl_pointset_3d<T>(points, scalars);
+        }
+        else {  // (N,3) normals buffer
+          std::vector<vgl_vector_3d<T> > normals = read_normals_from_buffer<T>(b2);
+          return vgl_pointset_3d<T>(points, normals);
+        }
+      }
+      else {
+        throw std::runtime_error("Expecting a 1 or 2 dimensional second buffer.");
+      }
+
+      // to make the compiler happy. control flow will never reach this
+      return vgl_pointset_3d<T>();
+    }), py::arg("points"), py::arg("normals_or_scalars"))
+    .def(py::init([](py::buffer b1, py::buffer b2, py::buffer b3) {
+      std::vector<vgl_point_3d<T> > points = read_points_from_buffer<T>(b1);
+      std::vector<vgl_vector_3d<T> > normals = read_normals_from_buffer<T>(b2);
+      std::vector<T> scalars = read_scalars_from_buffer<T>(b3);
+      return vgl_pointset_3d<T>(points, normals, scalars);
+    }), py::arg("points"), py::arg("normals"), py::arg("scalars"))
     .def("__len__", &vgl_pointset_3d<T>::size)
     .def("__repr__", [](vgl_pointset_3d<T> const& ptset){
         std::ostringstream buffer;
@@ -392,6 +539,8 @@ void wrap_vgl_pointset_3d(py::module &m, std::string const& class_name)
         buffer << ">";
         return buffer.str();
       })
+    .def(py::pickle(&vslPickleGetState<vgl_pointset_3d<T> >,
+                    &vslPickleSetState<vgl_pointset_3d<T> >))
     .def_property_readonly("has_normals", &vgl_pointset_3d<T>::has_normals)
     .def_property_readonly("has_scalars", &vgl_pointset_3d<T>::has_scalars)
     .def("add_point", &vgl_pointset_3d<T>::add_point)
