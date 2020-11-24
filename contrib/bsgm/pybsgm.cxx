@@ -142,6 +142,7 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
     .def("process", &BSGM_T::process,
          py::call_guard<py::gil_scoped_release>(),
          py::arg("with_consistency_check") = true,
+         py::arg("knn_consistency") = true,
          "Main process method")
 
     .def("save_prob_ptset_color", &BSGM_T::save_prob_ptset_color,
