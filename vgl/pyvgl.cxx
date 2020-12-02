@@ -8,7 +8,7 @@
 #include <vgl/vgl_ray_3d.h>
 #include <vgl/vgl_pointset_3d.h>
 #include <vgl/vgl_plane_3d.h>
-#include <vgl/vgl_cylinder.h>
+#include <vgl/vgl_cylinder_3d.h>
 #include <vgl/vgl_sphere_3d.h>
 #include <vgl/vgl_polygon.h>
 #include <vgl/vgl_line_segment_2d.h>
@@ -719,14 +719,14 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("normal", &vgl_plane_3d<double>::normal)
     .def(py::self == py::self);
 
-  py::class_<vgl_cylinder<double> > (m, "cylinder")
+  py::class_<vgl_cylinder_3d<double> > (m, "cylinder_3d")
     .def(py::init())
     .def(py::init<vgl_point_3d<double>, double, double, vgl_vector_3d<double> >())
-    .def("__repr__", streamToString<vgl_cylinder<double> >)
-    .def_property("center", &vgl_cylinder<double>::center, &vgl_cylinder<double>::set_center)
-    .def_property("radius", &vgl_cylinder<double>::radius, &vgl_cylinder<double>::set_radius)
-    .def_property("length", &vgl_cylinder<double>::length, &vgl_cylinder<double>::set_length)
-    .def_property("orientation", &vgl_cylinder<double>::orientation, &vgl_cylinder<double>::set_orientation)
+    .def("__repr__", streamToString<vgl_cylinder_3d<double> >)
+    .def_property("center", &vgl_cylinder_3d<double>::center, &vgl_cylinder_3d<double>::set_center)
+    .def_property("radius", &vgl_cylinder_3d<double>::radius, &vgl_cylinder_3d<double>::set_radius)
+    .def_property("length", &vgl_cylinder_3d<double>::length, &vgl_cylinder_3d<double>::set_length)
+    .def_property("orientation", &vgl_cylinder_3d<double>::orientation, &vgl_cylinder_3d<double>::set_orientation)
     .def(py::self == py::self);
 
   py::class_<vgl_sphere_3d<double> > (m, "sphere_3d")
