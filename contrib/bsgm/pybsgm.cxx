@@ -92,6 +92,8 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          "forward triangulation result")
     .def("tri_3d_rev", &BSGM_T::tri_3d_rev,
          "reverse triangulation result")
+    .def("xyz_prob", &BSGM_T::xyz_prob,
+         "image with xyz and probability")
 
     .def("heightmap_fwd", &BSGM_T::heightmap_fwd,
          "forward heightmap")
@@ -141,7 +143,7 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          py::call_guard<py::gil_scoped_release>(),
          py::arg("with_consistency_check") = true,
          py::arg("knn_consistency") = true,
-         py::arg("compute_fwd_rev_ptsets_hmaps") = true,
+         py::arg("compute_fwd_rev_ptsets_hmaps") = false,
          "Main process method")
 
     .def("save_prob_ptset_color", &BSGM_T::save_prob_ptset_color,
