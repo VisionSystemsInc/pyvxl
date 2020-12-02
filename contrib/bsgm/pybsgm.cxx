@@ -143,7 +143,7 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          py::call_guard<py::gil_scoped_release>(),
          py::arg("with_consistency_check") = true,
          py::arg("knn_consistency") = true,
-         py::arg("compute_fwd_rev_ptsets_hmaps") = false,
+         py::arg("compute_fwd_rev_ptsets_hmaps") = true,
          "Main process method")
 
     .def("save_prob_ptset_color", &BSGM_T::save_prob_ptset_color,
