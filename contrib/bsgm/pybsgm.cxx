@@ -68,6 +68,16 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
         overload_cast_<vgl_box_3d<double> >()(&BSGM_T::scene_box),
         "scene box for analysis")
 
+    .def_property("target_window",
+        overload_cast_<>()(&BSGM_T::target_window, py::const_),
+        overload_cast_<vgl_box_2d<int> >()(&BSGM_T::target_window),
+        "Crop processing window within target image")
+
+    .def_property("reference_window",
+        overload_cast_<>()(&BSGM_T::reference_window, py::const_),
+        overload_cast_<vgl_box_2d<int> >()(&BSGM_T::reference_window),
+        "Crop processing window within reference image")
+
     .def("rectified_bview0", &BSGM_T::rectified_bview0,
          "rectified image view 0")
     .def("rectified_bview1", &BSGM_T::rectified_bview1,
