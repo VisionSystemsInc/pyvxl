@@ -695,6 +695,7 @@ void wrap_vgl(py::module &m)
 
   wrap_box_2d<double>(m,"box_2d");
   wrap_box_2d<float>(m,"box_2d_float");
+  wrap_box_2d<int>(m,"box_2d_int");
 
   wrap_box_3d<double>(m,"box_3d");
   wrap_box_3d<float>(m,"box_3d_float");
