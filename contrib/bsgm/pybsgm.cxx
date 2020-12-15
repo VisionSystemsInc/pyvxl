@@ -159,6 +159,7 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
     .def("process_with_windows", &BSGM_T::process_with_windows,
          py::call_guard<py::gil_scoped_release>(),
          py::arg("first_window") = true,
+         py::arg("with_consistency_check")= false,
          py::arg("print_timing") = false,
          "Main process method for windows into stereo image pair")
 
