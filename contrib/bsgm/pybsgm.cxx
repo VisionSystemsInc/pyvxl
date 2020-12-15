@@ -156,6 +156,12 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          py::arg("compute_fwd_rev_ptsets_hmaps") = true,
          "Main process method")
 
+    .def("process_with_windows", &BSGM_T::process_with_windows,
+         py::call_guard<py::gil_scoped_release>(),
+         py::arg("first_window") = true,
+         py::arg("print_timing") = false,
+         "Main process method for windows into stereo image pair")
+
     .def("save_prob_ptset_color", &BSGM_T::save_prob_ptset_color,
          py::arg("path"),
          "apply a color map to probabilty values and output an ascii color point cloud")
