@@ -42,14 +42,14 @@ void wrap_bpgl_rectify_image_pair(py::module &m, const char* name)
     .def("rectify_window", &bpgl_rectify_image_pair<CAMT>::rectify_window,
          py::arg("window"), py::arg("H"), py::arg("ni"), py::arg("nj"), py::arg("padding") = 0)
     .def("warp_image_pair", &bpgl_rectify_image_pair<CAMT>::warp_image_pair)
-    .def("process", static_cast<void (bpgl_rectify_image_pair<CAMT>::*)(vgl_box_3d<double> const&, vgl_box_2d<int>&)>(&bpgl_rectify_image_pair<CAMT>::process),
-         py::arg("scene_box"), py::arg("target_window") = vgl_box_2d<int>())
-    .def("process", static_cast<void (bpgl_rectify_image_pair<CAMT>::*)(vil_image_view_base_sptr const&, vil_image_view_base_sptr const&, CAMT&, CAMT&, vgl_box_3d<double>const&, vgl_box_2d<int>&)>(&bpgl_rectify_image_pair<CAMT>::process),
-         py::arg("view_sptr0"), py::arg("view_sptr1"), py::arg("cam0"), py::arg("cam1"), py::arg("scene_box"), py::arg("target_window") = vgl_box_2d<int>())
-    .def("process", static_cast<void (bpgl_rectify_image_pair<CAMT>::*)(vil_image_view<unsigned char> const&, vil_image_view<unsigned char> const&, CAMT&, CAMT&, vgl_box_3d<double>const&, vgl_box_2d<int>&)>(&bpgl_rectify_image_pair<CAMT>::process),
-         py::arg("view0"), py::arg("view1"), py::arg("cam0"), py::arg("cam1"), py::arg("scene_box"), py::arg("target_window") = vgl_box_2d<int>())
-    .def("process", static_cast<void (bpgl_rectify_image_pair<CAMT>::*)(vil_image_resource_sptr const&, vil_image_resource_sptr const&, CAMT&, CAMT&, vgl_box_3d<double>const&, vgl_box_2d<int>&)>(&bpgl_rectify_image_pair<CAMT>::process),
-         py::arg("view0"), py::arg("view1"), py::arg("cam0"), py::arg("cam1"), py::arg("scene_box"), py::arg("target_window") = vgl_box_2d<int>())
+    .def("process", static_cast<void (bpgl_rectify_image_pair<CAMT>::*)(vgl_box_3d<double> const&, vgl_box_2d<int>&, int, int)>(&bpgl_rectify_image_pair<CAMT>::process),
+         py::arg("scene_box"), py::arg("target_window") = vgl_box_2d<int>(), py::arg("min_disparity"), py::arg("max_disparity"))
+    .def("process", static_cast<void (bpgl_rectify_image_pair<CAMT>::*)(vil_image_view_base_sptr const&, vil_image_view_base_sptr const&, CAMT&, CAMT&, vgl_box_3d<double>const&, vgl_box_2d<int>&, int, int)>(&bpgl_rectify_image_pair<CAMT>::process),
+         py::arg("view_sptr0"), py::arg("view_sptr1"), py::arg("cam0"), py::arg("cam1"), py::arg("scene_box"), py::arg("target_window") = vgl_box_2d<int>(), py::arg("min_disparity"), py::arg("max_disparity"))
+    .def("process", static_cast<void (bpgl_rectify_image_pair<CAMT>::*)(vil_image_view<unsigned char> const&, vil_image_view<unsigned char> const&, CAMT&, CAMT&, vgl_box_3d<double>const&, vgl_box_2d<int>&, int, int)>(&bpgl_rectify_image_pair<CAMT>::process),
+         py::arg("view0"), py::arg("view1"), py::arg("cam0"), py::arg("cam1"), py::arg("scene_box"), py::arg("target_window") = vgl_box_2d<int>(), py::arg("min_disparity"), py::arg("max_disparity"))
+    .def("process", static_cast<void (bpgl_rectify_image_pair<CAMT>::*)(vil_image_resource_sptr const&, vil_image_resource_sptr const&, CAMT&, CAMT&, vgl_box_3d<double>const&, vgl_box_2d<int>&, int, int)>(&bpgl_rectify_image_pair<CAMT>::process),
+         py::arg("view0"), py::arg("view1"), py::arg("cam0"), py::arg("cam1"), py::arg("scene_box"), py::arg("target_window") = vgl_box_2d<int>(), py::arg("min_disparity"), py::arg("max_disparity"))
 
     .def_property_readonly("rect_window0", &bpgl_rectify_image_pair<CAMT>::rect_window0)
     .def_property_readonly("rect_window1", &bpgl_rectify_image_pair<CAMT>::rect_window1)
