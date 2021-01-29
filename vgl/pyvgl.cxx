@@ -318,6 +318,7 @@ void wrap_vgl_point_3d(py::module &m, std::string const& class_name)
     .def_property_readonly("x", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::x)
     .def_property_readonly("y", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::y)
     .def_property_readonly("z", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::z)
+    .def(py::self * vgl_vector_3d<T>())
     .def(py::self - py::self)
     .def(py::self == py::self)
     ;
