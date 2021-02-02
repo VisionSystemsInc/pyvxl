@@ -1,4 +1,5 @@
 #include "pyvnl.h"
+#include <vnl/vnl_inverse.h>
 #include <vnl/vnl_vector.h>
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_matrix_fixed.h>
@@ -432,6 +433,12 @@ void wrap_vnl_matrix_fixed(py::module &m, std::string const& class_name)
   py::implicitly_convertible<py::array_t<T>, vnl_matrix_fixed<T,NR,NC> >();
 }
 
+template<class T, unsigned NR, unsigned NC>
+void wrap_vnl_inverse_matrix_fixed(py::module &m, const char* function_name)
+{
+  m.def(function_name, static_cast<vnl_matrix_fixed<T, NR, NC> (*)(vnl_matrix_fixed<T, NR, NC> const&)>(&vnl_inverse<T>), "Invert the matrix without SVD");
+}
+
 template<class T>
 void wrap_vnl_quaternion(py::module &m, std::string const& class_name)
 {
@@ -451,6 +458,7 @@ void wrap_vnl(py::module &m)
   wrap_vnl_matrix_fixed<double,3,3>(m, "matrix_fixed_3x3");
   wrap_vnl_matrix_fixed<double,3,4>(m, "matrix_fixed_3x4");
   wrap_vnl_matrix_fixed<double,4,20>(m, "matrix_fixed_4x20");
+  wrap_vnl_inverse_matrix_fixed<double,3,3>(m, "inverse_matrix_fixed_3x3");
   wrap_vnl_vector_fixed<double,3>(m, "vector_fixed_3");
   wrap_vnl_vector_fixed<double,4>(m, "vector_fixed_4");
   wrap_vnl_quaternion<double>(m, "quaternion");
