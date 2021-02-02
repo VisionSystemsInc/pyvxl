@@ -41,6 +41,8 @@ void wrap_bpgl_rectify_image_pair(py::module &m, const char* name)
          py::arg("ni1") = -1, py::arg("nj1") = -1)
     .def("rectify_window", &bpgl_rectify_image_pair<CAMT>::rectify_window,
          py::arg("window"), py::arg("H"), py::arg("ni"), py::arg("nj"), py::arg("padding") = 0)
+    .def("rectify_window_pair", &bpgl_rectify_image_pair<CAMT>::rectify_window_pair,
+         py::arg("target_window"), py::arg("min_disparity"), py::arg("max_disparity"))
     .def("warp_image_pair", &bpgl_rectify_image_pair<CAMT>::warp_image_pair)
     .def("process", static_cast<void (bpgl_rectify_image_pair<CAMT>::*)(vgl_box_3d<double> const&, vgl_box_2d<int>&, int, int)>(&bpgl_rectify_image_pair<CAMT>::process),
          py::arg("scene_box"), py::arg("target_window") = vgl_box_2d<int>(), py::arg("min_disparity"), py::arg("max_disparity"))
