@@ -26,10 +26,11 @@ template <class CAMT>
 void wrap_bpgl_rectify_image_pair(py::module &m, const char* name)
 {
   py::class_<bpgl_rectify_image_pair<CAMT> > (m, name)
-    .def(py::init<double, size_t, double, float, double, int>(),
+    .def(py::init<double, size_t, double, float, double, int, size_t>(),
          py::arg("min_disparity_z") = NAN, py::arg("n_points") = 1000,
          py::arg("upsample_scale") = 1.0, py::arg("invalid_pixel_val") = 0.0f,
-         py::arg("min_overlap_fraction") = 0.25, py::arg("window_padding") = 0)
+         py::arg("min_overlap_fraction") = 0.25, py::arg("window_padding") = 0,
+         py::arg("kernel_margin") = 0)
     /* .def("set_images", &bpgl_rectify_image_pair<CAMT>::set_images, */
     /*      py::arg("view0"), py::arg("view1")) */
     .def("set_cameras", &bpgl_rectify_image_pair<CAMT>::set_cameras,
@@ -39,6 +40,8 @@ void wrap_bpgl_rectify_image_pair(py::module &m, const char* name)
     .def("compute_rectification", &bpgl_rectify_image_pair<CAMT>::compute_rectification,
          py::arg("scene_box"), py::arg("ni0") = -1, py::arg("nj0") = -1,
          py::arg("ni1") = -1, py::arg("nj1") = -1)
+    .def("rectify_camera", &bpgl_rectify_image_pair<CAMT>::rectify_camera,
+         py::arg("cam"), py::arg("H"))
     .def("rectify_window", &bpgl_rectify_image_pair<CAMT>::rectify_window,
          py::arg("window"), py::arg("H"), py::arg("ni"), py::arg("nj"), py::arg("padding") = 0)
     .def("rectify_window_pair", &bpgl_rectify_image_pair<CAMT>::rectify_window_pair,
