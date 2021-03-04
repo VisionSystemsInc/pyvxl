@@ -68,6 +68,36 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
         overload_cast_<vgl_box_3d<double> >()(&BSGM_T::scene_box),
         "scene box for analysis")
 
+    .def_property("target_window",
+        overload_cast_<>()(&BSGM_T::target_window, py::const_),
+        overload_cast_<vgl_box_2d<int> >()(&BSGM_T::target_window),
+        "Crop processing window within target image")
+
+    /* .def_property("reference_window", */
+    /*     overload_cast_<>()(&BSGM_T::reference_window, py::const_), */
+    /*     overload_cast_<vgl_box_2d<int> >()(&BSGM_T::reference_window), */
+    /*     "Crop processing window within reference image") */
+
+    .def_property("H0",
+        overload_cast_<>()(&BSGM_T::H0, py::const_),
+        overload_cast_<vnl_matrix_fixed<double, 3, 3> >()(&BSGM_T::H0),
+        "Image 0's rectification homography")
+
+    .def_property("H1",
+        overload_cast_<>()(&BSGM_T::H1, py::const_),
+        overload_cast_<vnl_matrix_fixed<double, 3, 3> >()(&BSGM_T::H1),
+        "Image 1's rectification homography")
+
+    .def_property("rect_ni",
+        overload_cast_<>()(&BSGM_T::rect_ni, py::const_),
+        overload_cast_<size_t>()(&BSGM_T::rect_ni),
+        "Width of rectified images")
+
+    .def_property("rect_nj",
+        overload_cast_<>()(&BSGM_T::rect_nj, py::const_),
+        overload_cast_<size_t>()(&BSGM_T::rect_nj),
+        "Height of rectified images")
+
     .def("rectified_bview0", &BSGM_T::rectified_bview0,
          "rectified image view 0")
     .def("rectified_bview1", &BSGM_T::rectified_bview1,
@@ -145,6 +175,13 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          py::arg("knn_consistency") = true,
          py::arg("compute_fwd_rev_ptsets_hmaps") = true,
          "Main process method")
+
+    .def("process_with_windows", &BSGM_T::process_with_windows,
+         py::call_guard<py::gil_scoped_release>(),
+         py::arg("first_window") = true,
+         py::arg("with_consistency_check")= false,
+         py::arg("print_timing") = false,
+         "Main process method for windows into stereo image pair")
 
     .def("save_prob_ptset_color", &BSGM_T::save_prob_ptset_color,
          py::arg("path"),
@@ -242,6 +279,8 @@ void wrap_bsgm(py::module &m)
                    "use the reduced resolution dsm to estimate min disparity")
     .def_readwrite("effective_bits_per_pixel", &pairwise_params::effective_bits_per_pixel_,
                    "The actual intensity dynamic range, e.g. 11 bits")
+    .def_readwrite("window_padding", &pairwise_params::window_padding_,
+                   "How many pixels to pad the target window by, post rectification")
     ;
 
   // bsgm_prob_pairwise_dsm

@@ -25,6 +25,9 @@
 #include <pybind11/numpy.h>
 
 // io classes for py::pickle
+#include <vgl/io/vgl_io_box_2d.h>
+#include <vgl/io/vgl_io_box_3d.h>
+#include <vgl/io/vgl_io_oriented_box_2d.h>
 #include <vgl/io/vgl_io_point_2d.h>
 #include <vgl/io/vgl_io_pointset_3d.h>
 #include <vgl/io/vgl_io_homg_point_2d.h>
@@ -318,6 +321,7 @@ void wrap_vgl_point_3d(py::module &m, std::string const& class_name)
     .def_property_readonly("x", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::x)
     .def_property_readonly("y", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::y)
     .def_property_readonly("z", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::z)
+    .def(py::self + vgl_vector_3d<T>())
     .def(py::self - py::self)
     .def(py::self == py::self)
     ;
@@ -614,6 +618,8 @@ void wrap_box_2d(py::module &m, std::string const& class_name)
     .def("scale_about_centroid", &vgl_box_2d<T>::scale_about_centroid)
     .def("scale_about_origin", &vgl_box_2d<T>::scale_about_origin)
     .def("empty", &vgl_box_2d<T>::empty)
+    .def(py::pickle(&vslPickleGetState<vgl_box_2d<T>>,
+                    &vslPickleSetState<vgl_box_2d<T>>))
     ;
 }
 
@@ -667,6 +673,39 @@ void wrap_box_3d(py::module &m, std::string const& class_name)
     .def("scale_about_centroid", &vgl_box_3d<T>::scale_about_centroid)
     .def("scale_about_origin", &vgl_box_3d<T>::scale_about_origin)
     .def("empty", &vgl_box_3d<T>::empty)
+    .def(py::pickle(&vslPickleGetState<vgl_box_3d<T>>,
+                    &vslPickleSetState<vgl_box_3d<T>>))
+    ;
+}
+
+template<typename T>
+void wrap_oriented_box_2d(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_oriented_box_2d<T> >(m, class_name.c_str())
+    .def(py::init())
+    .def(py::init<T, T, vgl_point_2d<T> const&, T>())
+    .def(py::init<vgl_point_2d<T> const&, vgl_point_2d<T> const&, T>())
+    .def(py::init<vgl_line_segment_2d<T> const&, T>())
+    .def(py::init<vgl_point_2d<T> const&, vgl_point_2d<T> const&,
+                  vgl_point_2d<T> const&, vgl_point_2d<T> const&>())
+    .def(py::init<vgl_line_segment_2d<T> const&, vgl_line_segment_2d<T> const&>())
+    .def(py::init<const vgl_box_2d<T>&>())
+    .def(py::init<const vgl_box_2d<T>&, T>())
+    .def(py::init<vgl_point_2d<T> const&, vgl_point_2d<T> const&,
+                  vgl_point_2d<T> const&>())
+    .def("__repr__", streamToString<vgl_oriented_box_2d<T> >)
+    .def_property_readonly("major_axis", &vgl_oriented_box_2d<T>::major_axis)
+    .def_property_readonly("centroid", &vgl_oriented_box_2d<T>::centroid)
+    .def_property_readonly("width", &vgl_oriented_box_2d<T>::width)
+    .def_property_readonly("height", &vgl_oriented_box_2d<T>::height)
+    .def_property_readonly("angle_in_rad", &vgl_oriented_box_2d<T>::angle_in_rad)
+    .def_property_readonly("corners", &vgl_oriented_box_2d<T>::corners)
+    .def_property_readonly("enclosing_box", &vgl_oriented_box_2d<T>::enclosing_box)
+    /* .def("contains", &vgl_oriented_box_2d<T>::contains) */  // have to overload
+    .def("set", &vgl_oriented_box_2d<T>::set)
+    .def(py::self == py::self)
+    .def(py::pickle(&vslPickleGetState<vgl_oriented_box_2d<T>>,
+                    &vslPickleSetState<vgl_oriented_box_2d<T>>))
     ;
 }
 
@@ -695,9 +734,13 @@ void wrap_vgl(py::module &m)
 
   wrap_box_2d<double>(m,"box_2d");
   wrap_box_2d<float>(m,"box_2d_float");
+  wrap_box_2d<int>(m,"box_2d_int");
 
   wrap_box_3d<double>(m,"box_3d");
   wrap_box_3d<float>(m,"box_3d_float");
+
+  wrap_oriented_box_2d<double>(m, "oriented_box_2d");
+  wrap_oriented_box_2d<float>(m, "oriented_box_2d_float");
 
   py::class_<vgl_ray_3d<double> >(m, "ray_3d")
     .def(py::init<vgl_point_3d<double>, vgl_vector_3d<double> >())
@@ -776,16 +819,6 @@ void wrap_vgl(py::module &m)
     .def_property_readonly("point1", &vgl_line_segment_3d<double>::point1)
     .def_property_readonly("point2", &vgl_line_segment_3d<double>::point2)
     .def("set", &vgl_line_segment_3d<double>::set)
-    .def(py::self == py::self);
-
-  py::class_<vgl_oriented_box_2d<double> >(m, "oriented_box_2d")
-    .def(py::init())
-    .def(py::init<vgl_line_segment_2d<double>, double>())
-    .def("__repr__", streamToString<vgl_oriented_box_2d<double> >)
-    .def_property_readonly("major_axis", &vgl_oriented_box_2d<double>::major_axis)
-    .def_property_readonly("width", &vgl_oriented_box_2d<double>::width)
-    .def_property_readonly("height", &vgl_oriented_box_2d<double>::height)
-    .def("set", &vgl_oriented_box_2d<double>::set)
     .def(py::self == py::self);
 
   vgl_oriented_box_2d<double> (vgl_fit_oriented_box_2d<double>::*oriented_fit_box)() = &vgl_fit_oriented_box_2d<double>::fitted_box;
