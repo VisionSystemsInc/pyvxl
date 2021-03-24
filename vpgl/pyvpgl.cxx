@@ -145,7 +145,7 @@ py::array vpgl_project_buffer(T const& cam, py::buffer b){
     const size_t output_nextRow = out_info.strides[0] / sizeof(double);
     const size_t output_nextCol = out_info.strides[1] / sizeof(double);
 
-    for(size_t i = 0; i < info.shape[0]; ++i, data += nextRow, out_data += output_nextRow){
+    for(py::ssize_t i = 0; i < info.shape[0]; ++i, data += nextRow, out_data += output_nextRow){
         const double x = *data;
         const double y = *(data + nextCol);
         const double z = *(data + 2 * nextCol);

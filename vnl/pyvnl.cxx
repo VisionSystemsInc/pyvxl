@@ -32,7 +32,7 @@ long _vnl_index(long i, unsigned int size)
   if (i < 0) {
     i += size;
   }
-  if ((i < 0) || (i >= size)) {
+  if ((i < 0) || ((unsigned)i >= size)) {
     throw py::index_error("index out of range");
   }
   return i;
