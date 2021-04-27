@@ -445,6 +445,7 @@ void wrap_vpgl(py::module &m)
     .def("project", vpgl_project_point<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_vector<vpgl_proj_camera<double> >)
     .def("project", vpgl_project_xyz<vpgl_proj_camera<double> >)
+    .def("project", vpgl_project_buffer<vpgl_proj_camera<double> >)
     .def("get_matrix", &vpgl_proj_camera<double>::get_matrix, py::return_value_policy::copy)
     .def(py::self == py::self)
     .def(py::pickle(&vslPickleGetState<vpgl_proj_camera<double> >,
