@@ -718,6 +718,12 @@ void wrap_vpgl(py::module &m)
     .def("get_len_unit",   &vpgl_lvcs::local_length_unit)
     .def("get_ang_unit",   &vpgl_lvcs::geo_angle_unit)
 
+    // setters
+    .def("set_transform", &vpgl_lvcs::set_transform,
+         py::arg("lox"), py::arg("loy"), py::arg("theta"))
+    .def("set_origin", &vpgl_lvcs::set_origin,
+         py::arg("lon"), py::arg("lat"), py::arg("elev"))
+
     // read/write to string
     .def("reads",
         [](vpgl_lvcs &L, std::string const &str)
@@ -865,6 +871,19 @@ void wrap_vpgl(py::module &m)
          },
          py::arg("longitude"), py::arg("latitude"), py::arg("elevation")
         );
+
+  m.def("load_geo_camera_from_geotiff", &load_geo_camera_from_geotiff,
+        "Load a vpgl_geo_camera from a geotiff file",
+        py::arg("file"), py::arg("lvcs")=nullptr);
+
+  m.def("load_geo_camera_from_resource", &load_geo_camera_from_resource,
+        "Load a vpgl_geo_camera from an image resource",
+        py::arg("resource"), py::arg("lvcs")=nullptr);
+
+  m.def("load_geo_camera_from_geotransform", &load_geo_camera_from_geotransform,
+        "Load a vpgl_geo_camera from a GDAL geotransform",
+        py::arg("geotransform"), py::arg("utm_zone")=-1,
+        py::arg("northing")=0, py::arg("lvcs")=nullptr);
 
   // Init from a Geotiff filename
   m.def("read_geo_camera",
