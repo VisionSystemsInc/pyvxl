@@ -25,22 +25,22 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
     .def(py::init<>())
     .def(py::init<IMAGE_T const&, CAM_T const&,
          IMAGE_T const&, CAM_T const&,
-         vgl_vector_3d<double> const& , vgl_vector_3d<double> const& >(),
+         vgl_vector_3d<float> const& , vgl_vector_3d<float> const& >(),
          py::arg("view_0"), py::arg("cam_0"),
          py::arg("view_1"), py::arg("cam_1"),
-         py::arg("sun_dir_0")=vgl_vector_3d<double>(0,0,0),
-         py::arg("sun_dir_1")=vgl_vector_3d<double>(0,0,0)
+         py::arg("sun_dir_0")=vgl_vector_3d<float>(0,0,0),
+         py::arg("sun_dir_1")=vgl_vector_3d<float>(0,0,0)
          )
 
     .def("set_images_and_cams",
         overload_cast_<IMAGE_T const&, CAM_T const&,
-         IMAGE_T const&, CAM_T const&, vgl_vector_3d<double> const&, vgl_vector_3d<double> const&>()
+         IMAGE_T const&, CAM_T const&, vgl_vector_3d<float> const&, vgl_vector_3d<float> const&>()
         (&BSGM_T::set_images_and_cams),
          "set images and cameras",
          py::arg("view_0"), py::arg("cam_0"),
          py::arg("view_1"), py::arg("cam_1"),
-         py::arg("sun_dir_0")=vgl_vector_3d<double>(0,0,0),
-         py::arg("sun_dir_1")=vgl_vector_3d<double>(0,0,0)
+         py::arg("sun_dir_0")=vgl_vector_3d<float>(0,0,0),
+         py::arg("sun_dir_1")=vgl_vector_3d<float>(0,0,0)
         )
 
     .def("set_dynamic_range_table", &BSGM_T::set_dynamic_range_table, py::arg("bits_per_pix_factors"),
