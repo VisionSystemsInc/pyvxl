@@ -648,6 +648,9 @@ void wrap_vpgl(py::module &m)
              &vpgl_local_rational_camera<double>::set_lvcs,
          py::arg("longitude"),py::arg("latitude"),py::arg("elevation"))
     .def("lvcs", &vpgl_local_rational_camera<double>::lvcs)
+    .def("clone_as_rational_camera",
+         [](py::object &self) { return self.cast<vpgl_rational_camera<double> >(); },
+         "Return a copy of the camera as a vpgl_rational_camera")
     ;
 
   m.def("_read_local_rational_camera",
