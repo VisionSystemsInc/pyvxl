@@ -6,12 +6,17 @@
 #include <pybind11/numpy.h>
 
 #include <vpgl/algo/vpgl_backproject.h>
+#include <vpgl/algo/vpgl_backproject_dem.h>
 #include <vpgl/algo/vpgl_camera_convert.h>
 #include <vpgl/algo/vpgl_camera_compute.h>
 #include <vpgl/vpgl_rational_camera.h>
 #include <vpgl/vpgl_affine_camera.h>
 #include <vgl/vgl_plane_3d.h>
 #include <vgl/vgl_box_3d.h>
+
+#include <vil/vil_image_resource.h>
+
+#include "pyvxl_holder_types.h"
 
 namespace py = pybind11;
 
@@ -33,13 +38,35 @@ vgl_point_3d<double> wrap_bproj_plane(CAM_T const& cam,
   return output;
 }
 
+// NOTE pyvxl_holder_types is implicitly converting the vil_image_resource_sptr
+// to a vil_image_resource when the object is passed between python and C++
+// See vil/pyvil.cxx:crop_image_resource
+// Alternatively, take both a vil_image_view and a vpgl_geo_camera
+template<class CAM_T>
+vgl_point_3d<double> wrap_bproj_dem(CAM_T const& cam,
+                                    vil_image_resource_sptr const& dem,
+                                    vgl_point_2d<double> const& image_point,
+                                    double max_z, double min_z,
+                                    vgl_point_3d<double> const& initial_guess,
+                                    double error_tol = 0.05)
+{
+  vpgl_backproject_dem reproj(dem, min_z, max_z);
+
+  vgl_point_3d<double> output;
+  bool status = reproj.bproj_dem(cam, image_point, max_z, min_z, initial_guess, output, error_tol);
+  if (!status) {
+    throw std::runtime_error("vpgl_backproject_dem::bproj_dem() returned error");
+  }
+  return output;
+}
 
 void wrap_vpgl_algo(py::module &m)
 {
   py::module bproj_mod = m.def_submodule("backproject");
   bproj_mod
     .def("bproj_plane", &wrap_bproj_plane<vpgl_rational_camera<double>>)
-    .def("bproj_plane", &wrap_bproj_plane<vpgl_affine_camera<double>>);
+    .def("bproj_plane", &wrap_bproj_plane<vpgl_affine_camera<double>>)
+    .def("bproj_dem", &wrap_bproj_dem<vpgl_rational_camera<double>>);
 
   py::module aff_conv_mod = m.def_submodule("affine_camera_convert");
   aff_conv_mod.def("convert", [](vpgl_local_rational_camera<double> const& rcam,
