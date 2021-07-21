@@ -54,7 +54,7 @@ def load_rational_camera_from_txt(cam_fname):
 
   from ._vpgl import _read_rational_camera_from_txt
 
-  cam = _read_rational_camera_from_txt
+  cam = _read_rational_camera_from_txt(cam_fname)
   if cam:
     return cam
   else:
