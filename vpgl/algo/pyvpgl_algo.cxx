@@ -42,7 +42,8 @@ vgl_point_3d<double> wrap_bproj_plane(CAM_T const& cam,
 // to a vil_image_resource when the object is passed between python and C++
 // See vil/pyvil.cxx:crop_image_resource
 // Alternatively, take both a vil_image_view and a vpgl_geo_camera
-vgl_point_3d<double> wrap_bproj_dem(vpgl_rational_camera<double> const& rcam,
+template<class CAM_T>
+vgl_point_3d<double> wrap_bproj_dem(CAM_T const& cam,
                                     vil_image_resource_sptr const& dem,
                                     vgl_point_2d<double> const& image_point,
                                     double max_z, double min_z,
@@ -52,7 +53,7 @@ vgl_point_3d<double> wrap_bproj_dem(vpgl_rational_camera<double> const& rcam,
   vpgl_backproject_dem reproj(dem, min_z, max_z);
 
   vgl_point_3d<double> output;
-  bool status = reproj.bproj_dem(rcam, image_point, max_z, min_z, initial_guess, output, error_tol);
+  bool status = reproj.bproj_dem(cam, image_point, max_z, min_z, initial_guess, output, error_tol);
   if (!status) {
     throw std::runtime_error("vpgl_backproject_dem::bproj_dem() returned error");
   }
@@ -65,7 +66,7 @@ void wrap_vpgl_algo(py::module &m)
   bproj_mod
     .def("bproj_plane", &wrap_bproj_plane<vpgl_rational_camera<double>>)
     .def("bproj_plane", &wrap_bproj_plane<vpgl_affine_camera<double>>)
-    .def("bproj_dem", &wrap_bproj_dem);
+    .def("bproj_dem", &wrap_bproj_dem<vpgl_rational_camera<double>>);
 
   py::module aff_conv_mod = m.def_submodule("affine_camera_convert");
   aff_conv_mod.def("convert", [](vpgl_local_rational_camera<double> const& rcam,
