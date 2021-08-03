@@ -12,11 +12,25 @@ jobs:
             set -e
             apt-get update
             DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-dev python3-pip
-            pip3 install numpy unittest2
+            pip3 install numpy
             mkdir -p /build /install
             mkdir -p /source/vxl /source/pybind11 /source/pyvxl
-            git clone https://github.com/vxl/vxl.git /source/vxl
-            git clone https://github.com/pybind/pybind11.git /source/pybind11
+
+      - run:
+          name: Checkout VXL & pybind11
+          command: |
+
+            # clone vxl, optionally checkout specific version, report
+            VXL_DIR="/source/vxl"
+            git clone -b "${VXL_VERSION:-master}" \
+                https://github.com/vxl/vxl.git "${VXL_DIR}"
+            echo "git describe vxl = $(git -C "${VXL_DIR}" describe --tags HEAD --always)"
+
+            # clone pybind11, optionally checkout specific version, report
+            PYBIND11_DIR="/source/pybind11"
+            git clone -b "${PYBIND11_VERSION:-master}" \
+                https://github.com/pybind/pybind11.git "${PYBIND11_DIR}"
+            echo "git describe pybind11 = $(git -C "${PYBIND11_DIR}" describe --tags HEAD --always)"
 
       - checkout:
           path: /source/pyvxl
@@ -41,7 +55,7 @@ jobs:
       - run:
           name: test
           working_directory: /source/pyvxl
-          command: unit2 discover -v test
+          command: python3 -m unittest discover -v test
 
 
 workflows:
