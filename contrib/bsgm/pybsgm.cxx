@@ -155,6 +155,11 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          "probabilistic confidence")
     .def("radial_std_dev_image", &BSGM_T::radial_std_dev_image,
          "radial standard deviation")
+    .def("rect_target_stype", &BSGM_T::rect_target_stype, "surface types in rectified target space")
+
+    .def("dsm_grid_stype", &BSGM_T::dsm_grid_stype, "surface types in dsm space")
+    
+    .def("save_dsm_grid_stype", &BSGM_T::save_dsm_grid_stype, "surface types in dsm space")
 
     .def("rectify", &BSGM_T::rectify,
          py::call_guard<py::gil_scoped_release>(),
