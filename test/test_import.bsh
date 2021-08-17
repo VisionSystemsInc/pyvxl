@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# test independent import of each python module
+
+# fail quickly
+set -eu
+
+# modules to test
+MODULE_NAMES=(
+    "vxl"
+    "vxl.vbl"
+    "vxl.vgl" "vxl.vgl.algo"
+    "vxl.vil"
+    "vxl.vnl"
+    "vxl.vpgl" "vxl.vpgl.algo"
+    "vxl.contrib"
+    "vxl.contrib.acal"
+    "vxl.contrib.bpgl" "vxl.contrib.bpgl.algo"
+    "vxl.contrib.brad"
+    "vxl.contrib.brip"
+    "vxl.contrib.bsgm"
+    "vxl.contrib.bvxm" "vxl.contrib.bvxm.algo"
+    "vxl.contrib.sdet" "vxl.contrib.sdet.algo"
+)
+
+# independent import of each python module
+for module_name in "${MODULE_NAMES[@]}"; do
+  echo "test: \"import ${module_name}\""
+  python3 -c "import ${module_name}"
+done
