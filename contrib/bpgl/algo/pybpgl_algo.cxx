@@ -11,6 +11,8 @@
 #include <array>
 
 #include <vgl/vgl_box_2d.h>
+#include <vil/vil_image_resource_sptr.h>
+#include <vil/vil_image_view.h>
 #include <vpgl/vpgl_affine_camera.h>
 #include <vpgl/vpgl_perspective_camera.h>
 #include <bpgl/algo/bpgl_heightmap_from_disparity.h>
@@ -85,6 +87,15 @@ void wrap_bpgl_algo(py::module &m)
 
 PYBIND11_MODULE(_bpgl_algo, m)
 {
+  // import dependencies for default arguments
+  py::module importlib_util = py::module::import("importlib.util");
+  std::string necessary_imports[] = {"vxl.vgl", "vxl.vil", "vxl.vpgl"};
+  for (const std::string &lib_str : necessary_imports) {
+    if (!importlib_util.attr("find_spec")(lib_str).is_none()) {
+      py::module::import(lib_str.c_str());
+    }
+  }
+
   m.doc() = "Python bindings for the VXL computer vision libraries";
 
   pyvxl::bpgl::algo::wrap_bpgl_algo(m);
