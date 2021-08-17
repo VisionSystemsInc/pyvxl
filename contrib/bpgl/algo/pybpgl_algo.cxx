@@ -77,7 +77,7 @@ void wrap_bpgl_algo(py::module &m)
     .def("heightmap_from_disparity", &bpgl_heightmap_from_disparity<double, vpgl_affine_camera<double> >)
     .def("write_dsm_color_display", &write_dsm_color_display, "create a color display of surface types",
          py::arg("dsm_path"), py::arg("surface_type_path"), py::arg("display_path"),
-         py::arg("shadow_prob_cutoff")=0.5f, py::arg("shadow_step_prob_cutoff")=0.5f)
+         py::arg("shadow_prob_cutoff")=0.25f, py::arg("shadow_step_prob_cutoff")=0.25f)
   ;
   wrap_bpgl_rectify_image_pair<vpgl_affine_camera<double> >(m, "rectify_image_pair_affine");
   wrap_bpgl_rectify_image_pair<vpgl_perspective_camera<double> >(m, "rectify_image_pair_perspective");
