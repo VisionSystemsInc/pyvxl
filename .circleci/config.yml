@@ -53,6 +53,11 @@ jobs:
           command: ninja install
 
       - run:
+          name: test imports
+          working_directory: /source/pyvxl
+          command: ./test/test_import.bsh
+
+      - run:
           name: test
           working_directory: /source/pyvxl
           command: python3 -m unittest discover -v test
