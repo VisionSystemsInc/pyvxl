@@ -233,8 +233,6 @@ void wrap_bsgm(py::module &m)
                    "When set > 0, pixels below this threshold will be flagged as invalid when error_check_mode > 0")
     .def_readwrite("bias_weight", &bsgm_disparity_estimator_params::bias_weight,
                    "Strength of SGM directional average bias")
-    .def_readwrite("remove_shadow_overhang", &bsgm_disparity_estimator_params::remove_shadow_overhang,
-                   "remove roof overhang in shadows")
     .def_readwrite("census_weight", &bsgm_disparity_estimator_params::census_weight,
                    "Census appearance cost weighting")
     .def_readwrite("xgrad_weight", &bsgm_disparity_estimator_params::xgrad_weight,
