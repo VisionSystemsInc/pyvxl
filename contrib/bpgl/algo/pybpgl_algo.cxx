@@ -15,7 +15,7 @@
 #include <vpgl/vpgl_perspective_camera.h>
 #include <bpgl/algo/bpgl_heightmap_from_disparity.h>
 #include <bpgl/algo/bpgl_rectify_image_pair.h>
-
+#include <bpgl/algo/bpgl_surface_type.h>
 namespace py = pybind11;
 
 namespace pyvxl {
@@ -75,6 +75,9 @@ void wrap_bpgl_algo(py::module &m)
   m
     .def("heightmap_from_disparity", &bpgl_heightmap_from_disparity<float,  vpgl_affine_camera<double> >)
     .def("heightmap_from_disparity", &bpgl_heightmap_from_disparity<double, vpgl_affine_camera<double> >)
+    .def("write_dsm_color_display", &write_dsm_color_display, "create a color display of surface types",
+         py::arg("dsm_path"), py::arg("surface_type_path"), py::arg("display_path"),
+         py::arg("shadow_prob_cutoff")=0.25f, py::arg("shadow_step_prob_cutoff")=0.25f)
   ;
   wrap_bpgl_rectify_image_pair<vpgl_affine_camera<double> >(m, "rectify_image_pair_affine");
   wrap_bpgl_rectify_image_pair<vpgl_perspective_camera<double> >(m, "rectify_image_pair_perspective");

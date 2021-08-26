@@ -24,14 +24,23 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
   py::class_<BSGM_T> (m, class_name.c_str())
     .def(py::init<>())
     .def(py::init<IMAGE_T const&, CAM_T const&,
-                  IMAGE_T const&, CAM_T const&>())
-
+         IMAGE_T const&, CAM_T const&,
+         vgl_vector_3d<float> const& , vgl_vector_3d<float> const& >(),
+         py::arg("view_0"), py::arg("cam_0"),
+         py::arg("view_1"), py::arg("cam_1"),
+         py::arg("sun_dir_0")=vgl_vector_3d<float>(0,0,0),
+         py::arg("sun_dir_1")=vgl_vector_3d<float>(0,0,0)
+         )
     .def("set_images_and_cams",
         overload_cast_<IMAGE_T const&, CAM_T const&,
-                       IMAGE_T const&, CAM_T const&>()
+         IMAGE_T const&, CAM_T const&, vgl_vector_3d<float> const&, vgl_vector_3d<float> const&>()
         (&BSGM_T::set_images_and_cams),
-        "set images and cameras")
-
+         "set images and cameras",
+         py::arg("view_0"), py::arg("cam_0"),
+         py::arg("view_1"), py::arg("cam_1"),
+         py::arg("sun_dir_0")=vgl_vector_3d<float>(0,0,0),
+         py::arg("sun_dir_1")=vgl_vector_3d<float>(0,0,0)
+        )
     .def("set_dynamic_range_table", &BSGM_T::set_dynamic_range_table, py::arg("bits_per_pix_factors"),
          "the amount to scale appearance quantities with respect to effective bits per pixel")
 
@@ -146,6 +155,11 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          "probabilistic confidence")
     .def("radial_std_dev_image", &BSGM_T::radial_std_dev_image,
          "radial standard deviation")
+    .def("rect_target_stype", &BSGM_T::rect_target_stype, "surface types in rectified target space")
+
+    .def("dsm_grid_stype", &BSGM_T::dsm_grid_stype, "surface types in dsm space")
+    
+    .def("save_dsm_grid_stype", &BSGM_T::save_dsm_grid_stype, "surface types in dsm space")
 
     .def("rectify", &BSGM_T::rectify,
          py::call_guard<py::gil_scoped_release>(),
@@ -219,8 +233,6 @@ void wrap_bsgm(py::module &m)
                    "When set > 0, pixels below this threshold will be flagged as invalid when error_check_mode > 0")
     .def_readwrite("bias_weight", &bsgm_disparity_estimator_params::bias_weight,
                    "Strength of SGM directional average bias")
-    .def_readwrite("bias_dir", &bsgm_disparity_estimator_params::bias_dir,
-                   "Direction of SGM directional average bias")
     .def_readwrite("census_weight", &bsgm_disparity_estimator_params::census_weight,
                    "Census appearance cost weighting")
     .def_readwrite("xgrad_weight", &bsgm_disparity_estimator_params::xgrad_weight,
