@@ -111,6 +111,10 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          "rectified image view 0")
     .def("rectified_bview1", &BSGM_T::rectified_bview1,
          "rectified image view 1")
+    .def("rectified_shadow_step_fwd", &BSGM_T::rectified_shadow_step_fwd,
+         "rectified shadow step mask for foward disparity")
+    .def("rectified_shadow_step_rev", &BSGM_T::rectified_shadow_step_rev,
+         "rectified shadow step mask for reverse dispairty")
 
     .def("rectified_cam0", &BSGM_T::rectified_cam0,
          "rectified camera 0")
