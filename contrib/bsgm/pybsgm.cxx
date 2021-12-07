@@ -155,11 +155,11 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          "probabilistic confidence")
     .def("radial_std_dev_image", &BSGM_T::radial_std_dev_image,
          "radial standard deviation")
-    .def("rect_target_stype", &BSGM_T::rect_target_stype, "surface types in rectified target space")
 
-    .def("dsm_grid_stype", &BSGM_T::dsm_grid_stype, "surface types in dsm space")
-    
-    .def("save_dsm_grid_stype", &BSGM_T::save_dsm_grid_stype, "surface types in dsm space")
+    .def("rect_target_stype", &BSGM_T::rect_target_stype,
+         "surface types in rectified target space")
+    .def("dsm_grid_stype", &BSGM_T::dsm_grid_stype,
+         "surface types in dsm space")
 
     .def("rectify", &BSGM_T::rectify,
          py::call_guard<py::gil_scoped_release>(),
@@ -200,6 +200,14 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
     .def("save_prob_ptset_color", &BSGM_T::save_prob_ptset_color,
          py::arg("path"),
          "apply a color map to probabilty values and output an ascii color point cloud")
+
+    .def("save_rect_target_stype", &BSGM_T::save_rect_target_stype,
+         py::arg("path"),
+         "save surface types in rectified target space")
+
+    .def("save_dsm_grid_stype", &BSGM_T::save_dsm_grid_stype,
+         py::arg("path"),
+         "save surface types in dsm space")
 
     ;
 }
