@@ -782,6 +782,7 @@ void wrap_vgl(py::module &m)
 
   py::class_<vgl_polygon<double> > (m, "polygon")
     .def(py::init())
+    .def(py::init<unsigned int>())
     .def(py::init<typename vgl_polygon<double>::sheet_t>())
     .def(py::init<std::vector<typename vgl_polygon<double>::sheet_t> >())
     .def("contains", (bool (vgl_polygon<double>::*)(vgl_point_2d<double> const&) const) &vgl_polygon<double>::contains)
