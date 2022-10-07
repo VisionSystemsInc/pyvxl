@@ -1,2 +1,2 @@
-from ._vgl_algo import *
 from vxl import vnl
+from ._vgl_algo import *
