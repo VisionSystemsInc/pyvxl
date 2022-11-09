@@ -785,6 +785,7 @@ void wrap_vgl(py::module &m)
     .def(py::init<unsigned int>())
     .def(py::init<typename vgl_polygon<double>::sheet_t>())
     .def(py::init<std::vector<typename vgl_polygon<double>::sheet_t> >())
+    .def("__repr__", streamToString<vgl_polygon<double> >)
     .def("contains", (bool (vgl_polygon<double>::*)(vgl_point_2d<double> const&) const) &vgl_polygon<double>::contains)
     .def("as_array", &vgl_polygon_as_array<double>)
     .def("__len__", &vgl_polygon<double>::num_sheets)
@@ -797,11 +798,7 @@ void wrap_vgl(py::module &m)
         overload_cast_<std::vector<vgl_point_2d<double> > const&>()(&vgl_polygon<double>::push_back))
     .def(py::pickle(&vslPickleGetState<vgl_polygon<double>>,
                     &vslPickleSetState<vgl_polygon<double>>))
-    .def("__repr__", [](vgl_polygon<double> const& p){
-        std::ostringstream buffer;
-        buffer << "<vgl_polygon num_sheets=" << p.num_sheets() << ">";
-        return buffer.str();
-    });
+    ;
 
   py::class_<vgl_line_segment_2d<double> >(m, "line_segment_2d")
     .def(py::init())
