@@ -8,6 +8,10 @@
 #include <vpgl/vpgl_local_rational_camera.h>
 #include <vpgl/vpgl_lvcs.h>
 #include <vpgl/vpgl_utm.h>
+#include <vpgl/vpgl_fundamental_matrix.h>
+#include <vpgl/vpgl_affine_fundamental_matrix.h>
+#include <vpgl/vpgl_tri_focal_tensor.h>
+#include <vpgl/vpgl_affine_tri_focal_tensor.h>
 #include <vgl/vgl_box_2d.h>
 #include <vgl/vgl_box_3d.h>
 #include <vgl/vgl_point_3d.h>
@@ -17,6 +21,7 @@
 #include <vgl/vgl_vector_2d.h>
 #include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_homg_point_3d.h>
+#include <vgl/vgl_homg_line_2d.h>
 
 #include <vpgl/file_formats/vpgl_geo_camera.h>
 #include <vpgl/file_formats/vpgl_nitf_rational_camera.h>
@@ -421,6 +426,465 @@ std::unique_ptr<vpgl_geo_camera> create_geocam_with_lvcs(vnl_matrix<double> cons
   }
   return geocam;
 }
+
+// vpgl_tri_focal_tensor "trampoline" helper class for virtual methods
+template<class T>
+class PyFundamentalMatrix : public vpgl_fundamental_matrix<T> {
+ public:
+
+  // Inherit constructors
+  using vpgl_fundamental_matrix<T>::vpgl_fundamental_matrix;
+
+  // set_matrix
+  void set_matrix( const vnl_matrix_fixed<T,3,3>& F )
+  {
+    PYBIND11_OVERRIDE(void, vpgl_fundamental_matrix<T>,
+                      set_matrix, F);
+  }
+
+};
+
+// templated vpgl_fundamental_matrix
+template<class T>
+void wrap_vpgl_fundamental_matrix(py::module &m, const char* name)
+{
+  using VPGL_FM = vpgl_fundamental_matrix<T>;
+
+  py::class_<VPGL_FM, PyFundamentalMatrix<T> /* <- trampoline */> (m, name)
+
+    .def(py::init<>())
+    .def(py::init<vnl_matrix_fixed<T,3,3> >())
+    .def(py::init<vpgl_proj_camera<T>, vpgl_proj_camera<T> >(),
+        py::arg("cr"), py::arg("cl"))
+
+    // .def(py::init<vpgl_calibration_matrix<T>,
+    //               vpgl_calibration_matrix<T>,
+    //               vpgl_essential_matrix<T> >(),
+    //     py::arg("kr"), py::arg("kl"), py::arg("em"))
+
+    .def("__str__", streamToString<VPGL_FM>)
+
+    .def_property_readonly("epipoles",
+        [](VPGL_FM& self) {
+          vgl_homg_point_2d<double> e12, e13;
+          self.get_epipoles(e12, e13);
+          return py::make_tuple(e12,e13);
+        })
+
+    .def("r_epipolar_line",
+        overload_cast_<vgl_homg_point_2d<T> const&>
+                      ()(&VPGL_FM::r_epipolar_line, py::const_),
+        py::arg("pl"))
+    .def("l_epipolar_line",
+        overload_cast_<vgl_homg_point_2d<T> const&>
+                      ()(&VPGL_FM::l_epipolar_line, py::const_),
+        py::arg("pr"))
+
+    .def("r_epipolar_line",
+        overload_cast_<vgl_homg_line_2d<T> const&>
+                      ()(&VPGL_FM::r_epipolar_line, py::const_),
+        py::arg("epiline_l"))
+    .def("l_epipolar_line",
+        overload_cast_<vgl_homg_line_2d<T> const&>
+                      ()(&VPGL_FM::l_epipolar_line, py::const_),
+        py::arg("epiline_r"))
+
+    .def("extract_left_camera",
+        overload_cast_<vnl_vector_fixed<T,3> const&, T>
+                      ()(&VPGL_FM::extract_left_camera, py::const_),
+        py::arg("v"), py::arg("lambda"))
+    // .def("extract_left_camera",
+    //     overload_cast_<std::vector< vgl_point_3d<T> > const&,
+    //                    std::vector< vgl_point_3d<T> > const&>
+    //                   ()(&VPGL_FM::extract_left_camera, py::const_),
+    //     py::arg("world_points"), py::arg("image_points"))
+
+    .def("get_matrix", &VPGL_FM::get_matrix)
+    .def("set_matrix",
+        overload_cast_<vnl_matrix_fixed<T,3,3> const&>
+                      ()(&VPGL_FM::set_matrix))
+    .def("set_matrix",
+        overload_cast_<vpgl_proj_camera<T> const&,
+                       vpgl_proj_camera<T> const&>
+                      ()(&VPGL_FM::set_matrix),
+        py::arg("cr"), py::arg("cl"))
+
+    .def_property("matrix",
+        &VPGL_FM::get_matrix,
+        overload_cast_<vnl_matrix_fixed<T,3,3> const&>
+                      ()(&VPGL_FM::set_matrix))
+
+    .def_property_readonly("svd", &VPGL_FM::svd)
+
+    ;
+}
+
+// templated vpgl_affine_fundamental_matrix
+template<class T>
+void wrap_vpgl_affine_fundamental_matrix(py::module &m, const char* name)
+{
+  using VPGL_AFM = vpgl_affine_fundamental_matrix<T>;
+
+  py::class_<VPGL_AFM, vpgl_fundamental_matrix<T> /* <- Parent */> (m, name)
+
+    .def(py::init<>())
+    .def(py::init<vnl_matrix_fixed<T,3,3> >())
+    .def(py::init<vpgl_affine_camera<T>, vpgl_affine_camera<T> >(),
+        py::arg("Ar"), py::arg("Al"))
+    // vpgl_affine_fundamental_matrix( const vpgl_fundamental_matrix<T>& fm );
+
+    .def("__str__", streamToString<VPGL_AFM>)
+
+    .def("set_from_params", &VPGL_AFM::set_from_params,
+        py::arg("a"), py::arg("b"), py::arg("c"), py::arg("d"), py::arg("e"))
+
+    ;
+}
+
+// vpgl_tri_focal_tensor "trampoline" helper class for virtual methods
+template<class T>
+class PyTriFocalTensor : public vpgl_tri_focal_tensor<T> {
+ public:
+
+  // Inherit constructors
+  using vpgl_tri_focal_tensor<T>::vpgl_tri_focal_tensor;
+
+  // compute
+  bool compute() override
+  {
+    PYBIND11_OVERRIDE(bool, vpgl_tri_focal_tensor<T>,
+                      compute, );
+  }
+
+  // comparison
+  // virtual bool operator==(vpgl_tri_focal_tensor<T> const& tensor) const
+
+  // point transfer
+  vgl_homg_point_2d<T> image1_transfer(
+      vgl_homg_point_2d<T> const& point2,
+      vgl_homg_point_2d<T> const& point3) const override
+  {
+    PYBIND11_OVERRIDE(vgl_homg_point_2d<T>, vpgl_tri_focal_tensor<T>,
+                      image1_transfer, point2, point3);
+  }
+
+  vgl_homg_point_2d<T> image2_transfer(
+      vgl_homg_point_2d<T> const& point1,
+      vgl_homg_point_2d<T> const& point3) const override
+  {
+    PYBIND11_OVERRIDE(vgl_homg_point_2d<T>, vpgl_tri_focal_tensor<T>,
+                      image2_transfer, point1, point3);
+  }
+
+  vgl_homg_point_2d<T> image3_transfer(
+      vgl_homg_point_2d<T> const& point1,
+      vgl_homg_point_2d<T> const& point2) const override
+  {
+    PYBIND11_OVERRIDE(vgl_homg_point_2d<T>, vpgl_tri_focal_tensor<T>,
+                      image3_transfer, point1, point2);
+  }
+
+  // line transfer
+  vgl_homg_line_2d<T> image1_transfer(
+      vgl_homg_line_2d<T> const& line2,
+      vgl_homg_line_2d<T> const& line3) const override
+  {
+    PYBIND11_OVERRIDE(vgl_homg_line_2d<T>, vpgl_tri_focal_tensor<T>,
+                      image1_transfer, line2, line3);
+  }
+
+  vgl_homg_line_2d<T> image2_transfer(
+      vgl_homg_line_2d<T> const& line1,
+      vgl_homg_line_2d<T> const& line3) const override
+  {
+    PYBIND11_OVERRIDE(vgl_homg_line_2d<T>, vpgl_tri_focal_tensor<T>,
+                      image2_transfer, line1, line3);
+  }
+
+  vgl_homg_line_2d<T> image3_transfer(
+      vgl_homg_line_2d<T> const& line1,
+      vgl_homg_line_2d<T> const& line2) const override
+  {
+    PYBIND11_OVERRIDE(vgl_homg_line_2d<T>, vpgl_tri_focal_tensor<T>,
+                      image3_transfer, line1, line2);
+  }
+
+  // homographies induced by a line
+  vgl_h_matrix_2d<T> hmatrix_13(vgl_homg_line_2d<T> const& line2) const override
+  {
+    PYBIND11_OVERRIDE(vgl_h_matrix_2d<T>, vpgl_tri_focal_tensor<T>,
+                      hmatrix_13, line2);
+  }
+
+  vgl_h_matrix_2d<T> hmatrix_12(vgl_homg_line_2d<T> const& line3) const override
+  {
+    PYBIND11_OVERRIDE(vgl_h_matrix_2d<T>, vpgl_tri_focal_tensor<T>,
+                      hmatrix_12, line3);
+  }
+
+  // epipoles
+  void get_epipoles(vgl_homg_point_2d<T>& e12, vgl_homg_point_2d<T>& e13) override
+  {
+    PYBIND11_OVERRIDE(void, vpgl_tri_focal_tensor<T>,
+                      get_epipoles, e12, e13);
+  }
+
+  vgl_homg_point_2d<T> epipole_12() override
+  {
+    PYBIND11_OVERRIDE(vgl_homg_point_2d<T>, vpgl_tri_focal_tensor<T>,
+                      epipole_12, );
+  }
+
+  vgl_homg_point_2d<T> epipole_13() override
+  {
+    PYBIND11_OVERRIDE(vgl_homg_point_2d<T>, vpgl_tri_focal_tensor<T>,
+                      epipole_13, );
+  }
+
+};
+
+
+// templated vpgl_tri_focal_tensor
+template<class T>
+void wrap_vpgl_tri_focal_tensor(py::module &m, const char* name)
+{
+  using VPGL_TFT = vpgl_tri_focal_tensor<T>;
+
+  py::class_<VPGL_TFT, PyTriFocalTensor<T> /* <- trampoline */> (m, name)
+
+    .def(py::init<>())
+    // vpgl_tri_focal_tensor(const vbl_array_3d<Type>&)
+    // vpgl_tri_focal_tensor(const Type *tri_focal_tensor_array)
+    .def(py::init<vpgl_proj_camera<T>, vpgl_proj_camera<T>, vpgl_proj_camera<T> >(),
+        py::arg("camera1"), py::arg("camera2"), py::arg("camera3"))
+    .def(py::init<vpgl_proj_camera<T>, vpgl_proj_camera<T> >(),
+        py::arg("camera2"), py::arg("camera3"))
+    .def(py::init<vnl_matrix_fixed<T,3,4>, vnl_matrix_fixed<T,3,4>, vnl_matrix_fixed<T,3,4> >(),
+        py::arg("matrix1"), py::arg("matrix2"), py::arg("matrix3"))
+    .def(py::init<vnl_matrix_fixed<T,3,4>, vnl_matrix_fixed<T,3,4> >(),
+        py::arg("matrix2"), py::arg("matrix3"))
+    .def("__str__", streamToString<VPGL_TFT>)
+    .def(py::self == py::self)
+
+    // index operators
+    // T& operator()
+    // T operator() const
+    // void set(size_t i1, size_t i2, size_t i3, Type value)
+
+    // setters
+    .def("set",
+        overload_cast_<vpgl_proj_camera<T> const&,
+                       vpgl_proj_camera<T> const&,
+                       vpgl_proj_camera<T> const&>
+                      ()(&VPGL_TFT::set),
+         py::arg("camera1"), py::arg("camera2"), py::arg("camera3"))
+    .def("set",
+        overload_cast_<vpgl_proj_camera<T> const&,
+                       vpgl_proj_camera<T> const&>
+                      ()(&VPGL_TFT::set),
+         py::arg("camera2"), py::arg("camera3"))
+    .def("set",
+        overload_cast_<vnl_matrix_fixed<T,3,4> const&,
+                       vnl_matrix_fixed<T,3,4> const&,
+                       vnl_matrix_fixed<T,3,4> const&>
+                      ()(&VPGL_TFT::set),
+         py::arg("matrix1"), py::arg("matrix2"), py::arg("matrix3"))
+    .def("set",
+        overload_cast_<vnl_matrix_fixed<T,3,4> const&,
+                       vnl_matrix_fixed<T,3,4> const&>
+                      ()(&VPGL_TFT::set),
+        py::arg("matrix2"), py::arg("matrix3"))
+
+    // compute operations
+    .def("compute", &VPGL_TFT::compute)
+    .def("compute_epipoles", &VPGL_TFT::compute_epipoles)
+    .def("compute_f_matrices", &VPGL_TFT::compute_f_matrices)
+    .def("compute_proj_cameras", &VPGL_TFT::compute_proj_cameras)
+    .def("compute_f_matrix_23", &VPGL_TFT::compute_f_matrix_23)
+
+    // constraints
+    .def("point_constraint_3x3", &VPGL_TFT::point_constraint_3x3,
+        py::arg("point1"), py::arg("point2"), py::arg("point3"))
+    .def("point_constraint", &VPGL_TFT::point_constraint,
+        py::arg("point1"), py::arg("point2"), py::arg("point3"))
+    .def("line_constraint_3", &VPGL_TFT::line_constraint_3,
+        py::arg("line1"), py::arg("line2"), py::arg("line3"))
+
+    // transfer
+    .def("image1_point_transfer",
+        overload_cast_<vgl_homg_point_2d<T> const&,
+                       vgl_homg_point_2d<T> const&>
+                      ()(&VPGL_TFT::image1_transfer, py::const_),
+        py::arg("point2"), py::arg("point3"))
+    .def("image2_point_transfer",
+        overload_cast_<vgl_homg_point_2d<T> const&,
+                       vgl_homg_point_2d<T> const&>
+                      ()(&VPGL_TFT::image2_transfer, py::const_),
+        py::arg("point1"), py::arg("point3"))
+    .def("image3_point_transfer",
+        overload_cast_<vgl_homg_point_2d<T> const&,
+                       vgl_homg_point_2d<T> const&>
+                      ()(&VPGL_TFT::image3_transfer, py::const_),
+        py::arg("point1"), py::arg("point2"))
+
+    .def("image1_line_transfer",
+        overload_cast_<vgl_homg_line_2d<T> const&,
+                       vgl_homg_line_2d<T> const&>
+                      ()(&VPGL_TFT::image1_transfer, py::const_),
+        py::arg("line2"), py::arg("line3"))
+    .def("image2_line_transfer",
+        overload_cast_<vgl_homg_line_2d<T> const&,
+                       vgl_homg_line_2d<T> const&>
+                      ()(&VPGL_TFT::image2_transfer, py::const_),
+        py::arg("line1"), py::arg("line3"))
+    .def("image3_line_transfer",
+        overload_cast_<vgl_homg_line_2d<T> const&,
+                       vgl_homg_line_2d<T> const&>
+                      ()(&VPGL_TFT::image3_transfer, py::const_),
+        py::arg("line1"), py::arg("line2"))
+
+    // homographies induced by a line
+    .def("hmatrix_13", &VPGL_TFT::hmatrix_13,
+        py::arg("line2"))
+    .def("hmatrix_12", &VPGL_TFT::hmatrix_12,
+        py::arg("line3"))
+
+    // epipoles
+    .def_property_readonly("epipoles",
+        [](VPGL_TFT& self) {
+          vgl_homg_point_2d<double> e12, e13;
+          self.get_epipoles(e12, e13);
+          return py::make_tuple(e12,e13);
+        })
+    .def_property_readonly("epipole_12", &VPGL_TFT::epipole_12)
+    .def_property_readonly("epipole_13", &VPGL_TFT::epipole_13)
+
+    // fundamental matrices
+    .def_property_readonly("fmatrix_12", &VPGL_TFT::fmatrix_12)
+    .def_property_readonly("fmatrix_13", &VPGL_TFT::fmatrix_13)
+    .def_property_readonly("fmatrix_23", &VPGL_TFT::fmatrix_23)
+
+    // cameras
+    .def_property_readonly("proj_camera_1", &VPGL_TFT::proj_camera_1)
+    .def_property_readonly("proj_camera_2", &VPGL_TFT::proj_camera_2)
+    .def_property_readonly("proj_camera_3", &VPGL_TFT::proj_camera_3)
+
+    // constraint lines
+    // void get_constraint_lines_image1(vgl_homg_point_2d<Type> const& p2,
+    //                                  vgl_homg_point_2d<Type> const& p3,
+    //                                  std::vector<vgl_homg_line_2d<Type> >& lines) const;
+
+    // void get_constraint_lines_image2(vgl_homg_point_2d<Type> const& p1,
+    //                                  vgl_homg_point_2d<Type> const& p3,
+    //                                  std::vector<vgl_homg_line_2d<Type> >& lines) const;
+
+    // void get_constraint_lines_image3(vgl_homg_point_2d<Type> const& p1,
+    //                                  vgl_homg_point_2d<Type> const& p2,
+    //                                  std::vector<vgl_homg_line_2d<Type> >& lines) const;
+
+    // utility methods
+    .def("postmultiply", &VPGL_TFT::postmultiply,
+        py::arg("axis"), py::arg("matrix"))
+    .def("premultiply", &VPGL_TFT::premultiply,
+        py::arg("axis"), py::arg("matrix"))
+
+    .def("postmultiply1", &VPGL_TFT::postmultiply1)
+    .def("postmultiply2", &VPGL_TFT::postmultiply2)
+    .def("postmultiply3", &VPGL_TFT::postmultiply3)
+
+    .def("dot1", &VPGL_TFT::dot1)
+    .def("dot2", &VPGL_TFT::dot2)
+    .def("dot3", &VPGL_TFT::dot3)
+    .def("dot1t", &VPGL_TFT::dot1t)
+    .def("dot2t", &VPGL_TFT::dot2t)
+    .def("dot3t", &VPGL_TFT::dot3t)
+
+    ;
+}
+
+
+// templated vpgl_affine_tri_focal_tensor
+template<class T>
+void wrap_vpgl_affine_tri_focal_tensor(py::module &m, const char* name)
+{
+  using VPGL_ATFT = vpgl_affine_tri_focal_tensor<T>;
+
+  py::class_<VPGL_ATFT, vpgl_tri_focal_tensor<T> /* <- Parent */> (m, name)
+
+    .def(py::init<>())
+    // vpgl_affine_tri_focal_tensor(const vbl_array_3d<T>&)
+    // vpgl_affine_tri_focal_tensor(const vpgl_tri_focal_tensor<T>&)
+    // vpgl_affine_tri_focal_tensor(const T *affine_tri_focal_tensor_array):
+    .def(py::init<vpgl_affine_camera<T>, vpgl_affine_camera<T>, vpgl_affine_camera<T> >(),
+        py::arg("camera1"), py::arg("camera2"), py::arg("camera3"))
+    .def(py::init<vpgl_affine_camera<T>, vpgl_affine_camera<T> >(),
+        py::arg("camera2"), py::arg("camera3"))
+    .def(py::init<vnl_matrix_fixed<T,2,4>, vnl_matrix_fixed<T,2,4>, vnl_matrix_fixed<T,2,4> >(),
+        py::arg("matrix1"), py::arg("matrix2"), py::arg("matrix3"))
+    .def(py::init<vnl_matrix_fixed<T,2,4>, vnl_matrix_fixed<T,2,4> >(),
+        py::arg("matrix2"), py::arg("matrix3"))
+
+    // vpgl_affine_tri_focal_tensor(
+    //     const vpgl_affine_camera<Type> &c1,
+    //     const vpgl_affine_camera<Type> &c2,
+    //     const vpgl_affine_camera<Type> &c3,
+    //     std::vector<vgl_h_matrix_2d<Type>> img_pt_transforms)
+
+    // vpgl_affine_tri_focal_tensor(
+    //     const vpgl_affine_camera<Type>& c1,
+    //     const vpgl_affine_camera<Type>& c2,
+    //     const vpgl_affine_camera<Type>& c3,
+    //     std::vector<std::pair<size_t, size_t> > const& image_dims_ni_nj)
+
+    .def("__str__", streamToString<VPGL_ATFT>)
+
+    // setters
+    .def("set",
+        overload_cast_<vpgl_affine_camera<T> const&,
+                       vpgl_affine_camera<T> const&,
+                       vpgl_affine_camera<T> const&>
+                      ()(&VPGL_ATFT::set),
+        py::arg("camera1"), py::arg("camera2"), py::arg("camera3"))
+    .def("set",
+        overload_cast_<vpgl_affine_camera<T> const&,
+                       vpgl_affine_camera<T> const&>
+                      ()(&VPGL_ATFT::set),
+         py::arg("camera2"), py::arg("camera3"))
+    .def("set",
+        overload_cast_<vnl_matrix_fixed<T,2,4> const&,
+                       vnl_matrix_fixed<T,2,4> const&,
+                       vnl_matrix_fixed<T,2,4> const&>
+                      ()(&VPGL_ATFT::set),
+         py::arg("matrix1"), py::arg("matrix2"), py::arg("matrix3"))
+    .def("set",
+        overload_cast_<vnl_matrix_fixed<T,2,4> const&,
+                       vnl_matrix_fixed<T,2,4> const&>
+                      ()(&VPGL_ATFT::set),
+         py::arg("matrix2"), py::arg("matrix3"))
+
+    // set(const vpgl_affine_camera<Type> & c1,
+    //     const vpgl_affine_camera<Type> & c2,
+    //     const vpgl_affine_camera<Type> & c3,
+    //     std::vector<vgl_h_matrix_2d<Type> > img_pt_transforms);
+
+    // set(const vpgl_affine_camera<Type> & c1,
+    //     const vpgl_affine_camera<Type> & c2,
+    //     const vpgl_affine_camera<Type> & c3,
+    //     std::vector<std::pair<size_t, size_t> > const & image_dims_ni_nj);
+
+    // fundamental matrices
+    .def_property_readonly("affine_fmatrix_12", &VPGL_ATFT::affine_fmatrix_12)
+    .def_property_readonly("affine_fmatrix_13", &VPGL_ATFT::affine_fmatrix_13)
+    .def_property_readonly("affine_fmatrix_23", &VPGL_ATFT::affine_fmatrix_23)
+
+    // cameras
+    .def_property_readonly("affine_camera_1", &VPGL_ATFT::affine_camera_1)
+    .def_property_readonly("affine_camera_2", &VPGL_ATFT::affine_camera_2)
+    .def_property_readonly("affine_camera_3", &VPGL_ATFT::affine_camera_3)
+
+    ;
+}
+
 
 void wrap_vpgl(py::module &m)
 {
@@ -916,6 +1380,14 @@ void wrap_vpgl(py::module &m)
         py::arg("lower_left_lon"), py::arg("lower_left_lat"), py::arg("lower_left_elev"),
         py::arg("upper_right_lon"), py::arg("upper_right_lat"), py::arg("upper_right_elev"),
         py::arg("uncertainty"), py::arg("lvcs") = vpgl_lvcs());
+
+
+  // =====TEMPLATED=====
+  wrap_vpgl_fundamental_matrix<double>(m, "fundamental_matrix");
+  wrap_vpgl_affine_fundamental_matrix<double>(m, "affine_fundamental_matrix");
+
+  wrap_vpgl_tri_focal_tensor<double>(m, "tri_focal_tensor");
+  wrap_vpgl_affine_tri_focal_tensor<double>(m, "affine_tri_focal_tensor");
 
 }
 }}
