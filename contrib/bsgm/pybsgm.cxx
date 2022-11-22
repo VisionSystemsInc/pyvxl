@@ -67,6 +67,11 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
         &BSGM_T::num_active_disparities,
         "how many disparity values are searched around the coarse search result")
 
+    .def_property("max_height",
+        overload_cast_<>()(&BSGM_T::max_height, py::const_),
+        overload_cast_<float>()(&BSGM_T::max_height),
+        "maximum height to define maximum and minimum disparity")
+
     .def_property("midpoint_z",
         overload_cast_<>()(&BSGM_T::midpoint_z, py::const_),
         overload_cast_<double>()(&BSGM_T::midpoint_z),
