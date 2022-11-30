@@ -125,6 +125,7 @@ void wrap_acal(py::module &m)
     .def_readonly("min_n_tracks", &acal_match_tree::min_n_tracks_)
     .def_readonly("root", &acal_match_tree::root_)
     .def_property_readonly("root_id", [] (const acal_match_tree& self) { return self.root_->cam_id_; } )
+    .def_property_readonly("tracks", &acal_match_tree::tracks)
     .def("add_child_node", &acal_match_tree::add_child_node)
     .def("cam_ids", &acal_match_tree::cam_ids)
     .def("save_tree_dot_format", &acal_match_tree::save_tree_dot_format,
@@ -197,6 +198,8 @@ void wrap_acal(py::module &m)
          "validate match trees and set metric")
     .def("save_graph_dot_format", &acal_match_graph::save_graph_dot_format,
          "save a match graph to a dot file", py::arg("path"))
+    .def("largest_tree", &acal_match_graph::largest_tree,
+         "return largest tree for connected component")
     .def(py::self == py::self)
 
     .def(py::pickle(&vslPickleGetState<acal_match_graph>,
