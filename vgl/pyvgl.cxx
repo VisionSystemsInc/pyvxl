@@ -3,6 +3,7 @@
 #include <vgl/vgl_point_2d.h>
 #include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_vector_3d.h>
+#include <vgl/vgl_line_3d_2_points.h>
 #include <vgl/vgl_point_3d.h>
 #include <vgl/vgl_homg_point_3d.h>
 #include <vgl/vgl_ray_3d.h>
@@ -35,6 +36,7 @@
 #include <vgl/io/vgl_io_point_3d.h>
 #include <vgl/io/vgl_io_homg_point_3d.h>
 #include <vgl/io/vgl_io_vector_3d.h>
+#include <vgl/io/vgl_io_line_3d_2_points.h>
 #include <vgl/io/vgl_io_polygon.h>
 
 #include "../pyvxl_util.h"
@@ -708,6 +710,47 @@ void wrap_oriented_box_2d(py::module &m, std::string const& class_name)
     ;
 }
 
+
+template<typename T>
+void wrap_vgl_line_3d_2_points(py::module &m, std::string const& class_name) {
+  bool (*line_3d_2_points_ideal)(const vgl_line_3d_2_points<T>&, T) = &is_ideal;
+  bool (*line_3d_2_points_collinear)(const vgl_line_3d_2_points<T>&, const vgl_point_3d<T>&) = &collinear;
+  bool (*line_3d_2_points_coplanar)(const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&) = &coplanar;
+  bool (*line_3d_2_points_concurrent)(const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&) = &concurrent;
+  bool (*line_3d_2_points_coplanar_2_points)(const vgl_line_3d_2_points<T>&, const vgl_point_3d<T>&, const vgl_point_3d<T>&) = &coplanar;
+  bool (*line_3d_2_points_coplanar_3_lines)(const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&) = &coplanar;
+  bool (*line_3d_2_points_concurrent_3_lines)(const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&) = &concurrent;
+
+  py::class_<vgl_line_3d_2_points<T> > (m, class_name.c_str())
+    .def(py::init<>())
+    .def(py::init<vgl_line_3d_2_points<T>>())
+    .def(py::init<vgl_point_3d<T>, vgl_point_3d<T>>())
+    .def("__len__", [](vgl_line_3d_2_points<T>){return (size_t)2;}) // b/c 2 points? What should this represent
+    // .def("__getitem__", getitem_3d<vgl_line_3d_2_points<T> >) // Is some kind of getitem useful for this class? [0] gets point1 and [1] gets point2 maybe
+    .def("__repr__", streamToString<vgl_line_3d_2_points<T> >)
+    .def(py::pickle(&vslPickleGetState<vgl_line_3d_2_points<T> >,
+                    &vslPickleSetState<vgl_line_3d_2_points<T> >))
+    .def("point1", (vgl_point_3d<T> (vgl_line_3d_2_points<T>::*)(void) const) &vgl_line_3d_2_points<T>::point1)
+    .def("point2", (vgl_point_3d<T> (vgl_line_3d_2_points<T>::*)(void) const) &vgl_line_3d_2_points<T>::point2)
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    .def("set", (void (vgl_line_3d_2_points<T>::*)(vgl_point_3d<T> const&, vgl_point_3d<T> const&)) &vgl_line_3d_2_points<T>::set)
+    .def("ideal", &vgl_line_3d_2_points<T>::ideal)
+    .def("direction", (vgl_vector_3d<T> (vgl_line_3d_2_points<T>::*)(void) const) &vgl_line_3d_2_points<T>::direction)
+    .def("point_t", (vgl_point_3d<T> (vgl_line_3d_2_points<T>::*)(const double) const) &vgl_line_3d_2_points<T>::point_t)
+    // class methods
+    .def("is_ideal", line_3d_2_points_ideal)
+    .def("collinear", line_3d_2_points_collinear) // line and point
+    .def("coplanar", line_3d_2_points_coplanar) // 2 lines
+    .def("coplanar", line_3d_2_points_coplanar_2_points) // 1 line, 2 points
+    .def("coplanar", line_3d_2_points_coplanar_3_lines) // 3 lines
+    .def("concurrent", line_3d_2_points_concurrent) // 2 lines
+    .def("concurrent", line_3d_2_points_concurrent_3_lines) // 3 lines
+    ;
+}
+
+
+
 void wrap_vgl(py::module &m)
 {
   wrap_vgl_point_2d<double>(m, "point_2d");
@@ -727,6 +770,9 @@ void wrap_vgl(py::module &m)
 
   wrap_vgl_vector_3d<double>(m, "vector_3d");
   wrap_vgl_vector_3d<float>(m, "vector_3d_float");
+
+  wrap_vgl_line_3d_2_points<double>(m, "vgl_line_3d_2_points");
+  wrap_vgl_line_3d_2_points<float>(m, "vgl_line_3d_2_points_float");
 
   wrap_vgl_pointset_3d<double>(m, "pointset_3d");
   wrap_vgl_pointset_3d<float>(m, "pointset_3d_float");
