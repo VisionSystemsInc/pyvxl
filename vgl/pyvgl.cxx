@@ -379,7 +379,7 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     ;
 
     // overloads for non-member functions using vgl_vector_3d
-    m.def("cross_product", py::overload_cast<const vgl_vector_3d<T>&, const vgl_vector_3d<T>&> (&cross_product<T>));
+    m.def("cross_product", overload_cast_<const vgl_vector_3d<T>&, const vgl_vector_3d<T>&>() (&cross_product<T>));
 }
 
 
@@ -738,13 +738,13 @@ void wrap_vgl_line_3d_2_points(py::module &m, std::string const& class_name)
     ;
     
     // overloads for vgl/non-member functions using vgl_line_3d_2_points eg. vgl.collinear(some_line, some_point)
-    m.def("is_ideal", py::overload_cast<const vgl_line_3d_2_points<T>&,T> (&is_ideal<T>));
-    m.def("collinear", py::overload_cast<const vgl_line_3d_2_points<T>&, const vgl_point_3d<T>&> (&collinear<T>));
-    m.def("coplanar", py::overload_cast<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&> (&coplanar<T>));
-    m.def("coplanar", py::overload_cast<const vgl_line_3d_2_points<T>&, const vgl_point_3d<T>&, const vgl_point_3d<T>&> (&coplanar<T>));
-    m.def("coplanar", py::overload_cast<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&> (&coplanar<T>));
-    m.def("concurrent", py::overload_cast<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&> (&concurrent<T>));
-    m.def("concurrent", py::overload_cast<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&> (&concurrent<T>));
+    m.def("is_ideal", overload_cast_<const vgl_line_3d_2_points<T>&,T>() (&is_ideal<T>));
+    m.def("collinear", overload_cast_<const vgl_line_3d_2_points<T>&, const vgl_point_3d<T>&>() (&collinear<T>));
+    m.def("coplanar", overload_cast_<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&>() (&coplanar<T>));
+    m.def("coplanar", overload_cast_<const vgl_line_3d_2_points<T>&, const vgl_point_3d<T>&, const vgl_point_3d<T>&>() (&coplanar<T>));
+    m.def("coplanar", overload_cast_<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&>() (&coplanar<T>));
+    m.def("concurrent", overload_cast_<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&>() (&concurrent<T>));
+    m.def("concurrent", overload_cast_<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&>() (&concurrent<T>));
 }
 
 
