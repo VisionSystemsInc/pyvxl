@@ -3,6 +3,7 @@
 #include <vgl/vgl_point_2d.h>
 #include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_vector_3d.h>
+#include <vgl/vgl_line_3d_2_points.h>
 #include <vgl/vgl_point_3d.h>
 #include <vgl/vgl_homg_point_3d.h>
 #include <vgl/vgl_ray_3d.h>
@@ -35,6 +36,7 @@
 #include <vgl/io/vgl_io_point_3d.h>
 #include <vgl/io/vgl_io_homg_point_3d.h>
 #include <vgl/io/vgl_io_vector_3d.h>
+#include <vgl/io/vgl_io_line_3d_2_points.h>
 #include <vgl/io/vgl_io_polygon.h>
 
 #include "../pyvxl_util.h"
@@ -322,6 +324,7 @@ void wrap_vgl_point_3d(py::module &m, std::string const& class_name)
     .def_property_readonly("y", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::y)
     .def_property_readonly("z", (T (vgl_point_3d<T>::*)() const) &vgl_point_3d<T>::z)
     .def(py::self + vgl_vector_3d<T>())
+    .def(py::self - vgl_vector_3d<T>())
     .def(py::self - py::self)
     .def(py::self == py::self)
     ;
@@ -365,7 +368,7 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     .def_property_readonly("y", &vgl_vector_3d<T>::y)
     .def_property_readonly("z", &vgl_vector_3d<T>::z)
     .def("length", &vgl_vector_3d<T>::length)
-    .def("cross_product", vector_3d_cross_product)
+    .def("cross_product", vector_3d_cross_product) // deprecated
     .def(py::self + py::self)
     .def(py::self - py::self)
     .def(py::self == py::self)
@@ -374,6 +377,9 @@ void wrap_vgl_vector_3d(py::module &m, std::string const& class_name)
     .def(py::self * T())
     .def(T() * py::self)
     ;
+
+    // overloads for non-member functions using vgl_vector_3d
+    m.def("cross_product", overload_cast_<const vgl_vector_3d<T>&, const vgl_vector_3d<T>&>() (&cross_product<T>));
 }
 
 
@@ -708,6 +714,41 @@ void wrap_oriented_box_2d(py::module &m, std::string const& class_name)
     ;
 }
 
+
+template<typename T>
+void wrap_vgl_line_3d_2_points(py::module &m, std::string const& class_name)
+{
+  py::class_<vgl_line_3d_2_points<T> > (m, class_name.c_str())
+    .def(py::init<>())
+    .def(py::init<vgl_line_3d_2_points<T>>())
+    .def(py::init<vgl_point_3d<T>, vgl_point_3d<T>>())
+    .def("__len__", [](vgl_line_3d_2_points<T>){return (size_t)2;}) // b/c 2 points? What should this represent
+    // .def("__getitem__", getitem_3d<vgl_line_3d_2_points<T> >) // Is some kind of getitem useful for this class? [0] gets point1 and [1] gets point2 maybe
+    .def("__repr__", streamToString<vgl_line_3d_2_points<T> >)
+    .def(py::pickle(&vslPickleGetState<vgl_line_3d_2_points<T> >,
+                    &vslPickleSetState<vgl_line_3d_2_points<T> >))
+    .def("point1", &vgl_line_3d_2_points<T>::point1)
+    .def("point2", &vgl_line_3d_2_points<T>::point2)
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    .def("set", &vgl_line_3d_2_points<T>::set)
+    .def("ideal", &vgl_line_3d_2_points<T>::ideal)
+    .def("direction", &vgl_line_3d_2_points<T>::direction)
+    .def("point_t", &vgl_line_3d_2_points<T>::point_t)
+    ;
+    
+    // overloads for vgl/non-member functions using vgl_line_3d_2_points eg. vgl.collinear(some_line, some_point)
+    m.def("is_ideal", overload_cast_<const vgl_line_3d_2_points<T>&,T>() (&is_ideal<T>));
+    m.def("collinear", overload_cast_<const vgl_line_3d_2_points<T>&, const vgl_point_3d<T>&>() (&collinear<T>));
+    m.def("coplanar", overload_cast_<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&>() (&coplanar<T>));
+    m.def("coplanar", overload_cast_<const vgl_line_3d_2_points<T>&, const vgl_point_3d<T>&, const vgl_point_3d<T>&>() (&coplanar<T>));
+    m.def("coplanar", overload_cast_<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&>() (&coplanar<T>));
+    m.def("concurrent", overload_cast_<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&>() (&concurrent<T>));
+    m.def("concurrent", overload_cast_<const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&,const vgl_line_3d_2_points<T>&>() (&concurrent<T>));
+}
+
+
+
 void wrap_vgl(py::module &m)
 {
   wrap_vgl_point_2d<double>(m, "point_2d");
@@ -727,6 +768,9 @@ void wrap_vgl(py::module &m)
 
   wrap_vgl_vector_3d<double>(m, "vector_3d");
   wrap_vgl_vector_3d<float>(m, "vector_3d_float");
+
+  wrap_vgl_line_3d_2_points<double>(m, "vgl_line_3d_2_points");
+  wrap_vgl_line_3d_2_points<float>(m, "vgl_line_3d_2_points_float");
 
   wrap_vgl_pointset_3d<double>(m, "pointset_3d");
   wrap_vgl_pointset_3d<float>(m, "pointset_3d_float");
