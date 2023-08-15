@@ -1185,6 +1185,7 @@ void wrap_vpgl(py::module &m)
     .def("get_scale",      [](vpgl_lvcs &L) {double lon,lat; L.get_scale(lat,lon); return std::make_tuple(lon,lat); })
     .def("get_transform",  [](vpgl_lvcs &L) {double lox,loy,th; L.get_transform(lox,loy,th); return std::make_tuple(lox,loy,th); })
     .def("get_utm_origin", [](vpgl_lvcs &L) {double x,y,e; int z; L.get_utm_origin(x,y,e,z); return std::make_tuple(x,y,e,z); })
+    .def("get_utm",        [](vpgl_lvcs &L) {int z; bool sf; L.get_utm(z,sf); return std::make_tuple(z,sf); })
     .def("get_cs_name",    &vpgl_lvcs::get_cs_name)
     .def("get_len_unit",   &vpgl_lvcs::local_length_unit)
     .def("get_ang_unit",   &vpgl_lvcs::geo_angle_unit)
@@ -1194,6 +1195,8 @@ void wrap_vpgl(py::module &m)
          py::arg("lox"), py::arg("loy"), py::arg("theta"))
     .def("set_origin", &vpgl_lvcs::set_origin,
          py::arg("lon"), py::arg("lat"), py::arg("elev"))
+    .def("set_utm", &vpgl_lvcs::set_utm,
+         py::arg("zone"), py::arg("south_flag"))
 
     // read/write to string
     .def("reads",
