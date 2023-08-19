@@ -236,6 +236,8 @@ void wrap_bsgm(py::module &m)
                    "Scale the internally set P2 smoothing parameter")
     .def_readwrite("use_gradient_weighted_smoothing", &bsgm_disparity_estimator_params::use_gradient_weighted_smoothing,
                    "Use gradient-weighted P2 smoothing")
+    .def_readwrite("use_shadow_step_p2_adjustment", &bsgm_disparity_estimator_params::use_shadow_step_p2_adjustment,
+                   "Adjust P2 according to probability of shadow step")
     .def_readwrite("max_grad", &bsgm_disparity_estimator_params::max_grad,
                    "In gradient-weighted smoothing, gradients beyond this magnitude are truncated")
     .def_readwrite("perform_quadratic_interp", &bsgm_disparity_estimator_params::perform_quadratic_interp,
