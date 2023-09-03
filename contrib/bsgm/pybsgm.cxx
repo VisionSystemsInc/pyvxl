@@ -132,6 +132,11 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
     .def("disparity_rev", &BSGM_T::disparity_rev,
          "reverse disparity")
 
+    .def("rect_shadow_fwd", &BSGM_T::rect_shadow_fwd,
+         "forward target shadow probablity")
+    .def("rect_shadow_rev", &BSGM_T::rect_shadow_rev,
+         "reverse target shadow probablity")
+
     .def("tri_3d_fwd", &BSGM_T::tri_3d_fwd,
          "forward triangulation result")
     .def("tri_3d_rev", &BSGM_T::tri_3d_rev,
@@ -213,6 +218,14 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
     .def("save_dsm_grid_stype", &BSGM_T::save_dsm_grid_stype,
          py::arg("path"),
          "save surface types in dsm space")
+
+    .def("save_rect_shadow0", &BSGM_T::save_rect_shadow0,
+         py::arg("path"),
+         "save shadow fwd probability in rectified image space")
+
+    .def("save_rect_shadow1", &BSGM_T::save_rect_shadow1,
+         py::arg("path"),
+         "save shadow rev probability in rectified image space")
 
     ;
 }
