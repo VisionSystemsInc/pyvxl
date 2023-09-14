@@ -132,6 +132,11 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
     .def("disparity_rev", &BSGM_T::disparity_rev,
          "reverse disparity")
 
+    .def("rect_shadow_fwd", &BSGM_T::rect_shadow_fwd,
+         "forward target shadow probablity")
+    .def("rect_shadow_rev", &BSGM_T::rect_shadow_rev,
+         "reverse target shadow probablity")
+
     .def("tri_3d_fwd", &BSGM_T::tri_3d_fwd,
          "forward triangulation result")
     .def("tri_3d_rev", &BSGM_T::tri_3d_rev,
@@ -214,6 +219,21 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          py::arg("path"),
          "save surface types in dsm space")
 
+    .def("save_rect_shadow_info0", &BSGM_T::save_rect_shadow_info0,
+         py::arg("path"),
+         "save shadow step and shadow information in rectified image space, forward")
+
+    .def("save_rect_shadow_info1", &BSGM_T::save_rect_shadow_info1,
+         py::arg("path"),
+         "save shadow step and shadow information in rectified image space, reverse")
+
+    .def("save_rect_shadow_info_overlay0", &BSGM_T::save_rect_shadow_info_overlay0,
+         py::arg("path"),
+         "display overlay of shadow and shadow step probability in rectified image space, forward")
+
+    .def("save_rect_shadow_info_overlay1", &BSGM_T::save_rect_shadow_info_overlay1,
+         py::arg("path"),
+         "display overlay of shadow and shadow step probability in rectified image space, reverse")
     ;
 }
 
@@ -248,6 +268,10 @@ void wrap_bsgm(py::module &m)
                    "When set > 0, pixels below this threshold will be flagged as invalid when error_check_mode > 0")
     .def_readwrite("bias_weight", &bsgm_disparity_estimator_params::bias_weight,
                    "Strength of SGM directional average bias")
+    .def_readwrite("adj_dir_weight", &bsgm_disparity_estimator_params::adj_dir_weight,
+                   "cost contribution fraction for dp directions adjacent to shadow dir")
+    .def_readwrite("app_supress_shadow_shad_step", &bsgm_disparity_estimator_params::app_supress_shadow_shad_step, "suppress dynamic program appearance cost for both shad_step and shadow, otherwise just under shadow")
+    .def_readwrite("shad_shad_stp_prob_thresh", &bsgm_disparity_estimator_params::shad_shad_stp_prob_thresh, "probability threshold for either shadow or shadow step to be active")
     .def_readwrite("census_weight", &bsgm_disparity_estimator_params::census_weight,
                    "Census appearance cost weighting")
     .def_readwrite("xgrad_weight", &bsgm_disparity_estimator_params::xgrad_weight,
@@ -271,7 +295,9 @@ void wrap_bsgm(py::module &m)
     .def_property("shadow_thresh",
                   [](pairwise_params& self) { return self.shadow_thresh_; },
                   &pairwise_params::shadow_thresh,
-                  "intensity level out of 255 below which is considered to be in shadow, thus invalid")
+                  "intensity level below which is considered to be in shadow")
+    .def_readwrite("shadow_prob_method", &pairwise_params::shadow_prob_method_,
+                   "method to compute shadow probability, either adaptive scan along sun dir or fixed threshold ('adaptive_sun_direction_scan'/'fixed_thrshold')")
     .def_property("quad_interp",
                   [](pairwise_params& self) { return self.quad_interp_; },
                   &pairwise_params::quad_interp,
