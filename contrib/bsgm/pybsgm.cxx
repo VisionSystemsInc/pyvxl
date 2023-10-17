@@ -219,21 +219,29 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
          py::arg("path"),
          "save surface types in dsm space")
 
+    .def("rect_shadow_info0", &BSGM_T::rect_shadow_info0,
+         "step and shadow information in rectified image space, forward")
     .def("save_rect_shadow_info0", &BSGM_T::save_rect_shadow_info0,
          py::arg("path"),
          "save shadow step and shadow information in rectified image space, forward")
 
+    .def("rect_shadow_info1", &BSGM_T::rect_shadow_info1,
+         "shadow step and shadow information in rectified image space, reverse")
     .def("save_rect_shadow_info1", &BSGM_T::save_rect_shadow_info1,
          py::arg("path"),
          "save shadow step and shadow information in rectified image space, reverse")
 
+    .def("rect_shadow_info_overlay0", &BSGM_T::rect_shadow_info_overlay0,
+         "overlay of shadow and shadow step probability in rectified image space, forward")
     .def("save_rect_shadow_info_overlay0", &BSGM_T::save_rect_shadow_info_overlay0,
          py::arg("path"),
-         "display overlay of shadow and shadow step probability in rectified image space, forward")
+         "save overlay of shadow and shadow step probability in rectified image space, forward")
 
+    .def("rect_shadow_info_overlay1", &BSGM_T::rect_shadow_info_overlay1,
+         "overlay of shadow and shadow step probability in rectified image space, reverse")
     .def("save_rect_shadow_info_overlay1", &BSGM_T::save_rect_shadow_info_overlay1,
          py::arg("path"),
-         "display overlay of shadow and shadow step probability in rectified image space, reverse")
+         "save overlay of shadow and shadow step probability in rectified image space, reverse")
     ;
 }
 
