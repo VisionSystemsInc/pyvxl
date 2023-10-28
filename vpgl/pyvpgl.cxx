@@ -25,6 +25,7 @@
 
 #include <vpgl/file_formats/vpgl_geo_camera.h>
 #include <vpgl/file_formats/vpgl_nitf_rational_camera.h>
+#include <vpgl/file_formats/vpgl_nitf_RSM_camera.h>
 
 #include <vil/vil_load.h>
 #include <vil/vil_image_resource.h>
@@ -1373,7 +1374,6 @@ void wrap_vpgl(py::module &m)
 
 
   // =====MISC=====
-
   // image cropping extents from 3D box and rational camera
   // Note this must be listed after the lvcs wrapper to enable the default lvcs
   m.def("crop_image_using_3d_box", &crop_image_using_3d_box,
@@ -1392,8 +1392,49 @@ void wrap_vpgl(py::module &m)
   wrap_vpgl_tri_focal_tensor<double>(m, "tri_focal_tensor");
   wrap_vpgl_affine_tri_focal_tensor<double>(m, "affine_tri_focal_tensor");
 
+
+  py::class_<rsm_metadata> (m, "rsm_metadata")
+    .def(py::init<>())
+    .def_readonly("catalog_id", &rsm_metadata::catalog_id_)
+      .def_readonly("catalog_id_valid", &rsm_metadata::catalog_id_valid)
+      .def_readonly("platform_name", &rsm_metadata::platform_name_)
+      .def_readonly("platform_name_valid", &rsm_metadata::platform_name_valid)
+      .def_readonly("image_name", &rsm_metadata::image_name_)
+      .def_readonly("image_name_valid", &rsm_metadata::image_name_valid)
+      .def_readonly("acquisition_time", &rsm_metadata::acquisition_time_)
+      .def_readonly("acquisition_time_valid", &rsm_metadata::acquisition_time_valid)
+      .def_readonly("effective_bits_per_pixel", &rsm_metadata::effective_bits_per_pixel_)
+      .def_readonly("effective_bits_per_pixel_valid", &rsm_metadata::effective_bits_per_pixel_valid)
+      .def_readonly("image_type", &rsm_metadata::image_type_)
+      .def_readonly("image_type_valid", &rsm_metadata::image_type_valid)
+      .def_readonly("corners_valid", &rsm_metadata::corners_valid)
+      .def_readonly("upper_left", &rsm_metadata::upper_left_)
+      .def_readonly("upper_right", &rsm_metadata::upper_right_)
+      .def_readonly("lower_left", &rsm_metadata::lower_left_)
+      .def_readonly("lower_right", &rsm_metadata::lower_right_)
+      .def_readonly("bounding_box", &rsm_metadata::bounding_box_)
+      .def_readonly("footprint", &rsm_metadata::footprint_)
+      .def_readonly("image_offset", &rsm_metadata::image_offset_)
+      .def_readonly("image_offset_valid", &rsm_metadata::image_offset_valid)
+      .def_readonly("rsm_image_offset", &rsm_metadata::rsm_image_offset_)
+      .def_readonly("rsm_image_offset_valid", &rsm_metadata::rsm_image_offset_valid)
+      .def_readonly("cloud_percentage", &rsm_metadata::cloud_percentage_)
+      .def_readonly("cloud_percentage_valid", &rsm_metadata::cloud_percentage_valid)
+      .def_readonly("sun_angles", &rsm_metadata::sun_angles_)
+      .def_readonly("sun_angles_valid", &rsm_metadata::sun_angles_valid)
+      .def_readonly("view_angles", &rsm_metadata::view_angles_)
+      .def_readonly("view_angles_valid", &rsm_metadata::view_angles_valid);
+
+        py::class_<ichipb_data> (m, "ichipb_data")
+          .def(py::init<>())
+        .def_readonly("ichipb_data_valid", &ichipb_data::ichipb_data_valid_)
+        .def_readonly("translation", &ichipb_data::translation_)
+        .def_readonly("O_grid_points", &ichipb_data::O_grid_points_)
+        .def_readonly("anamorphic_corr", &ichipb_data::anamorphic_corr_);
 }
-}}
+
+
+  }}
 
 PYBIND11_MODULE(_vpgl, m)
 {
