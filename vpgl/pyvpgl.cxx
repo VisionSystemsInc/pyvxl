@@ -1423,7 +1423,9 @@ void wrap_vpgl(py::module &m)
       .def_readonly("sun_angles", &rsm_metadata::sun_angles_)
       .def_readonly("sun_angles_valid", &rsm_metadata::sun_angles_valid)
       .def_readonly("view_angles", &rsm_metadata::view_angles_)
-      .def_readonly("view_angles_valid", &rsm_metadata::view_angles_valid);
+      .def_readonly("view_angles_valid", &rsm_metadata::view_angles_valid)
+      .def_readonly("gsd", &rsm_metadata::gsd_)
+      .def_readonly("gsd_valid", &rsm_metadata::gsd_valid);
 
         py::class_<ichipb_data> (m, "ichipb_data")
           .def(py::init<>())
