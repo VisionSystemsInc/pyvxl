@@ -342,6 +342,8 @@ void wrap_bsgm(py::module &m)
                    "The actual intensity dynamic range, e.g. 11 bits")
     .def_readwrite("window_padding", &pairwise_params::window_padding_,
                    "How many pixels to pad the target window by, post rectification")
+    .def_readwrite("disparity_search_margin", &pairwise_params::disparity_search_margin_,
+                   "multiscale mode = 2, extra disparity added to predicted min max limits")
     ;
 
   // bsgm_prob_pairwise_dsm
