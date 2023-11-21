@@ -72,6 +72,11 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
         overload_cast_<float>()(&BSGM_T::max_height),
         "maximum height to define maximum and minimum disparity")
 
+    .def_property("disparity_search_margin",
+        overload_cast_<>()(&BSGM_T::disparity_search_margin, py::const_),
+        overload_cast_<int>()(&BSGM_T::disparity_search_margin),
+        "margin added to +- disparity limits in multiscale_mode ==2")
+
     .def_property("midpoint_z",
         overload_cast_<>()(&BSGM_T::midpoint_z, py::const_),
         overload_cast_<double>()(&BSGM_T::midpoint_z),
@@ -342,6 +347,8 @@ void wrap_bsgm(py::module &m)
                    "The actual intensity dynamic range, e.g. 11 bits")
     .def_readwrite("window_padding", &pairwise_params::window_padding_,
                    "How many pixels to pad the target window by, post rectification")
+    .def_readwrite("disparity_search_margin", &pairwise_params::disparity_search_margin_,
+                   "multiscale mode = 2, extra disparity added to predicted min max limits")
     ;
 
   // bsgm_prob_pairwise_dsm
