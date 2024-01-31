@@ -1099,6 +1099,12 @@ void wrap_vpgl(py::module &m)
   m.def("_read_rational_camera_from_txt",
         [](std::string const& fname){return read_rational_camera_from_txt<double>(fname);},
         py::return_value_policy::take_ownership);
+  m.def("load_rational_camera_from_str",
+        [](std::string const& input){
+          std::istringstream iss(input);
+          return read_rational_camera<double>(iss);
+        },
+        py::return_value_policy::take_ownership);
   m.def("_correct_rational_camera", &correct_rational_camera);
   m.def("save_rational_camera", &save_rational_camera,
         py::arg("cam"), py::arg("camera_filename"));
