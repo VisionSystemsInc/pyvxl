@@ -37,6 +37,7 @@
 #include <vpgl/io/vpgl_io_proj_camera.h>
 #include <vpgl/io/vpgl_io_affine_camera.h>
 #include <vpgl/io/vpgl_io_perspective_camera.h>
+#include <vpgl/io/vpgl_io_rational_camera.h>
 
 #include "../pyvxl_util.h"
 
@@ -1038,6 +1039,12 @@ void wrap_vpgl(py::module &m)
     .value("U_INDX", vpgl_rational_camera<double>::U_INDX)
     .value("V_INDX", vpgl_rational_camera<double>::V_INDX);
 
+  py::enum_<vpgl_rational_camera<double>::poly_index>(rational_camera, "poly_index")
+    .value("NEU_U", vpgl_rational_camera<double>::NEU_U)
+    .value("DEN_U", vpgl_rational_camera<double>::DEN_U)
+    .value("NEU_V", vpgl_rational_camera<double>::NEU_V)
+    .value("DEN_V", vpgl_rational_camera<double>::DEN_V);
+
   // function definitions
   rational_camera
 
@@ -1056,8 +1063,11 @@ void wrap_vpgl(py::module &m)
         py::arg("rational_coeffs"), py::arg("scale_offsets"),
         py::arg("input_rational_order") = vpgl_rational_order::VXL)
 
-    // python print
+    // general functions
     .def("__str__", streamToString<vpgl_rational_camera<double> >)
+    .def(py::self == py::self)
+    .def(py::pickle(&vslPickleGetState<vpgl_rational_camera<double> >,
+                    &vslPickleSetState<vpgl_rational_camera<double> >))
 
     // save to file
     .def("save", &vpgl_rational_camera<double>::save,
@@ -1074,6 +1084,7 @@ void wrap_vpgl(py::module &m)
         py::arg("rational_order") = vpgl_rational_order::VXL)
     .def("scale_offsets", &vpgl_rational_camera<double>::scale_offsets)
     .def("offset", &vpgl_rational_camera<double>::offset)
+    .def("scale", &vpgl_rational_camera<double>::scale)
     .def_property("image_offset",
         [](vpgl_rational_camera<double>& self) {
           double u,v; self.image_offset(u,v);
