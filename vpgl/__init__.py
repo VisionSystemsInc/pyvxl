@@ -61,6 +61,121 @@ def load_rational_camera_from_txt(cam_fname):
     raise ValueError("Invalid camera file <{}>".format(cam_fname))
 
 
+def load_rational_camera_from_dict(rpc_dict):
+  """
+  Load rational camera from a python dictionary
+
+  Parameters
+  ----------
+  rpc_dict : :obj:`dict`
+    Dictionary of RPC parameters
+  """
+
+  # coefficient order
+  spec_id = rpc_dict["SpecId"]
+  input_rational_order = getattr(_vpgl.rational_order, spec_id.upper(), None)
+  if not input_rational_order:
+    raise RuntimeError(f"Invalid rational camera ordering {spec_id}")
+
+  # create VXL object
+  IMAGE = rpc_dict["IMAGE"]
+  camera = _vpgl.rational_camera(
+
+    # rational camera ordering
+    input_rational_order=input_rational_order,
+
+    # offset
+    u_off=IMAGE["sampOffset"],
+    v_off=IMAGE["lineOffset"],
+    x_off=IMAGE["longOffset"],
+    y_off=IMAGE["latOffset"],
+    z_off=IMAGE["heightOffset"],
+
+    # scale
+    u_scale=IMAGE["sampScale"],
+    v_scale=IMAGE["lineScale"],
+    x_scale=IMAGE["longScale"],
+    y_scale=IMAGE["latScale"],
+    z_scale=IMAGE["heightScale"],
+
+    # coefficients
+    neu_u=IMAGE["sampNumCoef"],
+    den_u=IMAGE["sampDenCoef"],
+    neu_v=IMAGE["lineNumCoef"],
+    den_v=IMAGE["lineDenCoef"],
+
+  )
+
+  return camera
+
+
+def rational_camera_as_dict(cam, output_rational_order='RPC00B'):
+  """
+  Convert rational camera to python dictionary
+  """
+
+  # coefficient order
+  if isinstance(output_rational_order, str):
+    output_rational_order = getattr(_vpgl.rational_order, output_rational_order.upper())
+
+  # coefficients
+  coefficient_matrix = cam.coefficient_matrix(output_rational_order)
+  poly_mapping = {
+    "sampNumCoef": _vpgl.rational_camera.poly_index.NEU_U,
+    "sampDenCoef": _vpgl.rational_camera.poly_index.DEN_U,
+    "lineNumCoef": _vpgl.rational_camera.poly_index.NEU_V,
+    "lineDenCoef": _vpgl.rational_camera.poly_index.DEN_V,
+  }
+
+  def _coefficients(name):
+    return list(coefficient_matrix[poly_mapping[name]])
+
+  # offset & scale mapping
+  coord_mapping = {
+    "samp":   _vpgl.rational_camera.coor_index.U_INDX,
+    "line":   _vpgl.rational_camera.coor_index.V_INDX,
+    "long":   _vpgl.rational_camera.coor_index.X_INDX,
+    "lat":    _vpgl.rational_camera.coor_index.Y_INDX,
+    "height": _vpgl.rational_camera.coor_index.Z_INDX,
+  }
+
+  def _offset(key):
+    return cam.offset(coord_mapping[key])
+
+  def _scale(key):
+    return cam.scale(coord_mapping[key])
+
+  # dictionary
+  rpc_dict = {
+    "satId": "???",
+    "bandId": "???",
+    "SpecId": output_rational_order.name,
+    "IMAGE": {
+      # "errBias": ,
+      # "errRand": ,
+      "lineOffset": _offset("line"),
+      "sampOffset": _offset("samp"),
+      "latOffset": _offset("lat"),
+      "longOffset": _offset("long"),
+      "heightOffset": _offset("height"),
+      "lineScale": _scale("line"),
+      "sampScale": _scale("samp"),
+      "latScale": _scale("lat"),
+      "longScale": _scale("long"),
+      "heightScale": _scale("height"),
+      "lineNumCoef": _coefficients("lineNumCoef"),
+      "lineDenCoef": _coefficients("lineDenCoef"),
+      "sampNumCoef": _coefficients("sampNumCoef"),
+      "sampDenCoef": _coefficients("sampDenCoef"),
+    }
+  }
+
+  return rpc_dict
+
+# add `as_dict` method to rational_camera
+setattr(_vpgl.rational_camera, 'as_dict', rational_camera_as_dict)
+
+
 def correct_rational_camera(cam, gt_offset_u, gt_offset_v, verbose=False):
   """
   Adds (delta-u, delta-v) offset to a rational camera.
