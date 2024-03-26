@@ -1144,15 +1144,48 @@ void wrap_vpgl(py::module &m)
   m.def("_correct_local_rational_camera", &correct_local_rational_camera);
 
 
-  py::class_<vpgl_nitf_rational_camera, vpgl_rational_camera<double> /* <- Parent */ > (m, "nitf_rational_camera");
-    /* .def(py::init<>()) */
-    /* .def(py::init<std::string const&, bool>()) */
-    /* .def(py::init<vil_nitf2_image*, bool>()); */
+  // =====NITF RATIONAL CAMERA=====
+  py::class_<vpgl_nitf_rational_camera, vpgl_rational_camera<double> /* <- Parent */ > nitf_rational_camera(m, "nitf_rational_camera");
 
-  m.def("_read_rational_camera_nitf",
-        [](std::string const& fname){return read_rational_camera_from_txt<double>(fname);},
-        py::return_value_policy::take_ownership);
+  // enumerations, attached to this class
+  py::enum_<vpgl_nitf_rational_camera::geopt_coord>(nitf_rational_camera, "geopt_coord")
+    .value("LON", vpgl_nitf_rational_camera::LON)
+    .value("LAT", vpgl_nitf_rational_camera::LAT);
 
+  py::enum_<vpgl_nitf_rational_camera::igeolo_order>(nitf_rational_camera, "igeolo_order")
+    .value("UL", vpgl_nitf_rational_camera::UL)
+    .value("UR", vpgl_nitf_rational_camera::UR)
+    .value("LR", vpgl_nitf_rational_camera::LR)
+    .value("LL", vpgl_nitf_rational_camera::LL);
+
+  // function definitions
+  nitf_rational_camera
+
+    // constructors
+    .def(py::init<>())
+    .def(py::init<std::string const&, bool>(),
+         py::arg("file"), py::arg("verbose")=false)
+
+    // properties
+    .def_property_readonly("rational_extension_type", &vpgl_nitf_rational_camera::rational_extension_type)
+    .def_property_readonly("image_id", &vpgl_nitf_rational_camera::image_id)
+
+    // read from file
+    .def("read",
+         overload_cast_<std::string const&, bool>()(&vpgl_nitf_rational_camera::read),
+         py::arg("file"), py::arg("verbose")=false)
+    ;
+
+  // load rational camera from nitf file
+  m.def("load_rational_camera_nitf",
+        [] (std::string const& file, bool verbose) {
+          auto camera = vpgl_nitf_rational_camera();
+          if (!camera.read(file, verbose)) {
+            throw std::runtime_error("Unable to load RPCs from NITF");
+          }
+          return camera;
+        },
+        py::arg("file"), py::arg("verbose")=false);
 
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
