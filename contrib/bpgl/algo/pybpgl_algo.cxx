@@ -16,6 +16,9 @@
 #include <bpgl/algo/bpgl_heightmap_from_disparity.h>
 #include <bpgl/algo/bpgl_rectify_image_pair.h>
 #include <bpgl/algo/bpgl_surface_type.h>
+
+#include "../../../pyvxl_util.h"
+
 namespace py = pybind11;
 
 namespace pyvxl {
@@ -82,6 +85,54 @@ void wrap_bpgl_algo(py::module &m)
   ;
   wrap_bpgl_rectify_image_pair<vpgl_affine_camera<double> >(m, "rectify_image_pair_affine");
   wrap_bpgl_rectify_image_pair<vpgl_perspective_camera<double> >(m, "rectify_image_pair_perspective");
+
+
+  // ----- bpgl_surface_type -----
+
+  // class
+  py::class_<bpgl_surface_type> surface_type(m, "surface_type");
+
+  // enumerations, attached to this class
+  py::enum_<bpgl_surface_type::stype>(surface_type, "stype")
+     .value("NO_DATA", bpgl_surface_type::NO_DATA)
+     .value("INVALID_DATA", bpgl_surface_type::INVALID_DATA)
+     .value("SHADOW", bpgl_surface_type::SHADOW)
+     .value("SHADOW_STEP", bpgl_surface_type::SHADOW_STEP)
+     .value("GEOMETRIC_CONSISTENCY", bpgl_surface_type::GEOMETRIC_CONSISTENCY)
+     .value("NO_SURFACE_TYPE", bpgl_surface_type::NO_SURFACE_TYPE)
+     ;
+
+  py::enum_<bpgl_surface_type::domain>(surface_type, "domain")
+     .value("RECTIFIED_TARGET", bpgl_surface_type::RECTIFIED_TARGET)
+     .value("DSM", bpgl_surface_type::DSM)
+     .value("FUSED_DSM", bpgl_surface_type::FUSED_DSM)
+     .value("MOSAIC_DSM", bpgl_surface_type::MOSAIC_DSM)
+     .value("NO_DOMAIN", bpgl_surface_type::NO_DOMAIN)
+     ;
+
+  // function definitions
+  surface_type
+    .def(py::init<>())
+    .def_property_readonly("ntypes", &bpgl_surface_type::ntypes)
+    .def_property_readonly("ni", &bpgl_surface_type::ni)
+    .def_property_readonly("nj", &bpgl_surface_type::nj)
+    .def_property_readonly("domain_id", &bpgl_surface_type::domain_id)
+    .def_property_readonly("stypes", &bpgl_surface_type::stypes)
+
+    .def("domain_from_string", &bpgl_surface_type::domain_from_string)
+    .def("domain_to_string", &bpgl_surface_type::domain_to_string)
+
+    .def("type_image",
+        overload_cast_<std::string const&>()(&bpgl_surface_type::type_image, py::const_),
+        py::arg("type_name"))
+
+    .def("type_image",
+        overload_cast_<bpgl_surface_type::stype>()(&bpgl_surface_type::type_image, py::const_),
+        py::arg("type"))
+
+    .def("type_images", &bpgl_surface_type::type_images)
+    ;
+
 }
 
 
