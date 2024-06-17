@@ -93,7 +93,7 @@ class acal_corr(AcalBase, unittest.TestCase):
     super().__init__(*args, **kwargs)
     self.cls = acal.corr
     self.default_data = {
-        'id': np.uint(-1),
+        'id': np.uint(np.iinfo(np.uint64).max),
         'pt': vgl.point_2d(-1, -1)
     }
     self.init_data = {
@@ -108,8 +108,8 @@ class acal_match_pair(AcalBase, unittest.TestCase):
     super().__init__(*args, **kwargs)
     self.cls = acal.match_pair
     self.default_data = {
-        'corr1': {'id': np.uint(-1), 'pt': vgl.point_2d(-1, -1)},
-        'corr2': {'id': np.uint(-1), 'pt': vgl.point_2d(-1, -1)},
+        'corr1': {'id': np.uint(np.iinfo(np.uint64).max), 'pt': vgl.point_2d(-1, -1)},
+        'corr2': {'id': np.uint(np.iinfo(np.uint64).max), 'pt': vgl.point_2d(-1, -1)},
     }
     self.init_data = {
         'corr1': {'id': 10, 'pt': vgl.point_2d(10.0, 20.0)},
