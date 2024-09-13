@@ -25,7 +25,7 @@
 
 #include <vpgl/file_formats/vpgl_geo_camera.h>
 #include <vpgl/file_formats/vpgl_nitf_rational_camera.h>
-#include <vpgl/file_formats/vpgl_nitf_RSM_camera.h>
+#include <vpgl/file_formats/vpgl_nitf_RSM_camera_extractor.h>
 
 #include <vil/vil_load.h>
 #include <vil/vil_image_resource.h>
@@ -1457,7 +1457,10 @@ void wrap_vpgl(py::module &m)
       .def_readonly("effective_bits_per_pixel_valid", &rsm_metadata::effective_bits_per_pixel_valid)
       .def_readonly("image_type", &rsm_metadata::image_type_)
       .def_readonly("image_type_valid", &rsm_metadata::image_type_valid)
-      .def_readonly("corners_valid", &rsm_metadata::corners_valid)
+      .def_readonly("igeolo", &rsm_metadata::igeolo_)
+      .def_readonly("igeolo_valid", &rsm_metadata::igeolo_valid)
+      .def_readonly("corners_valid", &rsm_metadata::xy_corners_valid)
+      .def_readonly("corners_valid", &rsm_metadata::xyz_corners_valid) 
       .def_readonly("upper_left", &rsm_metadata::upper_left_)
       .def_readonly("upper_right", &rsm_metadata::upper_right_)
       .def_readonly("lower_left", &rsm_metadata::lower_left_)
@@ -1468,18 +1471,13 @@ void wrap_vpgl(py::module &m)
       .def_readonly("image_offset_valid", &rsm_metadata::image_offset_valid)
       .def_readonly("rsm_image_offset", &rsm_metadata::rsm_image_offset_)
       .def_readonly("rsm_image_offset_valid", &rsm_metadata::rsm_image_offset_valid)
-      .def_readonly("cloud_percentage", &rsm_metadata::cloud_percentage_)
-      .def_readonly("cloud_percentage_valid", &rsm_metadata::cloud_percentage_valid)
-      .def_readonly("sun_angles", &rsm_metadata::sun_angles_)
-      .def_readonly("sun_angles_valid", &rsm_metadata::sun_angles_valid)
-      .def_readonly("view_angles", &rsm_metadata::view_angles_)
-      .def_readonly("view_angles_valid", &rsm_metadata::view_angles_valid)
-      .def_readonly("gsd", &rsm_metadata::gsd_)
-      .def_readonly("gsd_valid", &rsm_metadata::gsd_valid);
+      .def_readonly("image_corners_valid", &rsm_metadata::image_corners_valid)
+      .def_readonly("min_image_corner", &rsm_metadata::min_image_corner_)
+      .def_readonly("max_image_corner", &rsm_metadata::max_image_corner_);
 
         py::class_<ichipb_data> (m, "ichipb_data")
           .def(py::init<>())
-        .def_readonly("ichipb_data_valid", &ichipb_data::ichipb_data_valid_)
+        .def_readonly("ichipb_data_valid", &ichipb_data::ichipb_data_valid)
         .def_readonly("translation", &ichipb_data::translation_)
         .def_readonly("O_grid_points", &ichipb_data::O_grid_points_)
         .def_readonly("anamorphic_corr", &ichipb_data::anamorphic_corr_);
