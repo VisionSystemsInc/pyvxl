@@ -6,6 +6,7 @@
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vpgl/vpgl_rational_camera.h>
 #include <vpgl/vpgl_local_rational_camera.h>
+#include <vpgl/vpgl_RSM_camera.h>
 #include <vpgl/vpgl_lvcs.h>
 #include <vpgl/vpgl_utm.h>
 #include <vpgl/vpgl_fundamental_matrix.h>
@@ -1187,6 +1188,73 @@ void wrap_vpgl(py::module &m)
         },
         py::arg("file"), py::arg("verbose")=false);
 
+
+  // ===== REPLACEMENT SENSOR MODEL =====
+  py::class_<vpgl_RSM_camera<double>, vpgl_camera<double> /* <- Parent */ > RSM_camera(m, "RSM_camera");
+
+  // enumerations, attached to this class
+  py::enum_<vpgl_RSM_camera<double>::coor_index>(RSM_camera, "coor_index")
+    .value("X_INDX", vpgl_RSM_camera<double>::X_INDX)
+    .value("Y_INDX", vpgl_RSM_camera<double>::Y_INDX)
+    .value("Z_INDX", vpgl_RSM_camera<double>::Z_INDX)
+    .value("U_INDX", vpgl_RSM_camera<double>::U_INDX)
+    .value("V_INDX", vpgl_RSM_camera<double>::V_INDX);
+
+  py::enum_<vpgl_RSM_camera<double>::poly_index>(RSM_camera, "poly_index")
+    .value("NEU_U", vpgl_RSM_camera<double>::NEU_U)
+    .value("DEN_U", vpgl_RSM_camera<double>::DEN_U)
+    .value("NEU_V", vpgl_RSM_camera<double>::NEU_V)
+    .value("DEN_V", vpgl_RSM_camera<double>::DEN_V);
+
+  // function definitions
+  RSM_camera
+
+    // overloaded constructors
+    .def(py::init<>())
+    .def(py::init<std::vector<std::vector<int> >, std::vector<std::vector<double> >,
+         std::vector<vpgl_scale_offset<double> > >(), py::arg("powers"), py::arg("coeffs"), py::arg("scale_offsets"))
+
+     // general functions
+    //.def("__str__", streamToString<vpgl_RSM_camera<double> >)
+    .def(py::self == py::self)
+    //.def(py::pickle(&vslPickleGetState<vpgl_RSM_camera<double> >,
+    //              &vslPickleSetState<vpgl_RSM_camera<double> >))
+
+      // point projection
+    .def("project", vpgl_project_point<vpgl_RSM_camera<double> >)
+    .def("project", vpgl_project_buffer<vpgl_RSM_camera<double> >)
+    .def("project", vpgl_project_xyz<vpgl_RSM_camera<double> >);
+
+    // getter/setter
+
+#if 0
+    .def("set_powers", &vpgl_RSM_camera<double>::set_powers, py::arg("powers"));
+
+    .def("set_coefficients", &vpgl_RSM_camera<double>::set_coefficients, py::arg("coeffs"))
+    .def("set_scale_offsets",&vpgl_RSM_camera<double>::set_scale_offsets, py::arg("scale_offsets"))
+    .def("scale_offsets", &vpgl_RSM_camera<double>::scale_offsets, py::arg("corr_index"))
+    .def("offset", &vpgl_RSM_camera<double>::offset, py::arg("corr_index"))
+    .def("scale", &vpgl_RSM_camera<double>::scale, py::arg("corr_index"))
+
+
+    .def_property("image_offset",
+        [](vpgl_RSM_camera<double>& self) {
+          double u,v; self.image_offset(u,v);
+          return py::make_tuple(u,v);
+        },
+        [](vpgl_RSM_camera<double>& self, const std::array<double,2>& uv) {
+          self.set_image_offset(uv[0],uv[1]);
+        })
+    .def_property("image_scale",
+        [](vpgl_RSM_camera<double>& self) {
+          double u,v; self.image_scale(u,v);
+          return py::make_tuple(u,v);
+        },
+        [](vpgl_RSM_camera<double>& self, const std::array<double,2>& uv) {
+          self.set_image_scale(uv[0],uv[1]);
+        })
+     ;
+#endif
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
   py::class_<vpgl_lvcs> lvcs(m, "lvcs");
