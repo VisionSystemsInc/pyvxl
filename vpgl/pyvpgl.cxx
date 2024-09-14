@@ -1214,47 +1214,25 @@ void wrap_vpgl(py::module &m)
     .def(py::init<std::vector<std::vector<int> >, std::vector<std::vector<double> >,
          std::vector<vpgl_scale_offset<double> > >(), py::arg("powers"), py::arg("coeffs"), py::arg("scale_offsets"))
 
-     // general functions
-    //.def("__str__", streamToString<vpgl_RSM_camera<double> >)
     .def(py::self == py::self)
-    //.def(py::pickle(&vslPickleGetState<vpgl_RSM_camera<double> >,
-    //              &vslPickleSetState<vpgl_RSM_camera<double> >))
 
-      // point projection
+    // point projection
     .def("project", vpgl_project_point<vpgl_RSM_camera<double> >)
     .def("project", vpgl_project_buffer<vpgl_RSM_camera<double> >)
-    .def("project", vpgl_project_xyz<vpgl_RSM_camera<double> >);
+    .def("project", vpgl_project_xyz<vpgl_RSM_camera<double> >)
 
     // getter/setter
-
-#if 0
-    .def("set_powers", &vpgl_RSM_camera<double>::set_powers, py::arg("powers"));
-
-    .def("set_coefficients", &vpgl_RSM_camera<double>::set_coefficients, py::arg("coeffs"))
-    .def("set_scale_offsets",&vpgl_RSM_camera<double>::set_scale_offsets, py::arg("scale_offsets"))
-    .def("scale_offsets", &vpgl_RSM_camera<double>::scale_offsets, py::arg("corr_index"))
     .def("offset", &vpgl_RSM_camera<double>::offset, py::arg("corr_index"))
     .def("scale", &vpgl_RSM_camera<double>::scale, py::arg("corr_index"))
-
-
-    .def_property("image_offset",
-        [](vpgl_RSM_camera<double>& self) {
-          double u,v; self.image_offset(u,v);
-          return py::make_tuple(u,v);
-        },
-        [](vpgl_RSM_camera<double>& self, const std::array<double,2>& uv) {
-          self.set_image_offset(uv[0],uv[1]);
-        })
-    .def_property("image_scale",
-        [](vpgl_RSM_camera<double>& self) {
-          double u,v; self.image_scale(u,v);
-          return py::make_tuple(u,v);
-        },
-        [](vpgl_RSM_camera<double>& self, const std::array<double,2>& uv) {
-          self.set_image_scale(uv[0],uv[1]);
-        })
+    .def("set_scale",&vpgl_RSM_camera<double>::set_scale,py::arg("corr_index"),py::arg("scale"))
+    .def("set_offset",&vpgl_RSM_camera<double>::set_offset,py::arg("corr_index"),py::arg("offset"))
+    .def("powers", &vpgl_RSM_camera<double>::powers)
+    .def("coeffs", &vpgl_RSM_camera<double>::coeffs)
+    .def("image_offset",&vpgl_RSM_camera<double>::image_offset)
+    .def("set_image_offset",&vpgl_RSM_camera<double>::set_image_offset, py::arg("u_off"),py::arg("v_off"))
+    .def("image_scale",&vpgl_RSM_camera<double>::image_offset)
+    .def("set_image_scale",&vpgl_RSM_camera<double>::set_image_scale, py::arg("u_scale"),py::arg("v_scale"))
      ;
-#endif
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
   py::class_<vpgl_lvcs> lvcs(m, "lvcs");
