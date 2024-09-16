@@ -621,6 +621,7 @@ void wrap_vil(py::module &m)
     .def("is_class", &vil_image_view_base::is_class);
 
   // image view classes
+  wrap_vil_image_view<bool>(m, "image_view_bool");
   wrap_vil_image_view<unsigned char>(m, "image_view_byte");
   wrap_vil_image_view<unsigned short int>(m, "image_view_uint16");
   wrap_vil_image_view<float>(m, "image_view_float");
