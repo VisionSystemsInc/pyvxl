@@ -6,6 +6,7 @@
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vpgl/vpgl_rational_camera.h>
 #include <vpgl/vpgl_local_rational_camera.h>
+#include <vpgl/vpgl_RSM_camera.h>
 #include <vpgl/vpgl_lvcs.h>
 #include <vpgl/vpgl_utm.h>
 #include <vpgl/vpgl_fundamental_matrix.h>
@@ -25,7 +26,7 @@
 
 #include <vpgl/file_formats/vpgl_geo_camera.h>
 #include <vpgl/file_formats/vpgl_nitf_rational_camera.h>
-#include <vpgl/file_formats/vpgl_nitf_RSM_camera.h>
+#include <vpgl/file_formats/vpgl_nitf_RSM_camera_extractor.h>
 
 #include <vil/vil_load.h>
 #include <vil/vil_image_resource.h>
@@ -1188,6 +1189,51 @@ void wrap_vpgl(py::module &m)
         py::arg("file"), py::arg("verbose")=false);
 
 
+  // ===== REPLACEMENT SENSOR MODEL =====
+  py::class_<vpgl_RSM_camera<double>, vpgl_camera<double> /* <- Parent */ > RSM_camera(m, "RSM_camera");
+
+  // enumerations, attached to this class
+  py::enum_<vpgl_RSM_camera<double>::coor_index>(RSM_camera, "coor_index")
+    .value("X_INDX", vpgl_RSM_camera<double>::X_INDX)
+    .value("Y_INDX", vpgl_RSM_camera<double>::Y_INDX)
+    .value("Z_INDX", vpgl_RSM_camera<double>::Z_INDX)
+    .value("U_INDX", vpgl_RSM_camera<double>::U_INDX)
+    .value("V_INDX", vpgl_RSM_camera<double>::V_INDX);
+
+  py::enum_<vpgl_RSM_camera<double>::poly_index>(RSM_camera, "poly_index")
+    .value("NEU_U", vpgl_RSM_camera<double>::NEU_U)
+    .value("DEN_U", vpgl_RSM_camera<double>::DEN_U)
+    .value("NEU_V", vpgl_RSM_camera<double>::NEU_V)
+    .value("DEN_V", vpgl_RSM_camera<double>::DEN_V);
+
+  // function definitions
+  RSM_camera
+
+    // overloaded constructors
+    .def(py::init<>())
+    .def(py::init<std::vector<std::vector<int> >, std::vector<std::vector<double> >,
+         std::vector<vpgl_scale_offset<double> > >(), py::arg("powers"), py::arg("coeffs"), py::arg("scale_offsets"))
+
+    .def(py::self == py::self)
+
+    // point projection
+    .def("project", vpgl_project_point<vpgl_RSM_camera<double> >)
+    .def("project", vpgl_project_buffer<vpgl_RSM_camera<double> >)
+    .def("project", vpgl_project_xyz<vpgl_RSM_camera<double> >)
+
+    // getter/setter
+    .def("offset", &vpgl_RSM_camera<double>::offset, py::arg("corr_index"))
+    .def("scale", &vpgl_RSM_camera<double>::scale, py::arg("corr_index"))
+    .def("set_scale",&vpgl_RSM_camera<double>::set_scale,py::arg("corr_index"),py::arg("scale"))
+    .def("set_offset",&vpgl_RSM_camera<double>::set_offset,py::arg("corr_index"),py::arg("offset"))
+    .def("powers", &vpgl_RSM_camera<double>::powers)
+    .def("coeffs", &vpgl_RSM_camera<double>::coeffs)
+    .def("image_offset",&vpgl_RSM_camera<double>::image_offset)
+    .def("set_image_offset",&vpgl_RSM_camera<double>::set_image_offset, py::arg("u_off"),py::arg("v_off"))
+    .def("image_scale",&vpgl_RSM_camera<double>::image_offset)
+    .def("set_image_scale",&vpgl_RSM_camera<double>::set_image_scale, py::arg("u_scale"),py::arg("v_scale"))
+     ;
+
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
   py::class_<vpgl_lvcs> lvcs(m, "lvcs");
 
@@ -1457,7 +1503,10 @@ void wrap_vpgl(py::module &m)
       .def_readonly("effective_bits_per_pixel_valid", &rsm_metadata::effective_bits_per_pixel_valid)
       .def_readonly("image_type", &rsm_metadata::image_type_)
       .def_readonly("image_type_valid", &rsm_metadata::image_type_valid)
-      .def_readonly("corners_valid", &rsm_metadata::corners_valid)
+      .def_readonly("igeolo", &rsm_metadata::igeolo_)
+      .def_readonly("igeolo_valid", &rsm_metadata::igeolo_valid)
+      .def_readonly("corners_valid", &rsm_metadata::xy_corners_valid)
+      .def_readonly("corners_valid", &rsm_metadata::xyz_corners_valid) 
       .def_readonly("upper_left", &rsm_metadata::upper_left_)
       .def_readonly("upper_right", &rsm_metadata::upper_right_)
       .def_readonly("lower_left", &rsm_metadata::lower_left_)
@@ -1468,18 +1517,13 @@ void wrap_vpgl(py::module &m)
       .def_readonly("image_offset_valid", &rsm_metadata::image_offset_valid)
       .def_readonly("rsm_image_offset", &rsm_metadata::rsm_image_offset_)
       .def_readonly("rsm_image_offset_valid", &rsm_metadata::rsm_image_offset_valid)
-      .def_readonly("cloud_percentage", &rsm_metadata::cloud_percentage_)
-      .def_readonly("cloud_percentage_valid", &rsm_metadata::cloud_percentage_valid)
-      .def_readonly("sun_angles", &rsm_metadata::sun_angles_)
-      .def_readonly("sun_angles_valid", &rsm_metadata::sun_angles_valid)
-      .def_readonly("view_angles", &rsm_metadata::view_angles_)
-      .def_readonly("view_angles_valid", &rsm_metadata::view_angles_valid)
-      .def_readonly("gsd", &rsm_metadata::gsd_)
-      .def_readonly("gsd_valid", &rsm_metadata::gsd_valid);
+      .def_readonly("image_corners_valid", &rsm_metadata::image_corners_valid)
+      .def_readonly("min_image_corner", &rsm_metadata::min_image_corner_)
+      .def_readonly("max_image_corner", &rsm_metadata::max_image_corner_);
 
         py::class_<ichipb_data> (m, "ichipb_data")
           .def(py::init<>())
-        .def_readonly("ichipb_data_valid", &ichipb_data::ichipb_data_valid_)
+        .def_readonly("ichipb_data_valid", &ichipb_data::ichipb_data_valid)
         .def_readonly("translation", &ichipb_data::translation_)
         .def_readonly("O_grid_points", &ichipb_data::O_grid_points_)
         .def_readonly("anamorphic_corr", &ichipb_data::anamorphic_corr_);
