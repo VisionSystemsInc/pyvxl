@@ -1192,35 +1192,21 @@ void wrap_vpgl(py::module &m)
   // ===== REPLACEMENT SENSOR MODEL =====
   py::class_<vpgl_RSM_camera<double>, vpgl_camera<double> /* <- Parent */ > RSM_camera(m, "RSM_camera");
 
-  // enumerations, attached to this class
-  py::enum_<vpgl_RSM_camera<double>::coor_index>(RSM_camera, "coor_index")
-    .value("X_INDX", vpgl_RSM_camera<double>::X_INDX)
-    .value("Y_INDX", vpgl_RSM_camera<double>::Y_INDX)
-    .value("Z_INDX", vpgl_RSM_camera<double>::Z_INDX)
-    .value("U_INDX", vpgl_RSM_camera<double>::U_INDX)
-    .value("V_INDX", vpgl_RSM_camera<double>::V_INDX);
-
-  py::enum_<vpgl_RSM_camera<double>::poly_index>(RSM_camera, "poly_index")
-    .value("NEU_U", vpgl_RSM_camera<double>::NEU_U)
-    .value("DEN_U", vpgl_RSM_camera<double>::DEN_U)
-    .value("NEU_V", vpgl_RSM_camera<double>::NEU_V)
-    .value("DEN_V", vpgl_RSM_camera<double>::DEN_V);
-
   // function definitions
   RSM_camera
 
     // overloaded constructors
     .def(py::init<>())
-    .def(py::init<std::vector<std::vector<int> >, std::vector<std::vector<double> >,
-         std::vector<vpgl_scale_offset<double> > >(), py::arg("powers"), py::arg("coeffs"), py::arg("scale_offsets"))
+    //.def(py::init<std::vector<std::vector<int> >, std::vector<std::vector<double> >,
+    //     std::vector<vpgl_scale_offset<double> > >(), py::arg("powers"), py::arg("coeffs"), py::arg("scale_offsets"))
 
-    .def(py::self == py::self)
-
+    .def("set_adjustable_parameters", &vpgl_RSM_camera<double>::set_adjustable_parameters, py::arg("adj_u"),py::arg("adj_v"))
+    .def("adjustable_parameters", &vpgl_RSM_camera<double>::adjustable_parameters)
     // point projection
     .def("project", vpgl_project_point<vpgl_RSM_camera<double> >)
     .def("project", vpgl_project_buffer<vpgl_RSM_camera<double> >)
     .def("project", vpgl_project_xyz<vpgl_RSM_camera<double> >)
-
+#if 0
     // getter/setter
     .def("offset", &vpgl_RSM_camera<double>::offset, py::arg("corr_index"))
     .def("scale", &vpgl_RSM_camera<double>::scale, py::arg("corr_index"))
@@ -1232,7 +1218,8 @@ void wrap_vpgl(py::module &m)
     .def("set_image_offset",&vpgl_RSM_camera<double>::set_image_offset, py::arg("u_off"),py::arg("v_off"))
     .def("image_scale",&vpgl_RSM_camera<double>::image_offset)
     .def("set_image_scale",&vpgl_RSM_camera<double>::set_image_scale, py::arg("u_scale"),py::arg("v_scale"))
-     ;
+#endif
+    ;
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
   py::class_<vpgl_lvcs> lvcs(m, "lvcs");
