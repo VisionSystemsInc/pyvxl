@@ -1200,14 +1200,15 @@ void wrap_vpgl(py::module &m)
     //.def(py::init<std::vector<std::vector<int> >, std::vector<std::vector<double> >,
     //     std::vector<vpgl_scale_offset<double> > >(), py::arg("powers"), py::arg("coeffs"), py::arg("scale_offsets"))
 
-    .def("set_adjustable_parameters", &vpgl_RSM_camera<double>::set_adjustable_parameters, py::arg("adj_u"),py::arg("adj_v"))
-    .def("adjustable_parameters", &vpgl_RSM_camera<double>::adjustable_parameters)
+
     // point projection
     .def("project", vpgl_project_point<vpgl_RSM_camera<double> >)
     .def("project", vpgl_project_buffer<vpgl_RSM_camera<double> >)
     .def("project", vpgl_project_xyz<vpgl_RSM_camera<double> >)
 #if 0
     // getter/setter
+    .def("set_adjustable_parameters", &vpgl_RSM_camera<double>::set_adjustable_parameters, py::arg("adj_u"),py::arg("adj_v"))
+    .def("adjustable_parameters", &vpgl_RSM_camera<double>::adjustable_parameters)
     .def("offset", &vpgl_RSM_camera<double>::offset, py::arg("corr_index"))
     .def("scale", &vpgl_RSM_camera<double>::scale, py::arg("corr_index"))
     .def("set_scale",&vpgl_RSM_camera<double>::set_scale,py::arg("corr_index"),py::arg("scale"))
