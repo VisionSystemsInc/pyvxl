@@ -1192,47 +1192,23 @@ void wrap_vpgl(py::module &m)
   // ===== REPLACEMENT SENSOR MODEL =====
   py::class_<vpgl_RSM_camera<double>, vpgl_camera<double> /* <- Parent */ > RSM_camera(m, "RSM_camera");
 
-  // enumerations, attached to this class
-  py::enum_<vpgl_RSM_camera<double>::coor_index>(RSM_camera, "coor_index")
-    .value("X_INDX", vpgl_RSM_camera<double>::X_INDX)
-    .value("Y_INDX", vpgl_RSM_camera<double>::Y_INDX)
-    .value("Z_INDX", vpgl_RSM_camera<double>::Z_INDX)
-    .value("U_INDX", vpgl_RSM_camera<double>::U_INDX)
-    .value("V_INDX", vpgl_RSM_camera<double>::V_INDX);
-
-  py::enum_<vpgl_RSM_camera<double>::poly_index>(RSM_camera, "poly_index")
-    .value("NEU_U", vpgl_RSM_camera<double>::NEU_U)
-    .value("DEN_U", vpgl_RSM_camera<double>::DEN_U)
-    .value("NEU_V", vpgl_RSM_camera<double>::NEU_V)
-    .value("DEN_V", vpgl_RSM_camera<double>::DEN_V);
-
   // function definitions
   RSM_camera
 
     // overloaded constructors
+    // default only since construction is complex
+    // and is done by the vpgl_nitf_RSM_extractor factory class
     .def(py::init<>())
-    .def(py::init<std::vector<std::vector<int> >, std::vector<std::vector<double> >,
-         std::vector<vpgl_scale_offset<double> > >(), py::arg("powers"), py::arg("coeffs"), py::arg("scale_offsets"))
-
-    .def(py::self == py::self)
-
     // point projection
     .def("project", vpgl_project_point<vpgl_RSM_camera<double> >)
     .def("project", vpgl_project_buffer<vpgl_RSM_camera<double> >)
     .def("project", vpgl_project_xyz<vpgl_RSM_camera<double> >)
-
-    // getter/setter
-    .def("offset", &vpgl_RSM_camera<double>::offset, py::arg("corr_index"))
-    .def("scale", &vpgl_RSM_camera<double>::scale, py::arg("corr_index"))
-    .def("set_scale",&vpgl_RSM_camera<double>::set_scale,py::arg("corr_index"),py::arg("scale"))
-    .def("set_offset",&vpgl_RSM_camera<double>::set_offset,py::arg("corr_index"),py::arg("offset"))
-    .def("powers", &vpgl_RSM_camera<double>::powers)
-    .def("coeffs", &vpgl_RSM_camera<double>::coeffs)
-    .def("image_offset",&vpgl_RSM_camera<double>::image_offset)
-    .def("set_image_offset",&vpgl_RSM_camera<double>::set_image_offset, py::arg("u_off"),py::arg("v_off"))
-    .def("image_scale",&vpgl_RSM_camera<double>::image_offset)
-    .def("set_image_scale",&vpgl_RSM_camera<double>::set_image_scale, py::arg("u_scale"),py::arg("v_scale"))
-     ;
+    // adjustable parameters image row (v)  and column (u) offsets
+    // apply to the entire image even if it has multiple polynomial sections
+    .def("set_adjustable_parameters", &vpgl_RSM_camera<double>::set_adjustable_parameters, py::arg("adj_u"),py::arg("adj_v"))
+    .def("adjustable_parameters", &vpgl_RSM_camera<double>::adjustable_parameters)
+    .def("n_regions", &vpgl_RSM_camera<double>::n_regions, " number of polynomial regions")
+    ;
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
   py::class_<vpgl_lvcs> lvcs(m, "lvcs");
@@ -1489,44 +1465,71 @@ void wrap_vpgl(py::module &m)
   wrap_vpgl_affine_tri_focal_tensor<double>(m, "affine_tri_focal_tensor");
 
 
+  //===== Replacement Sensor Model related interfaces
   py::class_<rsm_metadata> (m, "rsm_metadata")
     .def(py::init<>())
-    .def_readonly("catalog_id", &rsm_metadata::catalog_id_)
-      .def_readonly("catalog_id_valid", &rsm_metadata::catalog_id_valid)
-      .def_readonly("platform_name", &rsm_metadata::platform_name_)
-      .def_readonly("platform_name_valid", &rsm_metadata::platform_name_valid)
-      .def_readonly("image_name", &rsm_metadata::image_name_)
-      .def_readonly("image_name_valid", &rsm_metadata::image_name_valid)
-      .def_readonly("acquisition_time", &rsm_metadata::acquisition_time_)
-      .def_readonly("acquisition_time_valid", &rsm_metadata::acquisition_time_valid)
-      .def_readonly("effective_bits_per_pixel", &rsm_metadata::effective_bits_per_pixel_)
-      .def_readonly("effective_bits_per_pixel_valid", &rsm_metadata::effective_bits_per_pixel_valid)
-      .def_readonly("image_type", &rsm_metadata::image_type_)
-      .def_readonly("image_type_valid", &rsm_metadata::image_type_valid)
-      .def_readonly("igeolo", &rsm_metadata::igeolo_)
-      .def_readonly("igeolo_valid", &rsm_metadata::igeolo_valid)
-      .def_readonly("corners_valid", &rsm_metadata::xy_corners_valid)
-      .def_readonly("corners_valid", &rsm_metadata::xyz_corners_valid) 
-      .def_readonly("upper_left", &rsm_metadata::upper_left_)
-      .def_readonly("upper_right", &rsm_metadata::upper_right_)
-      .def_readonly("lower_left", &rsm_metadata::lower_left_)
-      .def_readonly("lower_right", &rsm_metadata::lower_right_)
-      .def_readonly("bounding_box", &rsm_metadata::bounding_box_)
-      .def_readonly("footprint", &rsm_metadata::footprint_)
-      .def_readonly("image_offset", &rsm_metadata::image_offset_)
-      .def_readonly("image_offset_valid", &rsm_metadata::image_offset_valid)
-      .def_readonly("rsm_image_offset", &rsm_metadata::rsm_image_offset_)
-      .def_readonly("rsm_image_offset_valid", &rsm_metadata::rsm_image_offset_valid)
-      .def_readonly("image_corners_valid", &rsm_metadata::image_corners_valid)
-      .def_readonly("min_image_corner", &rsm_metadata::min_image_corner_)
-      .def_readonly("max_image_corner", &rsm_metadata::max_image_corner_);
+    .def_readonly("any_valid", &rsm_metadata::any_valid)
+    .def_readonly("platform_name", &rsm_metadata::platform_name_)
+    .def_readonly("platform_name_valid", &rsm_metadata::platform_name_valid)
+    .def_readonly("image_iid1", &rsm_metadata::image_iid1_)
+    .def_readonly("image_iid1_valid", &rsm_metadata::image_iid1_valid)
+    .def_readonly("image_iid2", &rsm_metadata::image_iid2_)
+    .def_readonly("image_iid2_valid", &rsm_metadata::image_iid2_valid)
+    .def_readonly("acquisition_time", &rsm_metadata::acquisition_time_)
+    .def_readonly("acquisition_time_valid", &rsm_metadata::acquisition_time_valid)
+    .def_readonly("image_type", &rsm_metadata::image_type_)
+    .def_readonly("image_type_valid", &rsm_metadata::image_type_valid)
+    .def_readonly("igeolo", &rsm_metadata::igeolo_)
+    .def_readonly("igeolo_valid", &rsm_metadata::igeolo_valid)
+    .def_readonly("corners_valid", &rsm_metadata::xy_corners_valid)
+    .def_readonly("corners_valid", &rsm_metadata::xyz_corners_valid) 
+    .def_readonly("upper_left", &rsm_metadata::upper_left_)
+    .def_readonly("upper_right", &rsm_metadata::upper_right_)
+    .def_readonly("lower_left", &rsm_metadata::lower_left_)
+    .def_readonly("lower_right", &rsm_metadata::lower_right_)
+    .def_readonly("bounding_box", &rsm_metadata::bounding_box_)
+    .def_readonly("footprint", &rsm_metadata::footprint_)
+    .def_readonly("image_corners_valid", &rsm_metadata::image_corners_valid)
+    .def_readonly("min_image_corner", &rsm_metadata::min_image_corner_)
+    .def_readonly("max_image_corner", &rsm_metadata::max_image_corner_)
+    .def_readonly("sun_azimuth_radians", &rsm_metadata::sun_azimuth_radians_)
+    .def_readonly("sun_azimuth_valid", &rsm_metadata::sun_azimuth_valid)
+    .def_readonly("sun_elevation_radians", &rsm_metadata::sun_elevation_radians_)
+    .def_readonly("sun_elevation_valid", &rsm_metadata::sun_elevation_valid)
+    ;
 
-        py::class_<ichipb_data> (m, "ichipb_data")
-          .def(py::init<>())
-        .def_readonly("ichipb_data_valid", &ichipb_data::ichipb_data_valid)
-        .def_readonly("translation", &ichipb_data::translation_)
-        .def_readonly("O_grid_points", &ichipb_data::O_grid_points_)
-        .def_readonly("anamorphic_corr", &ichipb_data::anamorphic_corr_);
+
+  py::class_<adjustable_parameter_metadata> (m, "adjustable_parameter_metadata")
+    .def(py::init<>())
+    .def("print", &adjustable_parameter_metadata::print, py::arg("os"))
+    .def_readonly("defined", &adjustable_parameter_metadata::defined_)
+    .def_readonly("num_adj_params", &adjustable_parameter_metadata::num_adj_params_)
+    .def_readonly("num_original_adj_params", &adjustable_parameter_metadata::num_original_adj_params_)
+    .def_readonly("num_independent_subgroups", &adjustable_parameter_metadata::num_independent_subgroups_)
+    .def_readonly("translation", &adjustable_parameter_metadata::translation_)
+    .def_readonly("rotation", &adjustable_parameter_metadata::rotation_)
+    .def_readonly("covar_index", &adjustable_parameter_metadata::covar_index_)
+    .def_readonly("independent_subgroup_covariance", &adjustable_parameter_metadata::independent_subgroup_covariance_)
+    .def_readonly("correlation_flags", &adjustable_parameter_metadata::correlation_flags_)
+    .def_readonly("correlation_segments", &adjustable_parameter_metadata::correlation_segments_)
+    .def_readonly("phi", &adjustable_parameter_metadata::phi_)
+    ;
+
+  py::class_<vpgl_nitf_RSM_camera_extractor> (m, "vpgl_nitf_RSM_camera_extractor")
+    .def(py::init<>())
+    .def(py::init<std::string const&>(),"construct from file", py::arg("nitf_image_path"))
+    .def("image_id", &vpgl_nitf_RSM_camera_extractor::image_id, "get name from metadata", py::arg("image_subheader_index"))
+
+    .def("nitf_header_contains_RSM_tres", &vpgl_nitf_RSM_camera_extractor::nitf_header_contains_RSM_tres, "number of headers containing RSM data, a return of zero indicates no RSM present")
+    .def("process", &vpgl_nitf_RSM_camera_extractor::process, "extract header TREs", py::arg("verbose"))
+    .def("first_index_with_RSM", &vpgl_nitf_RSM_camera_extractor::first_index_with_RSM, "with multiple image subheaders, the first containing RSM data")
+
+    .def("RSM_camera", &vpgl_nitf_RSM_camera_extractor::RSM_camera, "the RSM camera at a given index", py::arg("image_subheader_index")=0)
+    .def("meta", &vpgl_nitf_RSM_camera_extractor::meta, "general metadata including sun angle", py::arg("image_subheader_index")=0)
+    .def("adjustable_parameter_data", &vpgl_nitf_RSM_camera_extractor::adjustable_parameter_data, py::arg("image_subheader_index") = 0)
+    .def("save_tre_values", &vpgl_nitf_RSM_camera_extractor::save_tre_values, py::arg("file"))
+    ;
+
 }
 
 
