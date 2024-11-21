@@ -1,5 +1,5 @@
 from ._vpgl import *
-from vxl import vnl
+from vxl import vgl, vnl
 
 
 def load_rational_camera(cam_fname):
@@ -209,3 +209,64 @@ def correct_rational_camera(cam, gt_offset_u, gt_offset_v, verbose=False):
     return _correct_rational_camera(cam, gt_offset_u, gt_offset_v, verbose)
   else:
     raise ValueError("Camera of type <{}> not a rational camera".format(cam.type_name()))
+
+
+def _rsm_metadata_validate_dict(dct):
+  '''
+  This function searches through an rsm_metadata dictionary containing values
+  protected by ``*_valid`` properties, sets any invalid properties to ``None``,
+  and removed the ``*_valid`` properties.
+
+  For example, the following rsm_metadata dictionary:
+
+  .. code-block:: python
+
+      dct = {
+        "platform_name_valid": True,
+        "platform_name": "A",
+        "image_type_valid": False,
+        "image_type": "garbage",
+        ...
+      }
+
+  Would be transformed to:
+
+  .. code-block:: python
+
+      dct = {
+        "platform_name": "A",
+        "image_type": None,
+        ...
+      }
+
+  '''
+
+  # identify keys ending in `*_valid` (except for "any_valid")
+  keys_valid = [key for key in dct.keys()
+                if key.endswith('_valid') and key != "any_valid"]
+
+  # keys requiring special treatment
+  keys_invalidate = {
+    "corners_valid": ["upper_left", "upper_right",
+                      "lower_left", "lower_right",
+                      "bounding_box", "footprint"],
+    "image_corners_valid": ["min_image_corner", "max_image_corner"],
+    "sun_azimuth_valid": ["sun_azimuth", "sun_azimuth_radians"],
+    "sun_elevation_valid": ["sun_elevation", "sun_elevation_radians"],
+  }
+
+  # process keys
+  for key_valid in keys_valid:
+    is_valid = dct.pop(key_valid)
+    if is_valid:
+      continue
+
+    keys = (keys_invalidate.get(key_valid) or
+            [key_valid.replace('_valid', '')])
+    for key in keys:
+      dct[key] = None
+
+  return dct
+
+# add ``as_dict_validated`` method to rsm_metadata object
+rsm_metadata.as_dict_validated = lambda x: _rsm_metadata_validate_dict(x.as_dict())
