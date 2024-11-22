@@ -9,6 +9,7 @@
 #include <vpgl/algo/vpgl_backproject_dem.h>
 #include <vpgl/algo/vpgl_camera_convert.h>
 #include <vpgl/algo/vpgl_camera_compute.h>
+#include <vpgl/vpgl_RSM_camera.h>
 #include <vpgl/vpgl_rational_camera.h>
 #include <vpgl/vpgl_affine_camera.h>
 #include <vgl/vgl_plane_3d.h>
@@ -64,9 +65,12 @@ void wrap_vpgl_algo(py::module &m)
 {
   py::module bproj_mod = m.def_submodule("backproject");
   bproj_mod
+    .def("bproj_plane", &wrap_bproj_plane<vpgl_RSM_camera<double>>)
     .def("bproj_plane", &wrap_bproj_plane<vpgl_rational_camera<double>>)
     .def("bproj_plane", &wrap_bproj_plane<vpgl_affine_camera<double>>)
-    .def("bproj_dem", &wrap_bproj_dem<vpgl_rational_camera<double>>);
+    .def("bproj_dem", &wrap_bproj_dem<vpgl_RSM_camera<double>>)
+    .def("bproj_dem", &wrap_bproj_dem<vpgl_rational_camera<double>>)
+    .def("bproj_dem", &wrap_bproj_dem<vpgl_affine_camera<double>>);
 
   py::module aff_conv_mod = m.def_submodule("affine_camera_convert");
   aff_conv_mod.def("convert", [](vpgl_local_rational_camera<double> const& rcam,
