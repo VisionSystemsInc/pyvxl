@@ -9,6 +9,7 @@
 #include <vpgl/algo/vpgl_backproject_dem.h>
 #include <vpgl/algo/vpgl_camera_convert.h>
 #include <vpgl/algo/vpgl_camera_compute.h>
+#include <vpgl/vpgl_camera.h>
 #include <vpgl/vpgl_rational_camera.h>
 #include <vpgl/vpgl_affine_camera.h>
 #include <vgl/vgl_plane_3d.h>
@@ -42,8 +43,7 @@ vgl_point_3d<double> wrap_bproj_plane(CAM_T const& cam,
 // to a vil_image_resource when the object is passed between python and C++
 // See vil/pyvil.cxx:crop_image_resource
 // Alternatively, take both a vil_image_view and a vpgl_geo_camera
-template<class CAM_T>
-vgl_point_3d<double> wrap_bproj_dem(CAM_T const& cam,
+vgl_point_3d<double> wrap_bproj_dem(vpgl_camera<double> const& cam,
                                     vil_image_resource_sptr const& dem,
                                     vgl_point_2d<double> const& image_point,
                                     double max_z, double min_z,
@@ -52,8 +52,10 @@ vgl_point_3d<double> wrap_bproj_dem(CAM_T const& cam,
 {
   vpgl_backproject_dem reproj(dem, min_z, max_z);
 
+  const vpgl_camera<double>* cam_pointer = &cam;
+
   vgl_point_3d<double> output;
-  bool status = reproj.bproj_dem(cam, image_point, max_z, min_z, initial_guess, output, error_tol);
+  bool status = reproj.bproj_dem(cam_pointer, image_point, max_z, min_z, initial_guess, output, error_tol);
   if (!status) {
     throw std::runtime_error("vpgl_backproject_dem::bproj_dem() returned error");
   }
@@ -64,9 +66,8 @@ void wrap_vpgl_algo(py::module &m)
 {
   py::module bproj_mod = m.def_submodule("backproject");
   bproj_mod
-    .def("bproj_plane", &wrap_bproj_plane<vpgl_rational_camera<double>>)
-    .def("bproj_plane", &wrap_bproj_plane<vpgl_affine_camera<double>>)
-    .def("bproj_dem", &wrap_bproj_dem<vpgl_rational_camera<double>>);
+    .def("bproj_plane", &wrap_bproj_plane<vpgl_camera<double>>)
+    .def("bproj_dem", &wrap_bproj_dem);
 
   py::module aff_conv_mod = m.def_submodule("affine_camera_convert");
   aff_conv_mod.def("convert", [](vpgl_local_rational_camera<double> const& rcam,
