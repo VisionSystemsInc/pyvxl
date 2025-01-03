@@ -73,6 +73,41 @@ void wrap_bpgl_rectify_image_pair(py::module &m, const char* name)
   ;
 }
 
+
+template <class T>
+void wrap_bpgl_heightmap(py::module &m, const char* name)
+{
+  py::class_<bpgl_heightmap<T> > (m, name)
+     .def(py::init<>())
+     .def(py::init<vgl_box_3d<T>, T>())
+
+     .def_property("ground_sample_distance",
+                   overload_cast_<>()(&bpgl_heightmap<T>::ground_sample_distance, py::const_),
+                   overload_cast_<T>()(&bpgl_heightmap<T>::ground_sample_distance))
+     .def_property("heightmap_bounds",
+                   overload_cast_<>()(&bpgl_heightmap<T>::heightmap_bounds, py::const_),
+                   overload_cast_<vgl_box_3d<T> >()(&bpgl_heightmap<T>::heightmap_bounds))
+     .def_property("neighbor_dist_factor",
+                   overload_cast_<>()(&bpgl_heightmap<T>::neighbor_dist_factor, py::const_),
+                   overload_cast_<T>()(&bpgl_heightmap<T>::neighbor_dist_factor))
+     .def_property("min_neighbors",
+                   overload_cast_<>()(&bpgl_heightmap<T>::min_neighbors, py::const_),
+                   overload_cast_<unsigned>()(&bpgl_heightmap<T>::min_neighbors))
+     .def_property("max_neighbors",
+                   overload_cast_<>()(&bpgl_heightmap<T>::max_neighbors, py::const_),
+                   overload_cast_<unsigned>()(&bpgl_heightmap<T>::max_neighbors))
+
+     .def("heightmap_from_pointset",
+          [](bpgl_heightmap<T>& self, const vgl_pointset_3d<T>& ptset) {
+               vil_image_view<T> heightmap_output;
+               self.heightmap_from_pointset(ptset, heightmap_output);
+               return heightmap_output;
+          },
+          py::arg("ptset"))
+     ;
+}
+
+
 void wrap_bpgl_algo(py::module &m)
 {
   m
@@ -86,6 +121,8 @@ void wrap_bpgl_algo(py::module &m)
   wrap_bpgl_rectify_image_pair<vpgl_affine_camera<double> >(m, "rectify_image_pair_affine");
   wrap_bpgl_rectify_image_pair<vpgl_perspective_camera<double> >(m, "rectify_image_pair_perspective");
 
+  wrap_bpgl_heightmap<float>(m, "heightmap_float");
+  wrap_bpgl_heightmap<double>(m, "heightmap_double");
 
   // ----- bpgl_surface_type -----
 
