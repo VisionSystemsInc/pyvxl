@@ -260,6 +260,8 @@ void wrap_vgl_point_2d(py::module &m, std::string const& class_name)
     .def_property_readonly("y", (T (vgl_point_2d<T>::*)() const) &vgl_point_2d<T>::y)
     .def("tolist", [] (vgl_point_2d<T> self)
                    { return std::vector<T>{self.x(), self.y()}; })
+    .def(py::self + vgl_vector_2d<T>())
+    .def(py::self - vgl_vector_2d<T>())
     .def(py::self - py::self)
     .def(py::self == py::self)
     ;
