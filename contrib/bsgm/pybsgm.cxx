@@ -127,6 +127,11 @@ void wrap_bsgm_prob_pairwise_dsm(py::module &m, std::string const& class_name)
     .def("rectified_cam1", &BSGM_T::rectified_cam1,
          "rectified camera 1")
 
+     .def("rectified_bview0_with_sun_dir", &BSGM_T::rectified_bview0_with_sun_dir,
+          "rectified image view 0 with sun direction overlay")
+     .def("rectified_bview1_with_sun_dir", &BSGM_T::rectified_bview1_with_sun_dir,
+          "rectified image view 1 with sun direction overlay")
+
     .def("invalid_map_fwd", &BSGM_T::invalid_map_fwd,
          "invalid map for forward disparity")
     .def("invalid_map_rev", &BSGM_T::invalid_map_rev,
