@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)  # same as VXL
 project(pyvxl-circleci)
 
+# dependencies
 find_package(PythonLibs 3 REQUIRED)
 
+find_package(pybind11 REQUIRED)
+
+# source/binary directories
 set(VXL_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/vxl)
 set(VXL_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/vxl)
-
-set(PYBIND11_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/pybind11)
-set(PYBIND11_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/pybind11)
 
 set(PYVXL_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/pyvxl)
 set(PYVXL_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/pyvxl)
@@ -33,9 +34,6 @@ include_directories(${VXL_VCL_INCLUDE_DIR})
 include_directories(${VXL_DIR}/contrib/brl/bbas)
 include_directories(${VXL_DIR}/contrib/brl/bseg)
 include_directories(${VXL_DIR}/contrib/gel)
-
-# add pybind11
-add_subdirectory(${PYBIND11_SOURCE_DIR} ${PYBIND11_BINARY_DIR})
 
 # add pyvxl
 add_subdirectory(${PYVXL_SOURCE_DIR} ${PYVXL_BINARY_DIR})
