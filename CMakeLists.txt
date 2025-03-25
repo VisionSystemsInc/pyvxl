@@ -22,7 +22,7 @@ function(pyvxl_add_module vxl_name)
     # install directory
     string(REPLACE
            "${PYVXL_PROJECT_SOURCE_DIR}" # string to be replaced
-           "${PYTHON_SITE}/vxl"          # replace with this
+           "${PYVXL_INSTALL_DIR}"          # replace with this
            install_dir                   # output
            "${CMAKE_CURRENT_SOURCE_DIR}" # input
            )
@@ -110,14 +110,25 @@ include_directories(${PYTHON_INCLUDE_PATH})
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-# Find the python install directory
+# python site-packages directory reported by ``sysconfig.get_path('purelib')``
+# https://stackoverflow.com/a/46071447
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
-    from distutils import sysconfig as sc
-    print(sc.get_python_lib(plat_specific=True))"
+    import sysconfig
+    print(sysconfig.get_path('purelib'))"
   OUTPUT_VARIABLE PYTHON_SITE_DEFAULT
   OUTPUT_STRIP_TRAILING_WHITESPACE)
-set(PYTHON_SITE ${PYTHON_SITE_DEFAULT} CACHE STRING "Python installation directory")
+
+# python site-packages cache variable
+set(PYTHON_SITE "${PYTHON_SITE_DEFAULT}" CACHE STRING "Python site-packages directory")
+
+if ("${PYTHON_SITE}" STREQUAL "${PYTHON_SITE_DEFAULT}")
+  set(PYTHON_SITE_INITIALIZED_TO_DEFAULT 1)
+endif()
+
+# installation directory as sub-dir of PYTHON_SITE
+set(PYVXL_INSTALL_DIR "${PYTHON_SITE}/vxl")
+message(STATUS "pyvxl will be installed to ${PYVXL_INSTALL_DIR}")
 
 # add main module
 pyvxl_add_module(vxl)
