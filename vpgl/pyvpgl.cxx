@@ -888,6 +888,159 @@ void wrap_vpgl_affine_tri_focal_tensor(py::module &m, const char* name)
     ;
 }
 
+  std::tuple<py::array, py::array, py::array> lvcs_global_to_local_buffer(
+    vpgl_lvcs & lvcs, py::buffer lon, py::buffer lat, py::buffer el,
+    vpgl_lvcs::cs_names const ics, vpgl_lvcs::AngUnits const iau,
+    vpgl_lvcs::LenUnits const ilu
+  )
+{
+    py::buffer_info lon_info = lon.request();
+    auto format = lon_info.format;
+    if (format != py::format_descriptor<double>::value) {
+      throw std::runtime_error("Incompatible scalar type; Expecting double");
+    }
+    auto ndim = lon_info.ndim;
+    auto shape = lon_info.shape;
+    auto strides = lon_info.strides;
+
+    auto lat_info = lat.request();
+    auto el_info = el.request();
+    if ((lat_info.format != format) || (el_info.format != format)) {
+      throw std::runtime_error("Arguments must have same datatype");
+    }
+    if ((lat_info.ndim != ndim) || (el_info.ndim != ndim)) {
+      throw std::runtime_error("Arguments must have same number of dimensions");
+    }
+    if ((lat_info.shape != shape) || (el_info.shape != shape)) {
+      throw std::runtime_error("Arguments must have same shape");
+    }
+    if ((lat_info.strides != strides) || (el_info.strides != strides)) {
+      // this is required so we can loop through the flattened arrays in sync
+      throw std::runtime_error("Arguments must have same strides");
+    }
+
+    double const *lon_data = static_cast<double const *>(lon_info.ptr);
+    double const *lat_data = static_cast<double const *>(lat_info.ptr);
+    double const *el_data = static_cast<double const *>(el_info.ptr);
+
+    py::array output_x = py::array(py::buffer_info(
+      (void *)nullptr,                      /* Numpy allocates */
+      sizeof(double),                       /* Size of one item */
+      py::format_descriptor<double>::value, /* Buffer format */
+      ndim,                                 /* Number of dimensions */
+      shape, /* Number of elements in each dimension */
+      lon_info.strides));
+    py::array output_y = py::array(py::buffer_info(
+      (void *)nullptr,                      /* Numpy allocates */
+      sizeof(double),                       /* Size of one item */
+      py::format_descriptor<double>::value, /* Buffer format */
+      ndim,                                 /* Number of dimensions */
+      shape, /* Number of elements in each dimension */
+      lon_info.strides));
+    py::array output_z = py::array(py::buffer_info(
+      (void *)nullptr,                      /* Numpy allocates */
+      sizeof(double),                       /* Size of one item */
+      py::format_descriptor<double>::value, /* Buffer format */
+      ndim,                                 /* Number of dimensions */
+      shape, /* Number of elements in each dimension */
+      lon_info.strides));
+    py::buffer_info x_info = output_x.request();
+    py::buffer_info y_info = output_y.request();
+    py::buffer_info z_info = output_z.request();
+    double *x_data = static_cast<double *>(x_info.ptr);
+    double *y_data = static_cast<double *>(y_info.ptr);
+    double *z_data = static_cast<double *>(z_info.ptr);
+
+    for (py::ssize_t i = 0; i < lat_info.size; ++i) {
+      const double lon_val = *(lon_data + i);
+      const double lat_val = *(lat_data + i);
+      const double el_val = *(el_data + i);
+      double x, y, z;
+      lvcs.global_to_local(lon_val, lat_val, el_val, ics, x, y, z, iau, ilu);
+      *(x_data + i) = x;
+      *(y_data + i) = y;
+      *(z_data + i) = z;
+    }
+    return std::make_tuple(output_x, output_y, output_z);
+}
+
+std::tuple<py::array, py::array, py::array> lvcs_local_to_global_buffer(
+    vpgl_lvcs & lvcs, py::buffer x, py::buffer y, py::buffer z,
+    vpgl_lvcs::cs_names const ocs, vpgl_lvcs::AngUnits const oau,
+    vpgl_lvcs::LenUnits const olu
+  )
+{
+    py::buffer_info x_info = x.request();
+    auto format = x_info.format;
+    if (format != py::format_descriptor<double>::value) {
+      throw std::runtime_error("Incompatible scalar type; Expecting double");
+    }
+    auto ndim = x_info.ndim;
+    auto shape = x_info.shape;
+    auto strides = x_info.strides;
+
+    auto y_info = y.request();
+    auto z_info = z.request();
+    if ((y_info.format != format) || (z_info.format != format)) {
+      throw std::runtime_error("Arguments must have same datatype");
+    }
+    if ((y_info.ndim != ndim) || (z_info.ndim != ndim)) {
+      throw std::runtime_error("Arguments must have same number of dimensions");
+    }
+    if ((y_info.shape != shape) || (z_info.shape != shape)) {
+      throw std::runtime_error("Arguments must have same shape");
+    }
+    if ((y_info.strides != strides) || (z_info.strides != strides)) {
+      // this is required so we can loop through the fytened arrays in sync
+      throw std::runtime_error("Arguments must have same strides");
+    }
+
+    double const *x_data = static_cast<double const *>(x_info.ptr);
+    double const *y_data = static_cast<double const *>(y_info.ptr);
+    double const *z_data = static_cast<double const *>(z_info.ptr);
+
+    py::array output_lon = py::array(py::buffer_info(
+      (void *)nullptr,                      /* Numpy allocates */
+      sizeof(double),                       /* Size of one item */
+      py::format_descriptor<double>::value, /* Buffer format */
+      ndim,                                 /* Number of dimensions */
+      shape, /* Number of elements in each dimension */
+      strides));
+    py::array output_lat = py::array(py::buffer_info(
+      (void *)nullptr,                      /* Numpy allocates */
+      sizeof(double),                       /* Size of one item */
+      py::format_descriptor<double>::value, /* Buffer format */
+      ndim,                                 /* Number of dimensions */
+      shape, /* Number of elements in each dimension */
+      strides));
+    py::array output_el = py::array(py::buffer_info(
+      (void *)nullptr,                      /* Numpy allocates */
+      sizeof(double),                       /* Size of one item */
+      py::format_descriptor<double>::value, /* Buffer format */
+      ndim,                                 /* Number of dimensions */
+      shape, /* Number of elements in each dimension */
+      strides));
+    py::buffer_info lon_info = output_lon.request();
+    py::buffer_info lat_info = output_lat.request();
+    py::buffer_info el_info = output_el.request();
+    double *lon_data = static_cast<double *>(lon_info.ptr);
+    double *lat_data = static_cast<double *>(lat_info.ptr);
+    double *el_data = static_cast<double *>(el_info.ptr);
+
+    for (py::ssize_t i = 0; i < lon_info.size; ++i) {
+      const double xval = *(x_data + i);
+      const double yval = *(y_data + i);
+      const double zval = *(z_data + i);
+      double lon, lat, el;
+      lvcs.local_to_global(xval, yval, zval, ocs, lon, lat, el, oau, olu);
+      *(lon_data + i) = lon;
+      *(lat_data + i) = lat;
+      *(el_data + i) = el;
+    }
+    return std::make_tuple(output_lon, output_lat, output_el);
+}
+
+
 
 void wrap_vpgl(py::module &m)
 {
@@ -1334,6 +1487,11 @@ void wrap_vpgl(py::module &m)
         py::arg("output_cs_name"),py::arg("output_ang_unit")=vpgl_lvcs::DEG,
         py::arg("output_len_unit")=vpgl_lvcs::METERS
      )
+     .def("local_to_global", lvcs_local_to_global_buffer,
+        py::arg("local_x"),py::arg("local_y"),py::arg("local_z"),
+        py::arg("output_cs_name"),py::arg("output_ang_unit")=vpgl_lvcs::DEG,
+        py::arg("output_len_unit")=vpgl_lvcs::METERS
+     )
 
     // global->local coordinate transform
     .def("global_to_local",
@@ -1347,8 +1505,13 @@ void wrap_vpgl(py::module &m)
           },
         py::arg("global_longitude"),py::arg("global_latitude"),py::arg("global_elevation"),
         py::arg("input_cs_name"),py::arg("input_ang_unit")=vpgl_lvcs::DEG,
-        py::arg("input_len_unit")=vpgl_lvcs::METERS)
-
+        py::arg("input_len_unit")=vpgl_lvcs::METERS
+     )
+     .def("global_to_local", lvcs_global_to_local_buffer,
+          py::arg("global_longitude"),py::arg("global_latitude"),py::arg("global_elevation"),
+          py::arg("input_cs_name"),py::arg("input_ang_unit")=vpgl_lvcs::DEG,
+          py::arg("input_len_unit")=vpgl_lvcs::METERS
+     )
     ;
 
   m.def("create_lvcs",
