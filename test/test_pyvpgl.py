@@ -423,6 +423,7 @@ class VpglLvcs(unittest.TestCase):
     ]
     super().__init__(*args, **kwargs)
 
+  @unittest.skipUnless(np, "Numpy not found")
   def test_roundtrip(self):
     for lvcs, cs_name in self.lvcs_cs_combos:
       # test a single point
@@ -431,6 +432,7 @@ class VpglLvcs(unittest.TestCase):
       point_local_rt = lvcs.global_to_local(*point_global, cs_name)
       np.testing.assert_allclose(point_local, point_local_rt, atol=0.01, err_msg=f"Round trip failed for {lvcs} with {cs_name}")
 
+  @unittest.skipUnless(np, "Numpy not found")
   def test_vectorized_roundtrip(self):
     for lvcs, cs_name in self.lvcs_cs_combos:
       # test an array of points
@@ -445,6 +447,7 @@ class VpglLvcs(unittest.TestCase):
       np.testing.assert_allclose(points_local, points_local_rt, atol=0.01, err_msg=f"Round trip failed for vectorized {lvcs} with {cs_name}.")
 
 
+  @unittest.skipUnless(np, "Numpy not found")
   def test_vectorized_local_to_global(self):
     """
     Ensure vectorized versions of local_to_global() has same behavior as non-vectorized version.
@@ -478,6 +481,7 @@ class VpglLvcs(unittest.TestCase):
           err_msg=f"vectorized and looped result mismatch for {lvcs} with {cs_name}, dim {d}"
         )
 
+  @unittest.skipUnless(np, "Numpy not found")
   def test_vectorized_global_to_local(self):
     """
     Ensure vectorized versions of global_to_local() has same behavior as non-vectorized version.
