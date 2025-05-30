@@ -459,6 +459,10 @@ class VpglLvcs(unittest.TestCase):
       point_range,
       indexing="xy"
     )
+    # slice and dice the inputs to test non-contiguous arrays w/differing strides
+    X = X[0:5, 5:10, ::2]
+    Y = Y[5:10, ::2, 0:5]
+    Z = Z[::2, 0:5, 5:10]
     for lvcs, cs_name in self.lvcs_cs_combos:
       loop_results = ([], [], [])
       for x, y, z in zip(X.flat, Y.flat, Z.flat):
@@ -497,6 +501,10 @@ class VpglLvcs(unittest.TestCase):
     for lvcs, cs_name in self.lvcs_cs_combos:
       # transform local grid of points to global coordinates for input
       GX, GY, GZ = lvcs.local_to_global(X, Y, Z, cs_name)
+      # slice and dice the inputs to test non-contiguous arrays w/differing strides
+      GX = GX[0:5, 5:10, ::2]
+      GY = GY[5:10, ::2, 0:5]
+      GZ = GZ[::2, 0:5, 5:10]
       loop_results = ([], [], [])
       for gx, gy, gz in zip(GX.flat, GY.flat, GZ.flat):
         x, y, z = lvcs.global_to_local(gx, gy, gz, cs_name)
