@@ -285,8 +285,8 @@ def lvcs_global_to_local(self, global_longitude, global_latitude, global_elevati
   global_longitude : double or array_like
     longitude or easting in global coordinate system 
 
-  global_lattitude: double or array_like
-    lattitude or northing in global coordinate system
+  global_latitude: double or array_like
+    latitude or northing in global coordinate system
 
   global_elevation: double or array_like
     elevation in global coordinate system
@@ -304,7 +304,6 @@ def lvcs_global_to_local(self, global_longitude, global_latitude, global_elevati
   -------
   tuple containing (x,y,z) local coordinates
   """
-  from ._vpgl import lvcs
   result = self._global_to_local(global_longitude, global_latitude, global_elevation, input_cs_name, input_ang_unit, input_len_unit)
   if np and isinstance(result, np.ndarray):
     # vectorized version was called. unpack results into a tuple of lon, lat, el
@@ -344,7 +343,6 @@ def lvcs_local_to_global(self, local_x, local_y, local_z, output_cs_name, output
   -------
   tuple containing (lon, lat, el) or (easting, northing, el) global coordinates
   """
-  from ._vpgl import lvcs
   result = self._local_to_global(local_x, local_y, local_z, output_cs_name, output_ang_unit, output_len_unit)
   if np and isinstance(result, np.ndarray):
     # vectorized version was called. unpack results into a tuple of lon, lat, el
