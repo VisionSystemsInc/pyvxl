@@ -889,9 +889,7 @@ void wrap_vpgl_affine_tri_focal_tensor(py::module &m, const char* name)
 }
 
 struct double3 {
-  double v0;
-  double v1;
-  double v2;
+  std::array<double, 3> value;
 };
 
 double3 lvcs_global_to_local_wrapper(
@@ -901,7 +899,7 @@ double3 lvcs_global_to_local_wrapper(
   )
 {
     double3 result;
-    lvcs.global_to_local(lon, lat, el, ics, result.v0, result.v1, result.v2, iau, ilu);
+    lvcs.global_to_local(lon, lat, el, ics, result.value[0], result.value[1], result.value[2], iau, ilu);
     return result;
 }
 
@@ -912,7 +910,7 @@ double3 lvcs_local_to_global_wrapper(
   )
 {
     double3 result;
-    lvcs.local_to_global(x, y, z, ocs, result.v0, result.v1, result.v2, oau, olu);
+    lvcs.local_to_global(x, y, z, ocs, result.value[0], result.value[1], result.value[2], oau, olu);
     return result;
 }
 
@@ -1637,5 +1635,5 @@ PYBIND11_MODULE(_vpgl, m)
 
   pyvxl::vpgl::wrap_vpgl(m);
   // required for return types of lvcs _global_to_local and _local_to_global
-  PYBIND11_NUMPY_DTYPE(pyvxl::vpgl::double3, v0, v1, v2);
+  PYBIND11_NUMPY_DTYPE(pyvxl::vpgl::double3, value);
 }
