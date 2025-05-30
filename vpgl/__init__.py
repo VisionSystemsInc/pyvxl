@@ -1,5 +1,9 @@
 from ._vpgl import *
 from vxl import vgl, vnl
+try:
+  import numpy as np
+except:
+  np = None
 
 
 def load_rational_camera(cam_fname):
@@ -270,3 +274,81 @@ def _rsm_metadata_validate_dict(dct):
 
 # add ``as_dict_validated`` method to rsm_metadata object
 rsm_metadata.as_dict_validated = lambda x: _rsm_metadata_validate_dict(x.as_dict())
+
+
+def lvcs_global_to_local(self, global_longitude, global_latitude, global_elevation, input_cs_name, input_ang_unit=lvcs.AngUnits.DEG, input_len_unit=lvcs.LenUnits.METERS):
+  """
+  Convert global (lon, lat, el) or (easting, northing, el) coordinates to local (x, y, z) coordinates.
+
+  Parameters
+  ----------
+  global_longitude : double or array_like
+    longitude or easting in global coordinate system 
+
+  global_latitude: double or array_like
+    latitude or northing in global coordinate system
+
+  global_elevation: double or array_like
+    elevation in global coordinate system
+
+  input_cs_name: vxl.vpgl.cs_names
+    global coordinate system of input coordinates
+
+  input_ang_unit: vxl.vpgl.AngUnits, optional
+    angular units (DEG or RADIANS) of input coordinates (geodetic)
+
+  input_len_unit: vxl.vpgl.LenUnits, optional
+    metric units (FEET or METERS) of input coordinates (utm)
+
+  Returns
+  -------
+  tuple containing (x,y,z) local coordinates
+  """
+  result = self._global_to_local(global_longitude, global_latitude, global_elevation, input_cs_name, input_ang_unit, input_len_unit)
+  if np and isinstance(result, np.ndarray):
+    # vectorized version was called. unpack results into a tuple of lon, lat, el
+    result = np.frombuffer(result.tobytes(), result.dtype[0]).reshape(result.shape+(3,))
+    # seperate into tuple of arrays for API consistency
+    result = (result[..., 0], result[..., 1], result[..., 2])
+  return result
+
+lvcs.global_to_local = lvcs_global_to_local
+
+
+def lvcs_local_to_global(self, local_x, local_y, local_z, output_cs_name, output_ang_unit=lvcs.AngUnits.DEG, output_len_unit=lvcs.LenUnits.METERS):
+  """
+  Convert local (x, y, z) coordinates to global (lon, lat, el) or (easting, northing, el) coordinates.
+
+  Parameters
+  ----------
+  local_x : double or array_like
+    x coordinate in the local coordinate system
+
+  local_y: double or array_like
+    y coordinate in the local coordinate system
+
+  local_z: double or array_like
+    z coordinate in the local coordinate system
+
+  output_cs_name: vxl.vpgl.cs_names
+    global coordinate system of output coordinates
+
+  output_ang_unit: vxl.vpgl.AngUnits, optional
+    angular units (DEG or RADIANS) of output global coordinates (geodetic)
+
+  output_len_unit: vxl.vpgl.LenUnits, optional
+    metric units (FEET or METERS) of output global coordinates (utm)
+
+  Returns
+  -------
+  tuple containing (lon, lat, el) or (easting, northing, el) global coordinates
+  """
+  result = self._local_to_global(local_x, local_y, local_z, output_cs_name, output_ang_unit, output_len_unit)
+  if np and isinstance(result, np.ndarray):
+    # vectorized version was called. unpack results into a tuple of lon, lat, el
+    result = np.frombuffer(result.tobytes(), result.dtype[0]).reshape(result.shape+(3,))
+    # seperate into tuple of arrays for API consistency
+    result = (result[..., 0], result[..., 1], result[..., 2])
+  return result
+
+lvcs.local_to_global = lvcs_local_to_global

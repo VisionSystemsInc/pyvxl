@@ -406,6 +406,127 @@ class VpglRationalCamera(VpglCameraBase, unittest.TestCase):
 
 
 # ----------
+# LVCS TESTS
+# ----------
+class VpglLvcs(unittest.TestCase):
+  """
+  Ensure local->global->local results in no change to point.
+  """
+
+  def __init__(self, *args, **kwargs):
+    self.origin = (-71.4193,  41.8286, 14.0)
+    # test both WGS84 and UTM variants
+    self.lvcs_cs_combos = [
+      (vpgl.lvcs(*self.origin, vpgl.lvcs.cs_names.wgs84), vpgl.lvcs.cs_names.wgs84),
+      (vpgl.lvcs(*self.origin, vpgl.lvcs.cs_names.utm), vpgl.lvcs.cs_names.utm),
+      (vpgl.lvcs(*self.origin, vpgl.lvcs.cs_names.utm), vpgl.lvcs.cs_names.wgs84),
+    ]
+    super().__init__(*args, **kwargs)
+
+  @unittest.skipUnless(np, "Numpy not found")
+  def test_roundtrip(self):
+    for lvcs, cs_name in self.lvcs_cs_combos:
+      # test a single point
+      point_local = (100.0, -100.0, 25.0)
+      point_global = lvcs.local_to_global(*point_local, cs_name)
+      point_local_rt = lvcs.global_to_local(*point_global, cs_name)
+      np.testing.assert_allclose(point_local, point_local_rt, atol=0.01, err_msg=f"Round trip failed for {lvcs} with {cs_name}")
+
+  @unittest.skipUnless(np, "Numpy not found")
+  def test_vectorized_roundtrip(self):
+    for lvcs, cs_name in self.lvcs_cs_combos:
+      # test an array of points
+      num_points = 10
+      points_local = (
+        np.linspace(-100, 100, num_points),
+        np.linspace(-50, 50, num_points),
+        np.linspace(-5, 5, num_points)
+      )
+      points_global = lvcs.local_to_global(points_local[0], points_local[1], points_local[2], cs_name)
+      points_local_rt = lvcs.global_to_local(points_global[0], points_global[1], points_global[2], cs_name)
+      np.testing.assert_allclose(points_local, points_local_rt, atol=0.01, err_msg=f"Round trip failed for vectorized {lvcs} with {cs_name}.")
+
+
+  @unittest.skipUnless(np, "Numpy not found")
+  def test_vectorized_local_to_global(self):
+    """
+    Ensure vectorized versions of local_to_global() has same behavior as non-vectorized version.
+    """
+    point_range = np.linspace(-500, 500, 10)
+    X, Y, Z = np.meshgrid(
+      point_range,
+      point_range,
+      point_range,
+      indexing="xy"
+    )
+    # slice and dice the inputs to test non-contiguous arrays w/differing strides
+    X = X[0:5, 5:10, ::2]
+    Y = Y[5:10, ::2, 0:5]
+    Z = Z[::2, 0:5, 5:10]
+    for lvcs, cs_name in self.lvcs_cs_combos:
+      loop_results = ([], [], [])
+      for x, y, z in zip(X.flat, Y.flat, Z.flat):
+        lon, lat, el = lvcs.local_to_global(x, y, z, cs_name)
+        loop_results[0].append(lon)
+        loop_results[1].append(lat)
+        loop_results[2].append(el)
+
+      vectorized_results = lvcs.local_to_global(X, Y, Z, cs_name)
+      # vectorized call should return (lon, lat, el) or (easting, northing, el)
+      self.assertEqual(len(vectorized_results), 3)
+      # vectorized result should be same shape as inputs
+      for vr in vectorized_results:
+        self.assertEqual(vr.shape, X.shape)
+      # vectorized results should equal looped results
+      for d in range(3):
+        np.testing.assert_allclose(
+          loop_results[d],
+          vectorized_results[d].flat,
+          err_msg=f"vectorized and looped result mismatch for {lvcs} with {cs_name}, dim {d}"
+        )
+
+  @unittest.skipUnless(np, "Numpy not found")
+  def test_vectorized_global_to_local(self):
+    """
+    Ensure vectorized versions of global_to_local() has same behavior as non-vectorized version.
+    """
+    # start with a grid of local points, and transform to global
+    point_range = np.linspace(-500, 500, 10)
+    X, Y, Z = np.meshgrid(
+      point_range,
+      point_range,
+      point_range,
+      indexing="xy"
+    )
+    for lvcs, cs_name in self.lvcs_cs_combos:
+      # transform local grid of points to global coordinates for input
+      GX, GY, GZ = lvcs.local_to_global(X, Y, Z, cs_name)
+      # slice and dice the inputs to test non-contiguous arrays w/differing strides
+      GX = GX[0:5, 5:10, ::2]
+      GY = GY[5:10, ::2, 0:5]
+      GZ = GZ[::2, 0:5, 5:10]
+      loop_results = ([], [], [])
+      for gx, gy, gz in zip(GX.flat, GY.flat, GZ.flat):
+        x, y, z = lvcs.global_to_local(gx, gy, gz, cs_name)
+        loop_results[0].append(x)
+        loop_results[1].append(y)
+        loop_results[2].append(z)
+
+      vectorized_results = lvcs.global_to_local(GX, GY, GZ, cs_name)
+      # vectorized call should return X,Y,Z tuple
+      self.assertEqual(len(vectorized_results), 3)
+      # vectorized result should be same shape as inputs
+      for vr in vectorized_results:
+        self.assertEqual(vr.shape, GX.shape)
+      # vectorized results should equal looped results
+      for d in range(3):
+        np.testing.assert_allclose(
+          loop_results[d],
+          vectorized_results[d].flat,
+          err_msg=f"vectorized and looped result mismatch for {lvcs} with {cs_name}, dim {d}"
+        )
+
+# ----------
 # OTHER TESTS
 # ----------
 

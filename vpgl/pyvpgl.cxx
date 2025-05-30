@@ -888,6 +888,31 @@ void wrap_vpgl_affine_tri_focal_tensor(py::module &m, const char* name)
     ;
 }
 
+struct double3 {
+  std::array<double, 3> value;
+};
+
+double3 lvcs_global_to_local_wrapper(
+    vpgl_lvcs & lvcs, double lon, double lat, double el,
+    vpgl_lvcs::cs_names const ics, vpgl_lvcs::AngUnits const iau,
+    vpgl_lvcs::LenUnits const ilu
+  )
+{
+    double3 result;
+    lvcs.global_to_local(lon, lat, el, ics, result.value[0], result.value[1], result.value[2], iau, ilu);
+    return result;
+}
+
+double3 lvcs_local_to_global_wrapper(
+    vpgl_lvcs & lvcs, double x, double y, double z,
+    vpgl_lvcs::cs_names const ocs, vpgl_lvcs::AngUnits const oau,
+    vpgl_lvcs::LenUnits const olu
+  )
+{
+    double3 result;
+    lvcs.local_to_global(x, y, z, ocs, result.value[0], result.value[1], result.value[2], oau, olu);
+    return result;
+}
 
 void wrap_vpgl(py::module &m)
 {
@@ -1321,7 +1346,7 @@ void wrap_vpgl(py::module &m)
       )
 
     // local->global coordinate transform
-    .def("local_to_global",
+    .def("_local_to_global",
         [](vpgl_lvcs &L, double const lx, double const ly, double const lz,
            vpgl_lvcs::cs_names const ocs, vpgl_lvcs::AngUnits const oau,
            vpgl_lvcs::LenUnits const olu)
@@ -1334,9 +1359,14 @@ void wrap_vpgl(py::module &m)
         py::arg("output_cs_name"),py::arg("output_ang_unit")=vpgl_lvcs::DEG,
         py::arg("output_len_unit")=vpgl_lvcs::METERS
      )
+     .def("_local_to_global", py::vectorize(lvcs_local_to_global_wrapper),
+        py::arg("local_x"),py::arg("local_y"),py::arg("local_z"),
+        py::arg("output_cs_name"),py::arg("output_ang_unit")=vpgl_lvcs::DEG,
+        py::arg("output_len_unit")=vpgl_lvcs::METERS
+     )
 
     // global->local coordinate transform
-    .def("global_to_local",
+    .def("_global_to_local",
         [](vpgl_lvcs &L, const double glon, const double glat, const double gz,
            vpgl_lvcs::cs_names const ics, vpgl_lvcs::AngUnits const iau,
            vpgl_lvcs::LenUnits const ilu)
@@ -1347,8 +1377,13 @@ void wrap_vpgl(py::module &m)
           },
         py::arg("global_longitude"),py::arg("global_latitude"),py::arg("global_elevation"),
         py::arg("input_cs_name"),py::arg("input_ang_unit")=vpgl_lvcs::DEG,
-        py::arg("input_len_unit")=vpgl_lvcs::METERS)
-
+        py::arg("input_len_unit")=vpgl_lvcs::METERS
+     )
+     .def("_global_to_local", py::vectorize(lvcs_global_to_local_wrapper),
+          py::arg("global_longitude"),py::arg("global_latitude"),py::arg("global_elevation"),
+          py::arg("input_cs_name"),py::arg("input_ang_unit")=vpgl_lvcs::DEG,
+          py::arg("input_len_unit")=vpgl_lvcs::METERS
+     )
     ;
 
   m.def("create_lvcs",
@@ -1599,4 +1634,6 @@ PYBIND11_MODULE(_vpgl, m)
   m.doc() =  "Python bindings for the VPGL computer vision libraries";
 
   pyvxl::vpgl::wrap_vpgl(m);
+  // required for return types of lvcs _global_to_local and _local_to_global
+  PYBIND11_NUMPY_DTYPE(pyvxl::vpgl::double3, value);
 }
