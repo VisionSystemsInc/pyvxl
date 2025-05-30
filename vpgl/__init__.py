@@ -1,5 +1,6 @@
 from ._vpgl import *
 from vxl import vgl, vnl
+import numpy as np
 
 
 def load_rational_camera(cam_fname):
@@ -270,3 +271,29 @@ def _rsm_metadata_validate_dict(dct):
 
 # add ``as_dict_validated`` method to rsm_metadata object
 rsm_metadata.as_dict_validated = lambda x: _rsm_metadata_validate_dict(x.as_dict())
+
+
+def lvcs_global_to_local(self, global_longitude, global_latitude, global_elevation, input_cs_name, input_ang_unit=lvcs.AngUnits.DEG, input_len_unit=lvcs.LenUnits.METERS):
+  from ._vpgl import lvcs
+  result = self._global_to_local(global_longitude, global_latitude, global_elevation, input_cs_name, input_ang_unit, input_len_unit)
+  if isinstance(result, np.ndarray):
+    # vectorized version was called. unpack results into a tuple of lon, lat, el
+    result = np.frombuffer(result.tobytes(), result.dtype[0]).reshape(result.shape+(3,))
+    # seperate into tuple of arrays for API consistency
+    result = (result[..., 0], result[..., 1], result[..., 2])
+  return result
+
+lvcs.global_to_local = lvcs_global_to_local
+
+
+def lvcs_local_to_global(self, local_x, local_y, local_z, output_cs_name, output_ang_unit=lvcs.AngUnits.DEG, output_len_unit=lvcs.LenUnits.METERS):
+  from ._vpgl import lvcs
+  result = self._local_to_global(local_x, local_y, local_z, output_cs_name, output_ang_unit, output_len_unit)
+  if isinstance(result, np.ndarray):
+    # vectorized version was called. unpack results into a tuple of lon, lat, el
+    result = np.frombuffer(result.tobytes(), result.dtype[0]).reshape(result.shape+(3,))
+    # seperate into tuple of arrays for API consistency
+    result = (result[..., 0], result[..., 1], result[..., 2])
+  return result
+
+lvcs.local_to_global = lvcs_local_to_global

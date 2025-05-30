@@ -888,84 +888,32 @@ void wrap_vpgl_affine_tri_focal_tensor(py::module &m, const char* name)
     ;
 }
 
-std::tuple<py::array_t<double>, py::array_t<double>, py::array_t<double>> lvcs_global_to_local_array(
-    vpgl_lvcs & lvcs, py::array_t<double> lon, py::array_t<double> lat, py::array_t<double> el,
+struct double3 {
+  double v0;
+  double v1;
+  double v2;
+};
+
+double3 lvcs_global_to_local_wrapper(
+    vpgl_lvcs & lvcs, double lon, double lat, double el,
     vpgl_lvcs::cs_names const ics, vpgl_lvcs::AngUnits const iau,
     vpgl_lvcs::LenUnits const ilu
   )
 {
-    const py::ssize_t size = lon.size();
-    const py::ssize_t ndim = lon.ndim();
-    const py::ssize_t* shape = lon.shape();
-    const py::ssize_t* strides = lon.strides();
-
-    for(auto i=0; i<ndim; ++i) {
-      if ((shape[i] != lat.shape()[i]) || (shape[i] != el.shape()[i])) {
-        throw std::runtime_error("Arguments must have same shape");
-      }
-      if ((strides[i] != lat.strides()[i]) || (strides[i] != el.strides()[i])) {
-        // Identical strides are required for synced traversal of arrays
-        throw std::runtime_error("Arguments must have same strides");
-      }
-    }
-
-    std::vector<py::ssize_t> shape_v(shape, shape + ndim);
-    py::array_t<double> output_x(shape_v);
-    py::array_t<double> output_y(shape_v);
-    py::array_t<double> output_z(shape_v);
-
-    double const *lon_data = static_cast<double const*>(lon.request().ptr);
-    double const *lat_data = static_cast<double const*>(lat.request().ptr);
-    double const *el_data = static_cast<double const*>(el.request().ptr);
-
-    double *x_data = static_cast<double *>(output_x.request().ptr);
-    double *y_data = static_cast<double *>(output_y.request().ptr);
-    double *z_data = static_cast<double *>(output_z.request().ptr);
-
-    for (py::ssize_t i = 0; i < size; ++i) {
-      lvcs.global_to_local(lon_data[i], lat_data[i], el_data[i], ics, x_data[i], y_data[i], z_data[i], iau, ilu);
-    }
-    return std::make_tuple(output_x, output_y, output_z);
+    double3 result;
+    lvcs.global_to_local(lon, lat, el, ics, result.v0, result.v1, result.v2, iau, ilu);
+    return result;
 }
 
-std::tuple<py::array_t<double>, py::array_t<double>, py::array_t<double>> lvcs_local_to_global_array(
-    vpgl_lvcs & lvcs, py::array_t<double> x, py::array_t<double> y, py::array_t<double> z,
+double3 lvcs_local_to_global_wrapper(
+    vpgl_lvcs & lvcs, double x, double y, double z,
     vpgl_lvcs::cs_names const ocs, vpgl_lvcs::AngUnits const oau,
     vpgl_lvcs::LenUnits const olu
   )
 {
-    const py::ssize_t size = x.size();
-    const py::ssize_t ndim = x.ndim();
-    const py::ssize_t* shape = x.shape();
-    const py::ssize_t* strides = x.strides();
-
-    for(auto i=0; i<ndim; ++i) {
-      if ((shape[i] != y.shape()[i]) || (shape[i] != z.shape()[i])) {
-        throw std::runtime_error("Arguments must have same shape");
-      }
-      if ((strides[i] != y.strides()[i]) || (strides[i] != z.strides()[i])) {
-        // Identical strides are required for synced traversal of arrays
-        throw std::runtime_error("Arguments must have same strides");
-      }
-    }
-
-    std::vector<py::ssize_t> shape_v(shape, shape + ndim);
-    py::array_t<double> output_lon(shape_v);
-    py::array_t<double> output_lat(shape_v);
-    py::array_t<double> output_el(shape_v);
-
-    double const *x_data = static_cast<double const*>(x.request().ptr);
-    double const *y_data = static_cast<double const*>(y.request().ptr);
-    double const *z_data = static_cast<double const*>(z.request().ptr);
-
-    double *lon_data = static_cast<double *>(output_lon.request().ptr);
-    double *lat_data = static_cast<double *>(output_lat.request().ptr);
-    double *el_data = static_cast<double *>(output_el.request().ptr);
-
-    for (py::ssize_t i = 0; i < size; ++i) {
-      lvcs.local_to_global(x_data[i], y_data[i], z_data[i], ocs, lon_data[i], lat_data[i], el_data[i], oau, olu);
-    }
-    return std::make_tuple(output_lon, output_lat, output_el);
+    double3 result;
+    lvcs.local_to_global(x, y, z, ocs, result.v0, result.v1, result.v2, oau, olu);
+    return result;
 }
 
 void wrap_vpgl(py::module &m)
@@ -1400,7 +1348,7 @@ void wrap_vpgl(py::module &m)
       )
 
     // local->global coordinate transform
-    .def("local_to_global",
+    .def("_local_to_global",
         [](vpgl_lvcs &L, double const lx, double const ly, double const lz,
            vpgl_lvcs::cs_names const ocs, vpgl_lvcs::AngUnits const oau,
            vpgl_lvcs::LenUnits const olu)
@@ -1413,14 +1361,14 @@ void wrap_vpgl(py::module &m)
         py::arg("output_cs_name"),py::arg("output_ang_unit")=vpgl_lvcs::DEG,
         py::arg("output_len_unit")=vpgl_lvcs::METERS
      )
-     .def("local_to_global", lvcs_local_to_global_array,
+     .def("_local_to_global", py::vectorize(lvcs_local_to_global_wrapper),
         py::arg("local_x"),py::arg("local_y"),py::arg("local_z"),
         py::arg("output_cs_name"),py::arg("output_ang_unit")=vpgl_lvcs::DEG,
         py::arg("output_len_unit")=vpgl_lvcs::METERS
      )
 
     // global->local coordinate transform
-    .def("global_to_local",
+    .def("_global_to_local",
         [](vpgl_lvcs &L, const double glon, const double glat, const double gz,
            vpgl_lvcs::cs_names const ics, vpgl_lvcs::AngUnits const iau,
            vpgl_lvcs::LenUnits const ilu)
@@ -1433,7 +1381,7 @@ void wrap_vpgl(py::module &m)
         py::arg("input_cs_name"),py::arg("input_ang_unit")=vpgl_lvcs::DEG,
         py::arg("input_len_unit")=vpgl_lvcs::METERS
      )
-     .def("global_to_local", lvcs_global_to_local_array,
+     .def("_global_to_local", py::vectorize(lvcs_global_to_local_wrapper),
           py::arg("global_longitude"),py::arg("global_latitude"),py::arg("global_elevation"),
           py::arg("input_cs_name"),py::arg("input_ang_unit")=vpgl_lvcs::DEG,
           py::arg("input_len_unit")=vpgl_lvcs::METERS
@@ -1688,4 +1636,6 @@ PYBIND11_MODULE(_vpgl, m)
   m.doc() =  "Python bindings for the VPGL computer vision libraries";
 
   pyvxl::vpgl::wrap_vpgl(m);
+  // required for return types of lvcs _global_to_local and _local_to_global
+  PYBIND11_NUMPY_DTYPE(pyvxl::vpgl::double3, v0, v1, v2);
 }
