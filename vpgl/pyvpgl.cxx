@@ -1215,6 +1215,52 @@ void wrap_vpgl(py::module &m)
 
 
   // ===== REPLACEMENT SENSOR MODEL =====
+
+  // enumeration
+  py::enum_<vpgl_ground_domain_id>(m, "ground_domain_id")
+    .value("G", vpgl_ground_domain_id::G)
+    .value("H", vpgl_ground_domain_id::H)
+    .value("R", vpgl_ground_domain_id::R)
+    ;
+
+  // ground domain
+  py::class_<vpgl_ground_domain<double> > (m, "ground_domain")
+    .def(py::init<>())
+    .def(py::init<vpgl_ground_domain_id>(), py::arg("id"))
+    .def(py::init<std::string>(), py::arg("id"))
+
+    .def("__str__", streamToString<vpgl_ground_domain<double> >)
+    .def("__repr__", streamToString<vpgl_ground_domain<double> >)
+    .def("as_dict", struct_to_dict<vpgl_ground_domain<double> >)
+
+    .def_readwrite("id", &vpgl_ground_domain<double>::id_)
+    .def_readwrite("translation", &vpgl_ground_domain<double>::translation_)
+    .def_readwrite("rotation", &vpgl_ground_domain<double>::rotation_)
+
+    .def("reset", &vpgl_ground_domain<double>::reset)
+
+    .def("world_to_ground",
+        [] (const vpgl_ground_domain<double> & self,
+            const double lon, const double lat, const double elev)
+        {
+          double x, y, z;
+          self.world_to_ground(lon, lat, elev, x, y, z);
+          return std::make_tuple(x, y, z);
+        },
+        py::arg("lon"), py::arg("lat"), py::arg("elev"))
+
+    .def("world_to_ground",
+        overload_cast_<vnl_vector_fixed<double, 3> const&>
+                      ()(&vpgl_ground_domain<double>::world_to_ground, py::const_),
+        py::arg("world_point"))
+
+    .def("world_to_ground",
+        overload_cast_<vgl_point_3d<double> const&>
+                      ()(&vpgl_ground_domain<double>::world_to_ground, py::const_),
+        py::arg("world_point"))
+
+    ;
+
   py::class_<vpgl_RSM_camera<double>, vpgl_camera<double> /* <- Parent */ > RSM_camera(m, "RSM_camera");
 
   // function definitions
@@ -1233,6 +1279,9 @@ void wrap_vpgl(py::module &m)
     .def("set_adjustable_parameters", &vpgl_RSM_camera<double>::set_adjustable_parameters, py::arg("adj_u"),py::arg("adj_v"))
     .def("adjustable_parameters", &vpgl_RSM_camera<double>::adjustable_parameters)
     .def("n_regions", &vpgl_RSM_camera<double>::n_regions, " number of polynomial regions")
+    .def_property("ground_domain",
+                  &vpgl_RSM_camera<double>::ground_domain,
+                  &vpgl_RSM_camera<double>::set_ground_domain)
     ;
 
   // =====LOCAL VERTICAL COORDINATE SYSTEM (LVCS)=====
