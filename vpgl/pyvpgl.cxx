@@ -1597,43 +1597,55 @@ void wrap_vpgl(py::module &m)
     .def(py::init<>())
     .def("print", &RSM_ECA_adjustable_parameter_metadata::print, py::arg("os"))
     .def("as_dict", struct_to_dict<RSM_ECA_adjustable_parameter_metadata>)
+
     .def_readonly("defined", &RSM_ECA_adjustable_parameter_metadata::defined_)
     .def_readonly("num_adj_params", &RSM_ECA_adjustable_parameter_metadata::num_adj_params_)
     .def_readonly("num_original_adj_params", &RSM_ECA_adjustable_parameter_metadata::num_original_adj_params_)
     .def_readonly("num_independent_subgroups", &RSM_ECA_adjustable_parameter_metadata::num_independent_subgroups_)
+    .def_readonly("unmodeled_error", &RSM_ECA_adjustable_parameter_metadata::unmodeled_error_)
+
     .def_readonly("translation", &RSM_ECA_adjustable_parameter_metadata::translation_)
     .def_readonly("rotation", &RSM_ECA_adjustable_parameter_metadata::rotation_)
+
     .def_readonly("covar_index", &RSM_ECA_adjustable_parameter_metadata::covar_index_)
+
     .def_readonly("independent_subgroup_covariance", &RSM_ECA_adjustable_parameter_metadata::independent_subgroup_covariance_)
+
     .def_readonly("correlation_flags", &RSM_ECA_adjustable_parameter_metadata::correlation_flags_)
     .def_readonly("correlation_segments", &RSM_ECA_adjustable_parameter_metadata::correlation_segments_)
     .def_readonly("phi", &RSM_ECA_adjustable_parameter_metadata::phi_)
+
+    .def_readonly("unmodeled_row_variance", &RSM_ECA_adjustable_parameter_metadata::unmodeled_row_variance_)
+    .def_readonly("unmodeled_col_variance", &RSM_ECA_adjustable_parameter_metadata::unmodeled_col_variance_)
+    .def_readonly("unmodeled_row_col_variance", &RSM_ECA_adjustable_parameter_metadata::unmodeled_row_col_variance_)
+    .def_readonly("unmodeled_row_correlation", &RSM_ECA_adjustable_parameter_metadata::unmodeled_row_correlation_)
+    .def_readonly("unmodeled_col_correlation", &RSM_ECA_adjustable_parameter_metadata::unmodeled_col_correlation_)
+
     ;
-  
+
   py::class_<RSM_ECB_adjustable_parameter_metadata> (m, "RSM_ECB_adjustable_parameter_metadata")
     .def(py::init<>())
     .def("print", &RSM_ECB_adjustable_parameter_metadata::print, py::arg("os"))
     .def("as_dict", struct_to_dict<RSM_ECB_adjustable_parameter_metadata>)
+
     .def_readonly("defined", &RSM_ECB_adjustable_parameter_metadata::defined_)
+    .def_readonly("unmodeled_error", &RSM_ECB_adjustable_parameter_metadata::unmodeled_error_)
     .def_readonly("num_active_adj_params", &RSM_ECB_adjustable_parameter_metadata::num_active_adj_params_)
     .def_readonly("num_original_adj_params", &RSM_ECB_adjustable_parameter_metadata::num_original_adj_params_)
     .def_readonly("num_independent_subgroups", &RSM_ECB_adjustable_parameter_metadata::num_independent_subgroups_)
-
     .def_readonly("image_adjustable_params", &RSM_ECB_adjustable_parameter_metadata::image_adjustable_params_)
+    .def_readonly("rect_local_coordinate_system", &RSM_ECB_adjustable_parameter_metadata::rect_local_coordinate_system_)
+
     .def_readonly("n_image_adjustable_params", &RSM_ECB_adjustable_parameter_metadata::n_image_adjustable_params_)
     .def_readonly("n_image_row_adjustable_params", &RSM_ECB_adjustable_parameter_metadata::n_image_row_adjustable_params_)
     .def_readonly("n_image_col_adjustable_params", &RSM_ECB_adjustable_parameter_metadata::n_image_col_adjustable_params_)
+
     .def_readonly("image_row_xyz_powers", &RSM_ECB_adjustable_parameter_metadata::image_row_xyz_powers_)
     .def_readonly("image_col_xyz_powers", &RSM_ECB_adjustable_parameter_metadata::image_col_xyz_powers_)
-    .def_readonly("xyz_norm", &RSM_ECB_adjustable_parameter_metadata::xyz_norm_)
-    .def_readonly("rect_local_coordinate_system", &RSM_ECB_adjustable_parameter_metadata::rect_local_coordinate_system_)
-    .def_readonly("rect_translation", &RSM_ECB_adjustable_parameter_metadata::rect_translation_)
-    .def_readonly("rect_rotation", &RSM_ECB_adjustable_parameter_metadata::rect_rotation_)
-
     .def_readonly("ground_adjustable_params", &RSM_ECB_adjustable_parameter_metadata::ground_adjustable_params_)
     .def_readonly("n_ground_adjustable_params", &RSM_ECB_adjustable_parameter_metadata::n_ground_adjustable_params_)
     .def_readonly("ground_adjust_param_idx", &RSM_ECB_adjustable_parameter_metadata::ground_adjust_param_idx_)
-    
+
     .def_readonly("basis_option", &RSM_ECB_adjustable_parameter_metadata::basis_option_)
     .def_readonly("n_basis_adjustable_params", &RSM_ECB_adjustable_parameter_metadata::n_basis_adjustable_params_)
     .def_readonly("A_matrix", &RSM_ECB_adjustable_parameter_metadata::A_matrix_)
@@ -1644,6 +1656,11 @@ void wrap_vpgl(py::module &m)
     .def_readonly("corr_piecewise_functions", &RSM_ECB_adjustable_parameter_metadata::corr_piecewise_functions_)
 
     .def_readonly("mapping_matrix", &RSM_ECB_adjustable_parameter_metadata::mapping_matrix_)
+
+    .def_readonly("xyz_norm", &RSM_ECB_adjustable_parameter_metadata::xyz_norm_)
+
+    .def_readonly("rect_translation", &RSM_ECB_adjustable_parameter_metadata::rect_translation_)
+    .def_readonly("rect_rotation", &RSM_ECB_adjustable_parameter_metadata::rect_rotation_)
 
     .def_readonly("unmodeled_row_variance", &RSM_ECB_adjustable_parameter_metadata::unmodeled_row_variance_)
     .def_readonly("unmodeled_col_variance", &RSM_ECB_adjustable_parameter_metadata::unmodeled_col_variance_)
@@ -1656,7 +1673,6 @@ void wrap_vpgl(py::module &m)
     .def_readonly("unmodeled_col_piecewise_function", &RSM_ECB_adjustable_parameter_metadata::unmodeled_col_piecewise_function_)
     ;
 
-  
   py::class_<vpgl_nitf_RSM_camera_extractor> (m, "vpgl_nitf_RSM_camera_extractor")
     .def(py::init<>())
     .def(py::init<std::string const&>(),"construct from file", py::arg("nitf_image_path"))
