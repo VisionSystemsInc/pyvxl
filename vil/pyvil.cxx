@@ -359,22 +359,34 @@ void wrap_vil_image_view(py::module &m, std::string const& class_name)
 
 vil_image_view<unsigned char> load_byte(std::string filename)
 {
-  return vil_convert_stretch_range(vxl_byte(), vil_load(filename.c_str()));
+  auto view = vil_convert_cast(vxl_byte(), vil_load(filename.c_str()));
+  if (!view)
+    throw std::runtime_error("Failed to load byte image " + filename);
+  return view;
 }
 
 vil_image_view<unsigned short int> load_short(std::string filename)
 {
-  return vil_convert_stretch_range(vxl_uint_16(), vil_load(filename.c_str()));
+  auto view = vil_convert_cast(vxl_uint_16(), vil_load(filename.c_str()));
+  if (!view)
+    throw std::runtime_error("Failed to load short image " + filename);
+  return view;
 }
 
 vil_image_view<float> load_float(std::string filename)
 {
-  return vil_convert_stretch_range(float(), vil_load(filename.c_str()));
+  auto view = vil_convert_cast(float(), vil_load(filename.c_str()));
+  if (!view)
+    throw std::runtime_error("Failed to load float image " + filename);
+  return view;
 }
 
 vil_image_view<int> load_int(std::string filename)
 {
-  return vil_convert_stretch_range(int(), vil_load(filename.c_str()));
+  auto view = vil_convert_cast(int(), vil_load(filename.c_str()));
+  if (!view)
+    throw std::runtime_error("Failed to load int image " + filename);
+  return view;
 }
 
 vil_image_resource_sptr vil_load_image_resource_wrapper(std::string const& filename)
