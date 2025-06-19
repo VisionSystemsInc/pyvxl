@@ -1,5 +1,6 @@
 import collections.abc
 import math
+import tempfile
 
 # nested dictionary update
 def update_nested_dict(d, u):
@@ -19,6 +20,28 @@ def safe_isnan(val):
 
 # generic base unittest object
 class VxlBase(object):
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self._temp_dir = None
+
+  @property
+  def temp_dir(self):
+    '''
+    Automatically creates a temporary directory for any unittest that needs it
+
+    Cleanups automatically in :func:`tearDown`
+    '''
+    if self._temp_dir is None:
+      self._temp_dir = tempfile.TemporaryDirectory()
+    return self._temp_dir
+
+  def tearDown(self):
+    '''
+    Cleanup ``self.temp_dir`` if it exists
+    '''
+    if self._temp_dir is not None:
+      self._temp_dir.cleanup()
 
   # check for attribute
   def assertHasAttr(self, obj, attr, msg = None):
