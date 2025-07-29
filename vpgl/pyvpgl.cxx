@@ -1261,6 +1261,49 @@ void wrap_vpgl(py::module &m)
 
     ;
 
+  // polycam
+  py::class_<vpgl_polycam<double> > polycam(m, "polycam");
+
+  // enumerations, attached to this class
+  py::enum_<vpgl_polycam<double>::coor_index>(polycam, "coor_index")
+    .value("X_INDX", vpgl_polycam<double>::X_INDX)
+    .value("Y_INDX", vpgl_polycam<double>::Y_INDX)
+    .value("Z_INDX", vpgl_polycam<double>::Z_INDX)
+    .value("U_INDX", vpgl_polycam<double>::U_INDX)
+    .value("V_INDX", vpgl_polycam<double>::V_INDX);
+
+  py::enum_<vpgl_polycam<double>::poly_index>(polycam, "poly_index")
+    .value("NEU_U", vpgl_polycam<double>::NEU_U)
+    .value("DEN_U", vpgl_polycam<double>::DEN_U)
+    .value("NEU_V", vpgl_polycam<double>::NEU_V)
+    .value("DEN_V", vpgl_polycam<double>::DEN_V);
+
+  py::enum_<vpgl_polycam<double>::poly_comp_index>(polycam, "poly_comp_index")
+    .value("NEU_U", vpgl_polycam<double>::P_NEU_U)
+    .value("DEN_U", vpgl_polycam<double>::P_DEN_U)
+    .value("NEU_V", vpgl_polycam<double>::P_NEU_V)
+    .value("DEN_V", vpgl_polycam<double>::P_DEN_V);
+
+  // function definitions
+  polycam
+
+    // constructors
+    .def(py::init<>())
+    .def(py::init<size_t, size_t>(),
+        py::arg("ridx"), py::arg("cidx"))
+    .def(py::init<size_t, size_t,
+                  const std::vector<std::vector<int>> &,
+                  const std::vector<std::vector<double>> &,
+                  const std::vector<vpgl_scale_offset<double>> &>(),
+        py::arg("ridx"), py::arg("cidx"),
+        py::arg("powers"), py::arg("coefficients"), py::arg("scale_offsets"))
+
+    // accessors
+    .def_property_readonly("ridx", &vpgl_polycam<double>::ridx)
+    .def_property_readonly("cidx", &vpgl_polycam<double>::cidx)
+    ;
+
+  // RSM Camera
   py::class_<vpgl_RSM_camera<double>, vpgl_camera<double> /* <- Parent */ > RSM_camera(m, "RSM_camera");
 
   // function definitions
