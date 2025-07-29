@@ -276,6 +276,80 @@ def _rsm_metadata_validate_dict(dct):
 rsm_metadata.as_dict_validated = lambda x: _rsm_metadata_validate_dict(x.as_dict())
 
 
+def load_ground_domain_from_dict(rsmida_dict):
+  """
+  Load ground domain from a python dictionary defined by the RSMIDA NITF TRE
+
+  Parameters
+  ----------
+  rsmida_dict : :obj:`dict`
+    Dictionary of ground domain parameters
+  """
+
+  # create ground domain
+  grndd = rsmida_dict['GRNDD']
+  ground_domain = _vpgl.ground_domain(grndd)
+
+  # rectangular ground domain
+  if grndd == 'R':
+
+    keys = ['XUOR', 'YUOR', 'ZUOR']
+    T = np.array([rsmida_dict[k] for k in keys], dtype=float)
+
+    keys = [['XUXR', 'YUXR', 'ZUXR'],
+            ['XUYR', 'YUYR', 'ZUYR'],
+            ['XUZR', 'YUZR', 'ZUZR']]
+    R = np.array([[rsmida_dict[k] for k in kr] for kr in keys], dtype=float)
+
+    ground_domain._translation = T
+    ground_domain._rotation = R
+
+  return ground_domain
+
+
+def load_polycam_from_dict(rsmpca_dict):
+  """
+  Load polycam from a python dictionary defined by the RSMPCA NITF TRE
+
+  Parameters
+  ----------
+  rsmpca_dict : :obj:`dict`
+    Dictionary of polycam parameters
+  """
+
+  # region selector row/column index
+  ridx = rsmpca_dict['RSN']
+  cidx = rsmpca_dict['CSN']
+
+  # set the maximum power of x, y, z for each of the four polynomials
+  # in order (num_u, den_u, num_v, den_v). Note u = column, v = row
+  def get_powers(key):
+    return [int(rsmpca_dict[key + 'PWRX']),
+            int(rsmpca_dict[key + 'PWRY']),
+            int(rsmpca_dict[key + 'PWRZ'])]
+
+  keys = ('CN', 'CD', 'RN', 'RD')
+  powers = [get_powers(key) for key in keys]
+
+  # coefficients in order (num_u, den_u, num_v, den_v)
+  def get_coefficients(key):
+    return rsmpca_dict[key + 'PCF']
+
+  coefficients = [get_coefficients(key) for key in keys]
+
+  # scale/offset in order (x, y, z, u, v)
+  def get_scale_offset(key):
+    return _vpgl.scale_offset(rsmpca_dict[key + 'NRMSF'],
+                              rsmpca_dict[key + 'NRMO'])
+
+  keys = ('X', 'Y', 'Z', 'C', 'R')
+  scale_offsets = [get_scale_offset(key) for key in keys]
+
+  # create polycam
+  polycam = _vpgl.polycam(ridx, cidx, powers, coefficients, scale_offsets)
+  return polycam
+
+
 def lvcs_global_to_local(self, global_longitude, global_latitude, global_elevation, input_cs_name, input_ang_unit=lvcs.AngUnits.DEG, input_len_unit=lvcs.LenUnits.METERS):
   """
   Convert global (lon, lat, el) or (easting, northing, el) coordinates to local (x, y, z) coordinates.
