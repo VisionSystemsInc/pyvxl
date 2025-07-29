@@ -676,6 +676,7 @@ void wrap_box_3d(py::module &m, std::string const& class_name)
 
     .def_property("width", &vgl_box_3d<T>::width, &vgl_box_3d<T>::set_width)
     .def_property("height", &vgl_box_3d<T>::height, &vgl_box_3d<T>::set_height)
+    .def_property("depth", &vgl_box_3d<T>::depth, &vgl_box_3d<T>::set_depth)
 
     .def_property_readonly("volume", &vgl_box_3d<T>::volume)
     .def_property_readonly("vertices", &vgl_box_3d<T>::vertices)
