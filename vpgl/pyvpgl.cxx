@@ -1313,6 +1313,17 @@ void wrap_vpgl(py::module &m)
     // default only since construction is complex
     // and is done by the vpgl_nitf_RSM_extractor factory class
     .def(py::init<>())
+    .def(py::init<const vpgl_polycam<double> &>(),
+        py::arg("polycam"))
+    .def(py::init(
+        [](const vpgl_polycam<double> & pcam,
+           const vpgl_ground_domain<double> & gd)
+        {
+          auto rsm_camera = vpgl_RSM_camera<double>(pcam);
+          rsm_camera.set_ground_domain(gd);
+          return rsm_camera;
+        }),
+        py::arg("polycam"), py::arg("ground_domain"))
     // point projection
     .def("project", vpgl_project_point<vpgl_RSM_camera<double> >)
     .def("project", vpgl_project_buffer<vpgl_RSM_camera<double> >)
