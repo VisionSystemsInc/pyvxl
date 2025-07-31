@@ -5,6 +5,9 @@
 #include <vnl/vnl_matrix_fixed.h>
 #include <vnl/vnl_vector_fixed.h>
 #include <vnl/vnl_quaternion.h>
+#include <vnl/vnl_double_2.h>
+#include <vnl/vnl_double_3.h>
+#include <vnl/vnl_double_4.h>
 #include <tuple>
 
 // io classes for py::pickle
@@ -461,9 +464,15 @@ void wrap_vnl(py::module &m)
   wrap_vnl_matrix_fixed<double,3,4>(m, "matrix_fixed_3x4");
   wrap_vnl_matrix_fixed<double,4,20>(m, "matrix_fixed_4x20");
   wrap_vnl_inverse_matrix_fixed<double,3,3>(m, "inverse_matrix_fixed_3x3");
+  wrap_vnl_vector_fixed<double,2>(m, "vector_fixed_2");
   wrap_vnl_vector_fixed<double,3>(m, "vector_fixed_3");
   wrap_vnl_vector_fixed<double,4>(m, "vector_fixed_4");
   wrap_vnl_quaternion<double>(m, "quaternion");
+
+  // vnl_T_n
+  py::class_<vnl_double_2, vnl_vector_fixed<double,2> > (m, "double_2");
+  py::class_<vnl_double_3, vnl_vector_fixed<double,3> > (m, "double_3");
+  py::class_<vnl_double_4, vnl_vector_fixed<double,4> > (m, "double_4");
 }
 }}
 
