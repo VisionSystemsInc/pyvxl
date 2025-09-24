@@ -354,6 +354,8 @@ void wrap_bsgm(py::module &m)
                    "How many pixels to pad the target window by, post rectification")
     .def_readwrite("disparity_search_margin", &pairwise_params::disparity_search_margin_,
                    "multiscale mode = 2, extra disparity added to predicted min max limits")
+    .def_readwrite("fast_heightmaps", &pairwise_params::fast_heightmaps_, "use array grid index to find neighbors for heightmap construction")
+    .def_readwrite("print_dsm_timing", &pairwise_params::print_dsm_timing_, "print pair dsm timing")
     ;
 
   // bsgm_prob_pairwise_dsm
