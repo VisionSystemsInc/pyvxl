@@ -39,6 +39,7 @@
 #include <vpgl/io/vpgl_io_affine_camera.h>
 #include <vpgl/io/vpgl_io_perspective_camera.h>
 #include <vpgl/io/vpgl_io_rational_camera.h>
+#include <vpgl/io/vpgl_io_local_rational_camera.h>
 
 #include "../pyvxl_util.h"
 
@@ -1162,6 +1163,8 @@ void wrap_vpgl(py::module &m)
     .def("clone_as_rational_camera",
          [](py::object &self) { return self.cast<vpgl_rational_camera<double> >(); },
          "Return a copy of the camera as a vpgl_rational_camera")
+    .def(py::pickle(&vslPickleGetState< vpgl_local_rational_camera<double> >,
+                    &vslPickleSetState< vpgl_local_rational_camera<double> >))
     ;
 
   m.def("_read_local_rational_camera",

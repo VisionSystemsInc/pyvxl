@@ -1,8 +1,10 @@
 #include "pyvil.h"
+#include "../pyvxl_util.h"
 #include <tuple>
 #include <vil/vil_convert.h>
 #include <vil/vil_crop.h>
 #include <vil/vil_image_view.h>
+#include <vil/io/vil_io_image_view.h>
 #include <vil/vil_image_view_base.h>
 #include <vil/vil_load.h>
 #include <vil/vil_math.h>
@@ -354,7 +356,9 @@ void wrap_vil_image_view(py::module &m, std::string const& class_name)
     .def("__getitem__", image_getitem<T>)
     .def_property_readonly("shape", &image_view_shape<T>)
     .def_buffer(get_image_buffer<T>)
-    .def("deep_copy", &vil_image_view<T>::deep_copy);
+    .def("deep_copy", &vil_image_view<T>::deep_copy)
+    .def(py::pickle(&vslPickleGetState< vil_image_view<T> >,
+                    &vslPickleSetState< vil_image_view<T> >));
 }
 
 vil_image_view<unsigned char> load_byte(std::string filename)

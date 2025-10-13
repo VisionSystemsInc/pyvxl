@@ -405,6 +405,24 @@ class VpglRationalCamera(VpglCameraBase, unittest.TestCase):
       self.assertEqual(ptA, ptB)
 
 
+# local rational camera
+class VpglLocalRationalCamera(VpglRationalCamera, unittest.TestCase):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    # LVCS for local rational cam
+    lvcs_origin = (-71.4193,  41.8286, 14.0)
+    self.lvcs = vpgl.lvcs(*lvcs_origin, vpgl.lvcs.cs_names.wgs84)
+
+  def _create_cam(self, data, check=False):
+    # create a rational camera
+    rcam = vpgl.load_rational_camera_from_str(data['string'])
+    # create local rational camera with LVCS
+    local_cam = vpgl.local_rational_camera(self.lvcs, rcam)
+    # check camera the same way as rational camera
+    if check: self._check_cam(local_cam, data)
+    return local_cam
+
+
 # ----------
 # LVCS TESTS
 # ----------
