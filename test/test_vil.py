@@ -152,7 +152,15 @@ class VilFile(utils.VxlBase, unittest.TestCase):
       {'vil_type': 'float', 'load_type': 'byte', 'rng': [0, 255]},
       {'vil_type': 'float', 'load_type': 'short', 'rng': [0, 65535]},
     ]
-
     for item in data:
       with self.subTest(item):
         self._test_save_load_pickle(**item)
+
+
+  def test_load_no_file(self):
+    '''Raise an exception when loading a file that does not exist'''
+
+    vil_types = ('byte', 'short', 'float', 'int')
+    for vil_type in vil_types:
+      with self.subTest(vil_type), self.assertRaises(RuntimeError):
+        _ = vil.load('/not/a/file', vil_type)
