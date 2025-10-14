@@ -355,6 +355,12 @@ class VpglRationalCamera(VpglCameraBase, unittest.TestCase):
       },
     }
 
+    # origin
+    for item in self.test_data.values():
+      origin = [float(item['dict']['IMAGE'][key])
+                for key in ('longOffset', 'latOffset', 'heightOffset')]
+      item['origin'] = origin
+
   def _create_cam(self, data, check=False):
     cam = vpgl.load_rational_camera_from_str(data['string'])
     if check: self._check_cam(cam, data)
@@ -382,10 +388,6 @@ class VpglRationalCamera(VpglCameraBase, unittest.TestCase):
     # test data
     data = self.test_data['default']
 
-    # RPC origin
-    origin_3d = [data['dict']['IMAGE'][key]
-                 for key in ('longOffset', 'latOffset', 'heightOffset')]
-
     # construct cameras from string and dictionary
     camA = vpgl.load_rational_camera_from_str(data['string'])
     self._check_cam(camA, data)
@@ -399,10 +401,58 @@ class VpglRationalCamera(VpglCameraBase, unittest.TestCase):
       (1e-3, 1e-3, 1),
     ]
     for offset in offsets:
-      pt3d = [origin_3d[i] + offset[i] for i in range(3)]
+      pt3d = [data['origin'][i] + offset[i] for i in range(3)]
       ptA = list(camA.project(*pt3d))
       ptB = list(camB.project(*pt3d))
       self.assertEqual(ptA, ptB)
+
+
+# local rational camera
+class VpglLocalRationalCamera(VpglRationalCamera, unittest.TestCase):
+  maxDiff = None
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.cls = vpgl.local_rational_camera
+    self.load = vpgl.load_rational_camera
+
+  def _create_lvcs(self, data):
+    orig_lon, orig_lat, orig_elev = data['origin']
+    return vpgl.lvcs(orig_lon=orig_lon, orig_lat=orig_lat, orig_elev=orig_elev,
+                     cs_name=vpgl.lvcs.cs_names.wgs84)
+
+  def _create_cam(self, data, check=False):
+    rat_cam = vpgl.load_rational_camera_from_dict(data['dict'])
+    lvcs = self._create_lvcs(data)
+    cam = vpgl.local_rational_camera(lvcs, rat_cam)
+    if check: self._check_cam(cam, data)
+    return cam
+
+  def _check_cam(self, cam, data):
+
+    # check rational camera
+    rat_cam = cam.clone_as_rational_camera()
+    VpglRationalCamera._check_cam(self, rat_cam, data)
+
+    # check lvcs
+    lvcs = cam.lvcs()
+    origin = np.array(lvcs.get_origin())
+    np.testing.assert_allclose(origin, data['origin'], rtol=0, atol=1e-12)
+
+  def test_project_dict(self):
+
+    # test data
+    data = self.test_data['default']
+    origin_global = data['origin']
+    origin_local = [0.0, 0.0, 0.0]
+
+    # construct rational camera & local rational camera
+    rcam = vpgl.load_rational_camera_from_dict(data['dict'])
+    lrcam = self._create_cam(data)
+
+    # compare projection
+    ptA = list(rcam.project(*origin_global))
+    ptB = list(lrcam.project(*origin_local))
+    self.assertEqual(ptA, ptB)
 
 
 # ----------

@@ -1,4 +1,5 @@
 import os
+import pickle
 import unittest
 import utils
 import uuid
@@ -26,10 +27,10 @@ class VilFile(utils.VxlBase, unittest.TestCase):
     return np.dstack(bands).squeeze()
 
 
-  def _test_save_load(self, vil_type='byte', load_type=None, ext='.tif',
-                      nbands=1, rng=None, atol=1):
+  def _test_save_load_pickle(self, vil_type='byte', load_type=None,
+                             ext='.tif', nbands=1, rng=None, atol=1):
     '''
-    vil.save followed by vil.load
+    vil.save followed by vil.load, then pickle followed by unpickle
 
     Parameters
     ----------
@@ -108,10 +109,17 @@ class VilFile(utils.VxlBase, unittest.TestCase):
     # compare loaded values
     np.testing.assert_allclose(image, image_load, rtol=0, atol=atol)
 
+    # pickle and unpickle the image
+    view_unpickled = pickle.loads(pickle.dumps(view))
+    image_unpickled = np.array(view_unpickled)
+
+    # compare values before and after pickle
+    np.testing.assert_allclose(image, image_unpickled, rtol=0, atol=atol)
+
 
   @unittest.skipUnless(np, 'Numpy not found')
-  def test_save_load(self):
-    '''Test various vil.save/vil.load combinations'''
+  def test_save_load_pickle(self):
+    '''Test various vil.save/vil.load and pickle/unpickle combinations'''
     data = [
       # TIFF
       {'ext': '.tif', 'vil_type': 'byte', 'nbands': 1},
@@ -144,10 +152,9 @@ class VilFile(utils.VxlBase, unittest.TestCase):
       {'vil_type': 'float', 'load_type': 'byte', 'rng': [0, 255]},
       {'vil_type': 'float', 'load_type': 'short', 'rng': [0, 65535]},
     ]
-
     for item in data:
       with self.subTest(item):
-        self._test_save_load(**item)
+        self._test_save_load_pickle(**item)
 
 
   def test_load_no_file(self):
