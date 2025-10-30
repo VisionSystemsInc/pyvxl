@@ -71,7 +71,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     find_package(PythonLibs 3 REQUIRED)
 
     # find and include VXL
-    set(VXL_DIR "VXL_NOTFOUND" CACHE PATH "Location of VXL source directory")
+    set(VXL_DIR "VXL-NOTFOUND" CACHE PATH "Location of VXL source directory")
     message(STATUS "VXL_DIR = ${VXL_DIR}")
     if (NOT IS_DIRECTORY ${VXL_DIR})
       message(FATAL_ERROR "Set VXL_DIR to the location of VXL source directory")
@@ -97,13 +97,19 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include_directories(${VXL_DIR}/contrib/brl/bbas)
     include_directories(${VXL_DIR}/contrib/gel)
 
-    # Build Pybind11
-    set(PYBIND11_DIR "PYBIND11_NOTFOUND" CACHE PATH "Location of Pybind11 source directory")
-    message(STATUS "PYBIND11_DIR = ${PYBIND11_DIR}")
-    if (NOT IS_DIRECTORY ${PYBIND11_DIR})
-      message(FATAL_ERROR "Set PYBIND11_DIR to the location of the Pybind11 source directory")
+    # pybind11 via either internal source code or external install
+    # https://pybind11.readthedocs.io/en/stable/compiling.html#find-package-vs-add-subdirectory
+    set(PYBIND11_DIR "PYBIND11-NOTFOUND" CACHE PATH "Location of Pybind11 source directory")
+    if (PYBIND11_DIR)
+      message(STATUS "pybind11 source directory at ${PYBIND11_DIR}")
+      if (NOT IS_DIRECTORY ${PYBIND11_DIR})
+        message(FATAL_ERROR "Set PYBIND11_DIR to the location of the Pybind11 source directory")
+      endif()
+      add_subdirectory(${PYBIND11_DIR}, "pybind_build")
+    else()
+      find_package(pybind11 REQUIRED)
     endif()
-    add_subdirectory(${PYBIND11_DIR} "pybind_build")
+
 endif()
 
 include_directories(${PYTHON_INCLUDE_PATH})
