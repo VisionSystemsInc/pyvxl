@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
@@ -13,35 +13,27 @@ jobs:
             # clear the way
             mkdir -p /source/vxl /source/pyvxl /build /venv
 
-            # system packages
-            apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              python3-dev
-
-            # recent pip
-            curl -o /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py
-            python3 /tmp/get-pip.py
-
-            # system python packages
-            pip3 install virtualenv pybind11[global]
+            # install uv
+            export UV_INSTALL_DIR="/usr/local/bin"
+            curl -LsSf https://astral.sh/uv/0.13.1/install.sh | sh
 
             # create & activate venv
-            virtualenv /venv
+            uv venv /venv --python 3.13.16
             source /venv/bin/activate
+
+            # dependencies
+            uv pip install "cmake==3.27" ninja pybind11 numpy
 
             # add virtualenv to .bashrc to automatically activate
             # for every following step
             echo "source /venv/bin/activate" >> $BASH_ENV
-
-            # virtualenv packages
-            pip3 install numpy
 
             # report
             set -x
             type -a python3
             python3 --version
             python3 -m site
-            pip3 freeze --all
+            uv pip freeze
 
       - run:
           name: Checkout VXL
@@ -61,17 +53,26 @@ jobs:
           working_directory: /build
           command: |
 
-            # top-level cmake file
-            mv /source/pyvxl/.circleci/config.cmake /source/CMakeLists.txt
+            # python & pybind11
+            python_exe="/venv/bin/python"
+            pybind11_DIR="$("${python_exe}" -c "import pybind11; print(pybind11.get_cmake_dir())")"
 
             # configure
             OPTS=(
+              -S /source/pyvxl
+              -B /build
               -G Ninja
               -D CMAKE_BUILD_TYPE=Release
+              -D Python_EXECUTABLE="${python_exe}"
+              -D pybind11_DIR="${pybind11_DIR}"
+              -D VXL_SOURCE_DIR="/source/vxl"
               -D PYVXL_CONTRIB_MAKE_ALL=ON
               -D PYVXL_DEBUG_MESSAGES=ON
+              -D VXL_BUILD_CORE_VIDEO=ON
+              -D VXL_BUILD_CONTRIB=ON
+              -D VXL_BUILD_BRL=ON
             )
-            cmake /source ${OPTS[@]}
+            uv run cmake "${OPTS[@]}"
 
       - run:
           name: compile
@@ -91,7 +92,7 @@ jobs:
       - run:
           name: test
           working_directory: /source/pyvxl
-          command: python3 -m unittest discover -v test
+          command: python -m unittest discover -v test
 
 
 workflows:
