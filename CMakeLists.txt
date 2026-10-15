@@ -1,11 +1,20 @@
-cmake_minimum_required(VERSION 3.10.2) # same as vxl
+cmake_minimum_required(VERSION 3.21)
 project("pyvxl")
 
+if(NOT CMAKE_CXX_STANDARD)
+   set(CMAKE_CXX_STANDARD "17")
+endif()
+
 # pyvxl project source directory
-set(PYVXL_PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
+set(PYVXL_PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # print pyvxl debug messages during cmake
 set(PYVXL_DEBUG_MESSAGES "OFF" CACHE BOOL "Print pyvxl debug messages")
+
+# header-only target for top-level utilities
+add_library(pyvxl_utils INTERFACE)
+target_include_directories(pyvxl_utils INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
+add_library(pyvxl::utils ALIAS pyvxl_utils)
 
 # function: add pyvxl module
 function(pyvxl_add_module vxl_name)
@@ -48,8 +57,8 @@ function(pyvxl_add_module vxl_name)
         # Add pybind11 module
         pybind11_add_module(${target_name} ${target_files})
 
-        # Link to vxl library
-        target_link_libraries(${target_name} PRIVATE ${vxl_name})
+        # Link to vxl library & utilities
+        target_link_libraries(${target_name} PRIVATE ${vxl_name} pyvxl::utils)
 
         # Set output_name of target
         set_target_properties(${target_name} PROPERTIES OUTPUT_NAME ${output_name})
@@ -61,22 +70,32 @@ function(pyvxl_add_module vxl_name)
 
 endfunction()
 
+# python
+find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 
-# If building PyVXL directly, build VXL and pybind11
-if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-    set(PYVXL_TOP_LEVEL TRUE)
-    # pyvxl built as top-level project
+# pybind11 via find_package or add_subdirectory
+# https://pybind11.readthedocs.io/en/stable/compiling.html#find-package-vs-add-subdirectory
+set(PYBIND11_SOURCE_DIR "PYBIND11_SOURCE_DIR-NOTFOUND" CACHE PATH "Location of pybind11 source directory")
+if (PYBIND11_SOURCE_DIR)
+  message(STATUS "pybind11 source directory at ${PYBIND11_SOURCE_DIR}")
+  if (NOT IS_DIRECTORY "${PYBIND11_SOURCE_DIR}")
+    message(FATAL_ERROR "Set PYBIND11_SOURCE_DIR to the location of the pybind11 source directory")
+  endif()
+  add_subdirectory("${PYBIND11_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/pybind11_build")
+else()
+  find_package(pybind11 REQUIRED)
+endif()
 
-    # find Python
-    find_package(PythonLibs 3 REQUIRED)
+# If building PyVXL directly, also include VXL
+if(PROJECT_IS_TOP_LEVEL)
 
     # find and include VXL
-    set(VXL_DIR "VXL-NOTFOUND" CACHE PATH "Location of VXL source directory")
-    message(STATUS "VXL_DIR = ${VXL_DIR}")
-    if (NOT IS_DIRECTORY ${VXL_DIR})
-      message(FATAL_ERROR "Set VXL_DIR to the location of VXL source directory")
+    set(VXL_SOURCE_DIR "VXL_SOURCE_DIR-NOTFOUND" CACHE PATH "Location of VXL source directory")
+    message(STATUS "VXL_SOURCE_DIR = ${VXL_SOURCE_DIR}")
+    if (NOT IS_DIRECTORY ${VXL_SOURCE_DIR})
+      message(FATAL_ERROR "Set VXL_SOURCE_DIR to the location of VXL source directory")
     endif()
-    set(VXL_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/vxl_build)
+    set(VXL_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/vxl_build")
 
     # NOTE: If you want to wrap contrib/brl, you'll need to build it in vxl.
     # This currently requires setting the following CMake options:
@@ -85,51 +104,32 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     # set(VXL_BUILD_BRL "TRUE" CACHE BOOL "BUILD BRL")
 
     # Build VXL
-    add_subdirectory(${VXL_DIR} ${VXL_BINARY_DIR} EXCLUDE_FROM_ALL)
+    add_subdirectory(${VXL_SOURCE_DIR} ${VXL_BINARY_DIR} EXCLUDE_FROM_ALL)
 
     # include vxl headers
-    include_directories(${VXL_DIR})
-    include_directories(${VXL_DIR}/core ${VXL_BINARY_DIR}/core)
-    include_directories(${VXL_DIR}/vcl ${VXL_BINARY_DIR}/vcl)
+    include_directories(${VXL_SOURCE_DIR})
+    include_directories(${VXL_SOURCE_DIR}/core ${VXL_BINARY_DIR}/core)
+    include_directories(${VXL_SOURCE_DIR}/vcl ${VXL_BINARY_DIR}/vcl)
     include_directories(${VXL_BINARY_DIR}/contrib)
-    include_directories(${VXL_DIR}/contrib/brl)
-    include_directories(${VXL_DIR}/contrib/brl/bseg)
-    include_directories(${VXL_DIR}/contrib/brl/bbas)
-    include_directories(${VXL_DIR}/contrib/gel)
-
-    # pybind11 via either internal source code or external install
-    # https://pybind11.readthedocs.io/en/stable/compiling.html#find-package-vs-add-subdirectory
-    set(PYBIND11_DIR "PYBIND11-NOTFOUND" CACHE PATH "Location of Pybind11 source directory")
-    if (PYBIND11_DIR)
-      message(STATUS "pybind11 source directory at ${PYBIND11_DIR}")
-      if (NOT IS_DIRECTORY ${PYBIND11_DIR})
-        message(FATAL_ERROR "Set PYBIND11_DIR to the location of the Pybind11 source directory")
-      endif()
-      add_subdirectory(${PYBIND11_DIR}, "pybind_build")
-    else()
-      find_package(pybind11 REQUIRED)
-    endif()
+    include_directories(${VXL_SOURCE_DIR}/contrib/brl)
+    include_directories(${VXL_SOURCE_DIR}/contrib/brl/bseg)
+    include_directories(${VXL_SOURCE_DIR}/contrib/brl/bbas)
+    include_directories(${VXL_SOURCE_DIR}/contrib/gel)
 
 endif()
 
-include_directories(${PYTHON_INCLUDE_PATH})
-
-include_directories(${PROJECT_SOURCE_DIR})
-
-# python site-packages directory reported by ``sysconfig.get_path('purelib')``
-# https://stackoverflow.com/a/46071447
-execute_process(
-  COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
-    import sysconfig
-    print(sysconfig.get_path('purelib'))"
-  OUTPUT_VARIABLE PYTHON_SITE_DEFAULT
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-
 # python site-packages cache variable
+set(PYTHON_SITE_DEFAULT "${Python_SITELIB}")
 set(PYTHON_SITE "${PYTHON_SITE_DEFAULT}" CACHE STRING "Python site-packages directory")
 
 if ("${PYTHON_SITE}" STREQUAL "${PYTHON_SITE_DEFAULT}")
   set(PYTHON_SITE_INITIALIZED_TO_DEFAULT 1)
+endif()
+
+if (PYVXL_DEBUG_MESSAGES)
+    message(STATUS "PYTHON_SITE_DEFAULT=${PYTHON_SITE_DEFAULT}")
+    message(STATUS "PYTHON_SITE=${PYTHON_SITE}")
+    message(STATUS "PYTHON_SITE_INITIALIZED_TO_DEFAULT=${PYTHON_SITE_INITIALIZED_TO_DEFAULT}")
 endif()
 
 # installation directory as sub-dir of PYTHON_SITE

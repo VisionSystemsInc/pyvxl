@@ -57,7 +57,7 @@ class AcalBase(utils.VxlBase):
     instance_B = self._cls_instance(**self.init_data)
     self.assertEqual(instance_A, instance_B)
 
-  @utils.skipUnlessClassAttr('__getstate__')
+  @utils.skipUnlessClassAttr('__setstate__')
   def test_pickle(self):
     instance_A = self._cls_instance(**self.init_data)
     instance_B = pickle.loads(pickle.dumps(instance_A))
